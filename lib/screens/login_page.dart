@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../config/api_config.dart';
+import '../main.dart';
+import '../models/user_model.dart';
+import '../services/auth_service.dart';
+
 /// Native adaptation of Laravel's resources/views/login.blade.php.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,6 +20,8 @@ class _LoginPageState extends State<LoginPage> {
   bool _hidePassword = true;
   bool _remember = false;
   bool _dark = false;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -23,16 +30,109 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
-    // Keep the user on this page until real Laravel authentication is available.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Login belum tersedia. Silakan gunakan website Agile untuk masuk sementara.',
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await AuthService.login(
+      email: _email.text.trim(),
+      password: _password.text,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result.success && result.user != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Selamat datang, ${result.user!.name}!'),
+          backgroundColor: const Color(0xFF1F7A2E),
+          behavior: SnackBarBehavior.floating,
         ),
-        behavior: SnackBarBehavior.floating,
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DashboardLoadingPage(user: result.user!),
+        ),
+      );
+    } else {
+      setState(() {
+        _errorMessage = result.message;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: const Color(0xFFD14942),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _showServerConfigDialog() {
+    final controller = TextEditingController(text: ApiConfig.baseUrl);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          'Konfigurasi Server API',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Masukkan Base URL backend Laravel Agile:',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                hintText: 'http://10.0.2.2:8000/api',
+                labelText: 'Base URL',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Contoh:\n• Android Emulator: http://10.0.2.2:8000/api\n• HP Asli / WiFi: http://192.168.x.x:8000/api\n• Windows Desktop: http://127.0.0.1:8000/api',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await ApiConfig.resetBaseUrl();
+              if (ctx.mounted) Navigator.pop(ctx);
+              setState(() {});
+            },
+            child: const Text('Reset Default'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (controller.text.trim().isNotEmpty) {
+                await ApiConfig.setBaseUrl(controller.text.trim());
+                if (ctx.mounted) Navigator.pop(ctx);
+                setState(() {});
+              }
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
       ),
     );
   }
@@ -98,25 +198,41 @@ class _LoginPageState extends State<LoginPage> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: IconButton.filledTonal(
-                            tooltip: _dark
-                                ? 'Aktifkan mode terang'
-                                : 'Aktifkan mode gelap',
-                            onPressed: () => setState(() => _dark = !_dark),
-                            style: IconButton.styleFrom(
-                              backgroundColor: _dark
-                                  ? const Color(0xFF21372A)
-                                  : const Color(0xFFE8EFE9),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton.filledTonal(
+                              tooltip: 'Pengaturan Server API',
+                              onPressed: _showServerConfigDialog,
+                              style: IconButton.styleFrom(
+                                backgroundColor: _dark
+                                    ? const Color(0xFF21372A)
+                                    : const Color(0xFFE8EFE9),
+                              ),
+                              icon: const Icon(
+                                Icons.settings_ethernet_rounded,
+                                size: 20,
+                              ),
                             ),
-                            icon: Icon(
-                              _dark
-                                  ? Icons.light_mode_outlined
-                                  : Icons.dark_mode_outlined,
-                              size: 20,
+                            const SizedBox(width: 8),
+                            IconButton.filledTonal(
+                              tooltip: _dark
+                                  ? 'Aktifkan mode terang'
+                                  : 'Aktifkan mode gelap',
+                              onPressed: () => setState(() => _dark = !_dark),
+                              style: IconButton.styleFrom(
+                                backgroundColor: _dark
+                                    ? const Color(0xFF21372A)
+                                    : const Color(0xFFE8EFE9),
+                              ),
+                              icon: Icon(
+                                _dark
+                                    ? Icons.light_mode_outlined
+                                    : Icons.dark_mode_outlined,
+                                size: 20,
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                         const Spacer(),
                         Center(
@@ -202,11 +318,48 @@ class _LoginPageState extends State<LoginPage> {
                                         height: 1.7,
                                       ),
                                     ),
-                                    const SizedBox(height: 30),
+                                    if (_errorMessage != null) ...[
+                                      const SizedBox(height: 16),
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFD14942)
+                                              .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: const Color(0xFFD14942)
+                                                .withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.error_outline_rounded,
+                                              color: Color(0xFFD14942),
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                _errorMessage!,
+                                                style: const TextStyle(
+                                                  color: Color(0xFFD14942),
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 24),
                                     _label('Email', text),
                                     const SizedBox(height: 9),
                                     TextFormField(
                                       controller: _email,
+                                      enabled: !_isLoading,
                                       keyboardType: TextInputType.emailAddress,
                                       textInputAction: TextInputAction.next,
                                       autofillHints: const [
@@ -242,6 +395,7 @@ class _LoginPageState extends State<LoginPage> {
                                     const SizedBox(height: 9),
                                     TextFormField(
                                       controller: _password,
+                                      enabled: !_isLoading,
                                       obscureText: _hidePassword,
                                       autocorrect: false,
                                       enableSuggestions: false,
@@ -284,9 +438,12 @@ class _LoginPageState extends State<LoginPage> {
                                     const SizedBox(height: 10),
                                     CheckboxListTile(
                                       value: _remember,
-                                      onChanged: (value) => setState(
-                                        () => _remember = value ?? false,
-                                      ),
+                                      onChanged: _isLoading
+                                          ? null
+                                          : (value) => setState(
+                                                () =>
+                                                    _remember = value ?? false,
+                                              ),
                                       contentPadding: EdgeInsets.zero,
                                       controlAffinity:
                                           ListTileControlAffinity.leading,
@@ -307,7 +464,7 @@ class _LoginPageState extends State<LoginPage> {
                                     SizedBox(
                                       height: 54,
                                       child: FilledButton.icon(
-                                        onPressed: _submit,
+                                        onPressed: _isLoading ? null : _submit,
                                         style: FilledButton.styleFrom(
                                           backgroundColor: forest,
                                           foregroundColor: Colors.white,
@@ -317,13 +474,22 @@ class _LoginPageState extends State<LoginPage> {
                                             ),
                                           ),
                                         ),
-                                        icon: const Icon(
-                                          Icons.login_rounded,
-                                          size: 20,
-                                        ),
-                                        label: const Text(
-                                          'Masuk',
-                                          style: TextStyle(
+                                        icon: _isLoading
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2.5,
+                                                  color: Colors.white,
+                                                ),
+                                              )
+                                            : const Icon(
+                                                Icons.login_rounded,
+                                                size: 20,
+                                              ),
+                                        label: Text(
+                                          _isLoading ? 'Memproses...' : 'Masuk',
+                                          style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w700,
                                           ),
@@ -370,4 +536,36 @@ class _LoginPageState extends State<LoginPage> {
       ],
     ),
   );
+}
+
+class DashboardLoadingPage extends StatefulWidget {
+  final UserModel user;
+  const DashboardLoadingPage({super.key, required this.user});
+
+  @override
+  State<DashboardLoadingPage> createState() => _DashboardLoadingPageState();
+}
+
+class _DashboardLoadingPageState extends State<DashboardLoadingPage> {
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final dashboard = await AuthService.getDashboard();
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => HomePage(user: widget.user, dashboard: dashboard),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
 }

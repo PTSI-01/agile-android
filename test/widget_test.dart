@@ -1,9 +1,10 @@
 import 'package:agile/main.dart';
+import 'package:agile/screens/supplier/supplier_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Login validates input, toggles password and remains on login', (
+  testWidgets('Login validates input, toggles password and interaction', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(360, 800);
@@ -40,12 +41,6 @@ void main() {
       tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
       isTrue,
     );
-    await tester.ensureVisible(find.text('Masuk'));
-    await tester.tap(find.text('Masuk'));
-    await tester.pumpAndSettle();
-    expect(find.text('Masuk ke akun Anda'), findsOneWidget);
-    expect(find.byType(HomePage), findsNothing);
-    expect(find.textContaining('Login belum tersedia'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -66,5 +61,25 @@ void main() {
     await tester.ensureVisible(find.text('Masuk'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('SupplierListPage renders search, stats and action buttons', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SupplierListPage(),
+      ),
+    );
+
+    expect(find.text('Master Data Supplier'), findsOneWidget);
+    expect(find.text('Total Pemasok'), findsOneWidget);
+    expect(find.text('Tambah Supplier'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
   });
 }
