@@ -91,7 +91,7 @@ class _HomePageState extends State<HomePage> {
         onOpenModules: () => setState(() => _currentIndex = 1),
         onOpenProfile: () => setState(() => _currentIndex = 2),
       ),
-      const ModulesPage(),
+      ModulesPage(dashboard: widget.dashboard),
       ProfilePage(user: _currentUser),
     ];
 
