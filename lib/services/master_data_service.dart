@@ -23,6 +23,47 @@ class MasterDataService {
 
   static Future<List<Map<String, dynamic>>> buyers({String search = ''}) => list('buyer', search: search);
 
+  static Future<List<Map<String, dynamic>>> banks({String search = ''}) async {
+    final token = await AuthService.getToken();
+    final uri = Uri.parse('${ApiConfig.baseUrl}/master-banks').replace(
+      queryParameters: {'per_page': '100', if (search.trim().isNotEmpty) 'search': search.trim()},
+    );
+    final response = await http.get(uri, headers: {'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 15));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode >= 400 || body['success'] != true) throw Exception(body['message'] ?? 'Gagal memuat master bank');
+    final data = body['data'] as Map<String, dynamic>;
+    return (data['data'] as List? ?? []).cast<Map<String, dynamic>>();
+  }
+
+  static Future<Map<String, dynamic>> saveBank(Map<String, dynamic> data, {String? id}) async {
+    final token = await AuthService.getToken();
+    final uri = Uri.parse('${ApiConfig.baseUrl}/master-banks${id == null ? '' : '/$id'}');
+    final response = id == null
+        ? await http.post(uri, headers: {'Content-Type': 'application/json', 'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}, body: jsonEncode(data)).timeout(const Duration(seconds: 20))
+        : await http.put(uri, headers: {'Content-Type': 'application/json', 'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}, body: jsonEncode(data)).timeout(const Duration(seconds: 20));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode >= 400) throw Exception(body['message'] ?? 'Gagal menyimpan master bank');
+    return body;
+  }
+
+  static Future<Map<String, dynamic>> bankDetail(String id) async {
+    final token = await AuthService.getToken();
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/master-banks/$id'), headers: {
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    }).timeout(const Duration(seconds: 15));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode >= 400 || body['success'] != true) throw Exception(body['message'] ?? 'Gagal memuat detail bank');
+    return (body['data'] as Map).cast<String, dynamic>();
+  }
+
+  static Future<void> deleteBank(String id) async {
+    final token = await AuthService.getToken();
+    final response = await http.delete(Uri.parse('${ApiConfig.baseUrl}/master-banks/$id'), headers: {'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 20));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode >= 400) throw Exception(body['message'] ?? 'Gagal menghapus master bank');
+  }
+
   static Future<Map<String, dynamic>> saveBuyer(Map<String, dynamic> data, {String? id}) async {
     final token = await AuthService.getToken();
     final uri = Uri.parse('${ApiConfig.baseUrl}/master-buyers${id == null ? '' : '/$id'}');
@@ -32,6 +73,14 @@ class MasterDataService {
     final body = jsonDecode(finalResponse.body) as Map<String, dynamic>;
     if (finalResponse.statusCode >= 400) throw Exception(body['message'] ?? 'Gagal menyimpan buyer');
     return body;
+  }
+
+  static Future<Map<String, dynamic>> buyerDetail(String id) async {
+    final token = await AuthService.getToken();
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/master-buyers/$id'), headers: {'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 15));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode >= 400 || body['success'] != true) throw Exception(body['message'] ?? 'Gagal memuat detail buyer');
+    return (body['data'] as Map).cast<String, dynamic>();
   }
 
   static Future<void> deactivateBuyer(String id) async {

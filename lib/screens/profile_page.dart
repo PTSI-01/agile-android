@@ -286,7 +286,7 @@ class ProfilePage extends StatelessWidget {
                   ListTile(
                     leading: Icon(Icons.info_outline_rounded, color: muted),
                     title: Text(
-                      'Aplikasi E-Procurement Agile',
+                      'E-Procurement AJA',
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                     trailing: Text(
@@ -298,11 +298,11 @@ class ProfilePage extends StatelessWidget {
                   ListTile(
                     leading: Icon(Icons.business_rounded, color: muted),
                     title: Text(
-                      'PT Agile Jaya Abadi',
+                      'CV Agile Jaya Abadi',
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      'Sistem Pengadaan Gabah & Komoditas Beras',
+                      'Sistem Pengadaan Bahan Baku',
                       style: TextStyle(fontSize: 11, color: muted),
                     ),
                   ),

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../models/supplier_model.dart';
 import '../../services/supplier_service.dart';
+import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 import 'supplier_detail_page.dart';
 import 'supplier_form_page.dart';
 
@@ -24,17 +26,24 @@ class _SupplierListPageState extends State<SupplierListPage> {
   int _totalActive = 0;
   int _totalInactive = 0;
   int _currentPage = 1;
+  int _lastPage = 1;
 
   int? _statusFilter; // null: all, 1: active, 0: inactive
   String? _groupIdFilter;
   List<SupplierGroupRef> _groups = [];
+  UserModel? _user;
 
   @override
   void initState() {
     super.initState();
     _loadReferences();
     _fetchSuppliers();
+    AuthService.getCurrentUser().then((user) {
+      if (mounted) setState(() => _user = user);
+    });
   }
+
+  bool _can(String action) => _user?.permissions['supplier.${action.toLowerCase()}'] ?? (_user?.role == 'superadmin');
 
   @override
   void dispose() {
@@ -74,6 +83,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
         _totalActive = res.totalActive;
         _totalInactive = res.totalInactive;
         _currentPage = res.currentPage;
+        _lastPage = res.lastPage;
         _isLoading = false;
       });
     } else {
@@ -142,7 +152,8 @@ class _SupplierListPageState extends State<SupplierListPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: _can('create') || _can('update')
+          ? FloatingActionButton.extended(
         onPressed: _openAddSupplier,
         backgroundColor: green,
         foregroundColor: Colors.white,
@@ -152,7 +163,8 @@ class _SupplierListPageState extends State<SupplierListPage> {
           'Tambah Supplier',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-      ),
+      )
+          : null,
       body: SafeArea(
         child: Column(
           children: [
@@ -382,10 +394,31 @@ class _SupplierListPageState extends State<SupplierListPage> {
                                   20,
                                   90,
                                 ),
-                                itemCount: _suppliers.length,
+                                itemCount: _suppliers.length + 1,
                                 separatorBuilder: (context, index) =>
                                     const SizedBox(height: 12),
                                 itemBuilder: (context, index) {
+                                  if (index == _suppliers.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 8, bottom: 12),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          IconButton(
+                                            tooltip: 'Halaman sebelumnya',
+                                            onPressed: _currentPage > 1 ? () => _fetchSuppliers(page: _currentPage - 1) : null,
+                                            icon: const Icon(Icons.chevron_left_rounded),
+                                          ),
+                                          Text('Halaman $_currentPage dari $_lastPage', style: const TextStyle(fontWeight: FontWeight.w700)),
+                                          IconButton(
+                                            tooltip: 'Halaman berikutnya',
+                                            onPressed: _currentPage < _lastPage ? () => _fetchSuppliers(page: _currentPage + 1) : null,
+                                            icon: const Icon(Icons.chevron_right_rounded),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
                                   final supplier = _suppliers[index];
                                   return _buildSupplierCard(supplier);
                                 },

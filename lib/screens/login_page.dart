@@ -245,46 +245,26 @@ class _LoginPageState extends State<LoginPage> {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    Row(
+                                    Column(
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          borderRadius: BorderRadius.circular(18),
                                           child: Image.asset(
                                             'assets/images/logo_agile.jpg',
-                                            width: 58,
-                                            height: 58,
+                                            width: 96,
+                                            height: 96,
                                             fit: BoxFit.contain,
-                                            semanticLabel:
-                                                'Logo Agile Jaya Abadi',
+                                            semanticLabel: 'Logo Agile Jaya Abadi',
                                           ),
                                         ),
-                                        const SizedBox(width: 14),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'AGILE JAYA ABADI',
-                                                style: TextStyle(
-                                                  color: text,
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.w800,
-                                                  letterSpacing: .4,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 5),
-                                              Text(
-                                                'E-Procurement',
-                                                style: TextStyle(
-                                                  color: soft,
-                                                  fontSize: 12,
-                                                  letterSpacing: 1.2,
-                                                ),
-                                              ),
-                                            ],
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'E-Procurement AJA',
+                                          style: TextStyle(
+                                            color: text,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: .5,
                                           ),
                                         ),
                                       ],

@@ -5,6 +5,7 @@ class UserModel {
   final String? role;
   final bool accountEnabled;
   final bool passwordSetupRequired;
+  final Map<String, bool> permissions;
 
   UserModel({
     required this.id,
@@ -13,6 +14,7 @@ class UserModel {
     this.role,
     this.accountEnabled = true,
     this.passwordSetupRequired = false,
+    this.permissions = const {},
   });
 
   String get initials {
@@ -37,6 +39,9 @@ class UserModel {
           ? json['password_setup_required'] as bool
           : (json['password_setup_required'] == 1 ||
               json['password_setup_required'] == '1'),
+      permissions: (json['permissions'] as Map? ?? {}).map(
+        (key, value) => MapEntry(key.toString(), value == true || value == 1),
+      ),
     );
   }
 
@@ -48,7 +53,7 @@ class UserModel {
       'role': role,
       'account_enabled': accountEnabled,
       'password_setup_required': passwordSetupRequired,
+      'permissions': permissions,
     };
   }
 }
-

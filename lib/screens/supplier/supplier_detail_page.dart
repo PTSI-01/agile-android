@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../models/supplier_model.dart';
 import '../../services/supplier_service.dart';
+import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 import 'supplier_form_page.dart';
 
 class SupplierDetailPage extends StatefulWidget {
@@ -17,6 +19,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   SupplierModel? _supplier;
+  UserModel? _user;
   bool _isLoading = true;
   bool _hasChanged = false;
 
@@ -25,7 +28,12 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _loadDetail();
+    AuthService.getCurrentUser().then((user) {
+      if (mounted) setState(() => _user = user);
+    });
   }
+
+  bool _can(String action) => _user?.permissions['supplier.${action.toLowerCase()}'] ?? (_user?.role == 'superadmin');
 
   @override
   void dispose() {
@@ -131,12 +139,12 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
           elevation: 0,
           actions: [
             if (_supplier != null) ...[
-              IconButton(
+              if (_can('update')) IconButton(
                 tooltip: 'Edit Data',
                 icon: const Icon(Icons.edit_outlined, color: ink),
                 onPressed: _openEdit,
               ),
-              PopupMenuButton<String>(
+              if (_can('delete')) PopupMenuButton<String>(
                 onSelected: (val) {
                   if (val == 'toggle_status') _toggleStatus();
                 },
@@ -333,6 +341,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
                 ),
                 child: Row(
                   children: [
+                    if (_can('update'))
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: _openEdit,
@@ -348,7 +357,8 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
                         label: const Text('Edit Supplier'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    if (_can('update') && _can('delete')) const SizedBox(width: 12),
+                    if (_can('delete'))
                     Expanded(
                       child: FilledButton.icon(
                         onPressed: _toggleStatus,
@@ -489,4 +499,3 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
     );
   }
 }
-

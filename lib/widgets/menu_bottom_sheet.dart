@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/menu_item_model.dart';
 import '../screens/supplier/supplier_list_page.dart';
+import '../screens/purchase_page.dart';
 
 class MenuBottomSheet extends StatelessWidget {
   final MenuGroupItem group;
@@ -119,6 +120,13 @@ class MenuBottomSheet extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const SupplierListPage(),
+                          ),
+                        );
+                      } else if (item.id == 'pb_transaksi' || item.route == '/pembelian/transaksi') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PurchasePage(),
                           ),
                         );
                       } else {

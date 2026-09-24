@@ -134,6 +134,21 @@ class AuthService {
     }
   }
 
+  static Future<UserModel?> refreshCurrentUser() async {
+    final token = await getToken();
+    if (token == null) return getCurrentUser();
+    try {
+      final r = await http.get(Uri.parse(ApiConfig.meUrl), headers: {'Accept':'application/json','Authorization':'Bearer $token'});
+      if (r.statusCode >= 200 && r.statusCode < 300) {
+        final body = jsonDecode(r.body) as Map<String,dynamic>;
+        final raw = body['data'] is Map ? body['data'] as Map<String,dynamic> : body;
+        final u = UserModel.fromJson(raw);
+        final prefs = await SharedPreferences.getInstance(); await prefs.setString(_keyUser, jsonEncode(u.toJson())); return u;
+      }
+    } catch (_) {}
+    return getCurrentUser();
+  }
+
   /// Ambil auth token tersimpan
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -146,13 +161,13 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
-  static Future<DashboardData?> getDashboard() async {
+  static Future<DashboardData?> getDashboard({Map<String,String>? query}) async {
     final token = await getToken();
     if (token == null || token.isEmpty) return null;
 
     try {
       final response = await http.get(
-        Uri.parse(ApiConfig.dashboardUrl),
+        Uri.parse(ApiConfig.dashboardUrl).replace(queryParameters: query),
         headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
       ).timeout(const Duration(seconds: 15));
       if (response.statusCode < 200 || response.statusCode >= 300) return null;

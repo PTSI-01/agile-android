@@ -6,6 +6,8 @@ import '../models/user_model.dart';
 import '../models/dashboard_model.dart';
 import '../widgets/menu_bottom_sheet.dart';
 import 'supplier/supplier_list_page.dart';
+import 'purchase_page.dart';
+import '../services/auth_service.dart';
 
 class DashboardOverviewPage extends StatelessWidget {
   final UserModel? user;
@@ -29,7 +31,7 @@ class DashboardOverviewPage extends StatelessWidget {
         .where((item) => item.id == 'sc_supplier')
         .toList();
     final supportedGroups = MenuData.menuGroups
-        .where((group) => group.id == 'master_data')
+        .where((group) => false)
         .map((group) => MenuGroupItem(
               id: group.id,
               title: group.title,
@@ -263,50 +265,7 @@ class DashboardOverviewPage extends StatelessWidget {
               const SizedBox(height: 14),
             ],
 
-            // 3. KPI / METRIC CARDS
-            Row(
-              children: [
-                _metricCard(
-                  title: 'Tonase Masuk',
-                  value: '148.5 T',
-                  subtitle: '+12.4% vs kemarin',
-                  icon: Icons.scale_rounded,
-                  iconColor: const Color(0xFFD84315),
-                  bgColor: const Color(0xFFFBE9E7),
-                ),
-                const SizedBox(width: 12),
-                _metricCard(
-                  title: 'Nilai Pengadaan',
-                  value: 'Rp 982 Jt',
-                  subtitle: '24 Transaksi aktif',
-                  icon: Icons.payments_rounded,
-                  iconColor: green,
-                  bgColor: const Color(0xFFE8F5E9),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _metricCard(
-                  title: 'Rata-rata Kadar Air',
-                  value: '18.2%',
-                  subtitle: 'Standar GKP (Aman)',
-                  icon: Icons.water_drop_rounded,
-                  iconColor: const Color(0xFF1E88E5),
-                  bgColor: const Color(0xFFE3F2FD),
-                ),
-                const SizedBox(width: 12),
-                _metricCard(
-                  title: 'Perlu Approval',
-                  value: '4 Order',
-                  subtitle: '2 Manager, 2 Finance',
-                  icon: Icons.pending_actions_rounded,
-                  iconColor: const Color(0xFFE65100),
-                  bgColor: const Color(0xFFFFF3E0),
-                ),
-              ],
-            ),
+            _LiveMetrics(initial: dashboard),
             const SizedBox(height: 28),
 
             // 4. AKSES CEPAT (QUICK SHORTCUTS)
@@ -345,6 +304,7 @@ class DashboardOverviewPage extends StatelessWidget {
             ),
             const SizedBox(height: 28),
 
+            if (supportedGroups.isNotEmpty) ...[
             // 5. MODUL UTAMA E-PROCUREMENT (KATEGORI)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -375,6 +335,7 @@ class DashboardOverviewPage extends StatelessWidget {
               },
             ),
             const SizedBox(height: 28),
+            ],
 
             // 6. TARGET BULANAN SOURCING
             Container(
@@ -584,6 +545,11 @@ class DashboardOverviewPage extends StatelessWidget {
               context,
               MaterialPageRoute(builder: (_) => const SupplierListPage()),
             );
+          } else if (sc.id == 'pb_transaksi' || sc.route == '/pembelian/transaksi') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PurchasePage()),
+            );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -719,4 +685,19 @@ class DashboardOverviewPage extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LiveMetrics extends StatefulWidget {
+  final DashboardData? initial;
+  const _LiveMetrics({this.initial});
+  @override State<_LiveMetrics> createState() => _LiveMetricsState();
+}
+class _LiveMetricsState extends State<_LiveMetrics> {
+  String mode='month'; DateTime date=DateTime.now(); Map<String,dynamic> m={}; bool loading=true;
+  @override void initState(){super.initState();m=widget.initial?.metrics??{};_load();}
+  String _date()=> '${date.year}-${date.month.toString().padLeft(2,'0')}-${date.day.toString().padLeft(2,'0')}';
+  Future<void> _load() async { final q={'mode':mode,if(mode=='day')'date':_date(),if(mode=='month')'month':'${date.year}-${date.month.toString().padLeft(2,'0')}',if(mode=='year')'year':'${date.year}'}; final d=await AuthService.getDashboard(query:q); if(mounted&&d!=null)setState(()=>m=d.metrics); if(mounted)setState(()=>loading=false); }
+  String n(String k)=>((m[k] is num)?m[k]:num.tryParse('${m[k]}')??0).toStringAsFixed(1);
+  @override Widget build(BuildContext context){return Column(children:[Row(children:[for(final e in {'day':'Hari','month':'Bulan','year':'Tahun'}.entries)Expanded(child:Padding(padding:const EdgeInsets.only(right:5),child:ChoiceChip(label:Text(e.value,style:const TextStyle(fontSize:11)),selected:mode==e.key,onSelected:(_){setState(()=>mode=e.key);_load();}))),IconButton(icon:const Icon(Icons.calendar_month,size:20),onPressed:()async{final x=await showDatePicker(context:context,firstDate:DateTime(2020),lastDate:DateTime(2035),initialDate:date);if(x!=null){setState(()=>date=x);_load();}})]),const SizedBox(height:8),if(loading)const LinearProgressIndicator(minHeight:2),GridView.count(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),crossAxisCount:2,mainAxisSpacing:12,crossAxisSpacing:12,childAspectRatio:1.55,children:[_c('Tonase Final','${n('final_tonnage')} T',Icons.scale,0xfffbe9e7),_c('Total PO','${m['po_count']??0}',Icons.receipt_long,0xffe8f5e9),_c('Total Susut','${n('shrinkage_qty')} T',Icons.trending_down,0xfffff3e0),_c('Pencapaian','${n('final_tonnage')} / ${n('target_tonnage')} T',Icons.track_changes,0xffe3f2fd)])]);}
+  Widget _c(String t,String v,IconData i,int color)=>Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Color(color),borderRadius:BorderRadius.circular(16)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(i,color:const Color(0xff183c32)),const Spacer(),Text(v,style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800,color:Color(0xff183c32))),Text(t,style:const TextStyle(fontSize:11,color:Colors.black54))]));
 }

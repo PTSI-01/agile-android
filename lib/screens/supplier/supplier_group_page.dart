@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../models/supplier_model.dart';
 import '../../services/supplier_group_service.dart';
+import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 
 class SupplierGroupPage extends StatefulWidget {
   const SupplierGroupPage({super.key});
@@ -18,12 +20,18 @@ class _SupplierGroupPageState extends State<SupplierGroupPage> {
   List<SupplierGroupModel> _items = [];
   bool _loading = true;
   String? _error;
+  UserModel? _user;
 
   @override
   void initState() {
     super.initState();
     _load();
+    AuthService.getCurrentUser().then((user) {
+      if (mounted) setState(() => _user = user);
+    });
   }
+
+  bool _can(String action) => _user?.permissions['supplier_group.${action.toLowerCase()}'] ?? (_user?.role == 'superadmin');
 
   @override
   void dispose() {
@@ -93,13 +101,15 @@ class _SupplierGroupPageState extends State<SupplierGroupPage> {
         title: const Text('Supplier Group', style: TextStyle(fontWeight: FontWeight.w800, color: ink)),
         actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh_rounded))],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: _can('update')
+          ? FloatingActionButton.extended(
         onPressed: _openForm,
         backgroundColor: green,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Tambah Group'),
-      ),
+      )
+          : null,
       body: Column(
         children: [
           Padding(
@@ -148,14 +158,14 @@ class _SupplierGroupPageState extends State<SupplierGroupPage> {
               leading: CircleAvatar(backgroundColor: green.withValues(alpha: 0.12), child: Text('${index + 1}', style: TextStyle(color: green, fontWeight: FontWeight.bold))),
               title: Text(item.name, style: TextStyle(fontWeight: FontWeight.w700, color: ink)),
               subtitle: Text('${item.code} • ${item.isActive ? 'Aktif' : 'Nonaktif'}'),
-              onTap: () => _openForm(item),
-              trailing: PopupMenuButton<String>(
+              onTap: _can('update') ? () => _openForm(item) : null,
+              trailing: (_can('update') || _can('delete')) ? PopupMenuButton<String>(
                 onSelected: (value) { if (value == 'edit') _openForm(item); if (value == 'delete') _delete(item); },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                itemBuilder: (_) => [
+                  if (_can('update')) const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  if (_can('delete')) const PopupMenuItem(value: 'delete', child: Text('Hapus')),
                 ],
-              ),
+              ) : null,
             ),
           );
         },

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/master_data_service.dart';
+import '../models/user_model.dart';
+import '../services/auth_service.dart';
+import 'buyer_detail_page.dart';
 
 class BuyerPage extends StatefulWidget {
   const BuyerPage({super.key});
@@ -11,12 +14,14 @@ class _BuyerPageState extends State<BuyerPage> {
   List<Map<String, dynamic>> _rows = [];
   bool _loading = true;
   String? _error;
+  UserModel? _user;
 
   @override void initState() { super.initState(); _load(); }
+  bool _can(String action) => _user?.role?.toLowerCase() == 'superadmin' || _user?.permissions['master_buyer.$action'] == true;
   @override void dispose() { _search.dispose(); super.dispose(); }
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
-    try { final rows = await MasterDataService.buyers(search: _search.text); if (mounted) setState(() { _rows = rows; _loading = false; }); }
+    try { _user = await AuthService.refreshCurrentUser(); final rows = await MasterDataService.buyers(search: _search.text); if (mounted) setState(() { _rows = rows; _loading = false; }); }
     catch (e) { if (mounted) setState(() { _loading = false; _error = e.toString().replaceFirst('Exception: ', ''); }); }
   }
 
@@ -44,9 +49,55 @@ class _BuyerPageState extends State<BuyerPage> {
 
   Future<void> _deactivate(Map<String, dynamic> row) async { try { await MasterDataService.deactivateBuyer(row['id'].toString()); _load(); } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')))); } }
 
-  @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Master Buyer'), actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))]),
-    floatingActionButton: FloatingActionButton.extended(onPressed: () => _edit(), icon: const Icon(Icons.add), label: const Text('Tambah')),
-    body: Column(children: [Padding(padding: const EdgeInsets.all(16), child: TextField(controller: _search, onSubmitted: (_) => _load(), decoration: InputDecoration(hintText: 'Cari kode atau nama buyer...', prefixIcon: const Icon(Icons.search), border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))))), Expanded(child: _loading ? const Center(child: CircularProgressIndicator()) : _error != null ? Center(child: Text(_error!, textAlign: TextAlign.center)) : RefreshIndicator(onRefresh: _load, child: ListView.separated(padding: const EdgeInsets.fromLTRB(16, 0, 16, 90), itemCount: _rows.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (_, i) { final row = _rows[i]; return Card(child: ListTile(title: Text('${row['buyer_id'] ?? '-'} • ${row['full_name'] ?? '-'}', style: const TextStyle(fontWeight: FontWeight.w700)), subtitle: Text('${row['email_buyer'] ?? '-'} • ${row['status'] ?? '-'}'), onTap: () => _edit(row), trailing: IconButton(icon: const Icon(Icons.person_off_outlined), onPressed: () => _deactivate(row))); })))]),
-  );
+  @override
+  Widget build(BuildContext context) {
+    Widget content;
+    if (_loading) {
+      content = const Center(child: CircularProgressIndicator());
+    } else if (_error != null) {
+      content = Center(child: Text(_error!, textAlign: TextAlign.center));
+    } else {
+      content = RefreshIndicator(
+        onRefresh: _load,
+        child: ListView.separated(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 90),
+          itemCount: _rows.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (_, i) {
+            final row = _rows[i];
+            return Card(
+              child: ListTile(
+                title: Text(
+                  '${row['buyer_id'] ?? '-'} • ${row['full_name'] ?? '-'}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text('${row['email_buyer'] ?? '-'} • ${row['status'] ?? '-'}'),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BuyerDetailPage(id: row['id'].toString()))),
+                trailing: (_can('update') || _can('delete')) ? PopupMenuButton<String>(onSelected: (value) { if (value == 'edit') _edit(row); if (value == 'delete') _deactivate(row); }, itemBuilder: (_) => [if (_can('update')) const PopupMenuItem(value: 'edit', child: Text('Edit')), if (_can('delete')) const PopupMenuItem(value: 'delete', child: Text('Nonaktifkan'))]) : null,
+              ),
+            );
+          },
+        ),
+      );
+    }
+    return Scaffold(
+      appBar: AppBar(title: const Text('Master Buyer'), actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))]),
+      floatingActionButton: _can('create') ? FloatingActionButton.extended(onPressed: () => _edit(), icon: const Icon(Icons.add), label: const Text('Tambah')) : null,
+      body: Column(children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: TextField(
+            controller: _search,
+            onSubmitted: (_) => _load(),
+            decoration: InputDecoration(
+              hintText: 'Cari kode atau nama buyer...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+        ),
+        Expanded(child: content),
+      ]),
+    );
+  }
 }

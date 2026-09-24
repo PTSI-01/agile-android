@@ -57,12 +57,14 @@ class DashboardMenuModel {
 class DashboardData {
   final List<DashboardCardModel> dashboards;
   final List<DashboardMenuModel> menus;
+  final Map<String,dynamic> metrics;
 
-  const DashboardData({this.dashboards = const [], this.menus = const []});
+  const DashboardData({this.dashboards = const [], this.menus = const [], this.metrics = const {}});
 
   factory DashboardData.fromJson(Map<String, dynamic> json) {
     final rawDashboards = json['dashboards'] as List<dynamic>? ?? const [];
     final rawMenus = json['menus'] as List<dynamic>? ?? const [];
+    final metrics = json['metrics'] is Map ? Map<String,dynamic>.from(json['metrics']) : <String,dynamic>{};
     return DashboardData(
       dashboards: rawDashboards
           .whereType<Map<String, dynamic>>()
@@ -72,6 +74,7 @@ class DashboardData {
           .whereType<Map<String, dynamic>>()
           .map(DashboardMenuModel.fromJson)
           .toList(),
+      metrics: metrics,
     );
   }
 }

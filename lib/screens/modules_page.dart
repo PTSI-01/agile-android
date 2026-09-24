@@ -6,6 +6,7 @@ import 'supplier/supplier_list_page.dart';
 import 'supplier/supplier_group_page.dart';
 import 'master_data_page.dart';
 import 'buyer_page.dart';
+import 'purchase_page.dart';
 
 class ModulesPage extends StatefulWidget {
   const ModulesPage({super.key});
@@ -27,15 +28,13 @@ class _ModulesPageState extends State<ModulesPage> {
 
   List<MenuGroupItem> get _filteredGroups {
     return MenuData.menuGroups.map((group) {
-      // Tampilkan hanya modul yang sudah benar-benar tersambung ke API.
-      final supportedItems = group.items
-          .where((item) => const {'md_supplier', 'md_supplier_group', 'md_buyer', 'md_inventory', 'md_warehouse', 'md_surveyor', 'md_wilayah'}.contains(item.id))
-          .toList();
+      // Superadmin melihat seluruh katalog modul; hak akses aksi tetap dijaga backend.
+      final supportedItems = group.items;
       if (supportedItems.isEmpty) return null;
       return MenuGroupItem(
         id: group.id,
         title: group.title,
-        subtitle: 'Master Supplier yang tersambung ke Laravel',
+        subtitle: group.subtitle,
         icon: group.icon,
         color: group.color,
         lightColor: group.lightColor,
@@ -165,13 +164,11 @@ class _ModulesPageState extends State<ModulesPage> {
                         ],
                       ),
                     )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 90),
+                  : GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
                       itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final group = filtered[index];
-                        return _buildGroupCard(context, group);
-                      },
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: .86),
+                      itemBuilder: (context, index) => _buildCompactGroupCard(context, filtered[index]),
                     ),
             ),
           ],
@@ -353,6 +350,47 @@ class _ModulesPageState extends State<ModulesPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCompactGroupCard(BuildContext context, MenuGroupItem group) {
+    final accent = group.id == 'master_data'
+        ? const Color(0xFFA66F00)
+        : group.id == 'pembelian'
+            ? const Color(0xFF1F7A2E)
+            : const Color(0xFF183C32);
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 1,
+      color: group.id == 'master_data' ? const Color(0xFFFFF8DE) : group.id == 'pembelian' ? const Color(0xFFE8F5E9) : const Color(0xFFF1F4F0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: accent.withValues(alpha: .25))),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => showModalBottomSheet(
+          context: context,
+          showDragHandle: true,
+          backgroundColor: Colors.white,
+          builder: (_) => SafeArea(child: ListView(padding: const EdgeInsets.fromLTRB(18, 4, 18, 24), children: [
+          Text(group.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF183C32))),
+            const SizedBox(height: 10),
+            ...group.items.map((item) => ListTile(
+              leading: Icon(item.icon, color: group.color),
+              title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(item.description, maxLines: 1, overflow: TextOverflow.ellipsis),
+              onTap: () { Navigator.pop(context); if (item.id == 'pb_transaksi' || item.route == '/pembelian/transaksi') Navigator.push(context, MaterialPageRoute(builder: (_) => const PurchasePage())); },
+            )),
+          ])),
+        ),
+        child: Padding(padding: const EdgeInsets.all(10), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(width: 38, height: 38, decoration: BoxDecoration(color: accent.withValues(alpha: .13), borderRadius: BorderRadius.circular(12)), child: Icon(group.icon, color: accent, size: 21)),
+          const Spacer(),
+          Text(group.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF183C32))),
+          const SizedBox(height: 3),
+          Text('${group.items.length} menu', style: const TextStyle(fontSize: 10, color: Color(0xFF7D8983))),
+          const SizedBox(height: 4),
+          Align(alignment: Alignment.bottomRight, child: Icon(Icons.arrow_forward_rounded, size: 16, color: accent)),
+        ])),
       ),
     );
   }
