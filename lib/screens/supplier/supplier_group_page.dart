@@ -203,7 +203,11 @@ class _SupplierGroupFormState extends State<_SupplierGroupForm> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
-    final data = {'group_code': _code.text.trim(), 'group_name': _name.text.trim(), 'status': _active ? 1 : 0};
+    final data = {
+      'group_code': _code.text.trim(),
+      'group_name': _name.text.trim(),
+      'status': _active ? 'active' : 'inactive',
+    };
     final result = widget.item == null
         ? await SupplierGroupService.create(data)
         : await SupplierGroupService.update(widget.item!.id, data);

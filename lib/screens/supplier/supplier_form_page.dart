@@ -274,27 +274,33 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 14),
-                      _dropdownField<String>(
+                      _searchableDropdownField(
                         label: 'Grup Supplier',
                         value: _selectedGroupId,
-                        items: (_references?.supplierGroups ?? [])
-                            .map((g) => DropdownMenuItem(
-                                  value: g.id?.toString(),
-                                  child: Text(g.name),
-                                ))
+                        options: (_references?.supplierGroups ?? [])
+                            .map(
+                              (g) => _SearchOption(
+                                value: g.id?.toString() ?? '',
+                                label: '${g.code} - ${g.name}',
+                                searchText: '${g.id} ${g.code} ${g.name}',
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) =>
                             setState(() => _selectedGroupId = val),
                       ),
                       const SizedBox(height: 14),
-                      _dropdownField<String>(
+                      _searchableDropdownField(
                         label: 'Buyer Terkait',
                         value: _selectedBuyerId,
-                        items: (_references?.buyers ?? [])
-                            .map((b) => DropdownMenuItem(
-                                  value: b.id,
-                                  child: Text('${b.id} - ${b.name}'),
-                                ))
+                        options: (_references?.buyers ?? [])
+                            .map(
+                              (b) => _SearchOption(
+                                value: b.id,
+                                label: '${b.id} - ${b.name}',
+                                searchText: '${b.id} ${b.name}',
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) =>
                             setState(() => _selectedBuyerId = val),
@@ -619,6 +625,14 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
     required List<DropdownMenuItem<T>> items,
     required void Function(T?) onChanged,
   }) {
+    final seenValues = <Object?>{};
+    final uniqueItems = items
+        .where((item) => seenValues.add(item.value))
+        .toList();
+    final safeValue = uniqueItems.any((item) => item.value == value)
+        ? value
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -632,8 +646,8 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<T>(
-          initialValue: value,
-          items: items,
+          initialValue: safeValue,
+          items: uniqueItems,
           onChanged: onChanged,
           isExpanded: true,
           decoration: InputDecoration(
@@ -658,6 +672,171 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _searchableDropdownField({
+    required String label,
+    required String? value,
+    required List<_SearchOption> options,
+    required void Function(String?) onChanged,
+  }) {
+    final selected = options.where((option) => option.value == value).firstOrNull;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF183C32),
+          ),
+        ),
+        const SizedBox(height: 6),
+        InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () async {
+            final result = await showDialog<String>(
+              context: context,
+              builder: (_) => _SearchableOptionDialog(
+                title: label,
+                options: options,
+                selectedValue: value,
+              ),
+            );
+            if (result != null) onChanged(result);
+          },
+          child: InputDecorator(
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFF7F9F8),
+              suffixIcon: const Icon(Icons.arrow_drop_down_rounded),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+              ),
+            ),
+            child: Text(
+              selected?.label ?? 'Pilih $label',
+              style: TextStyle(
+                fontSize: 13,
+                color: selected == null
+                    ? const Color(0xFF7D8983)
+                    : const Color(0xFF183C32),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SearchOption {
+  final String value;
+  final String label;
+  final String searchText;
+
+  const _SearchOption({
+    required this.value,
+    required this.label,
+    required this.searchText,
+  });
+}
+
+class _SearchableOptionDialog extends StatefulWidget {
+  final String title;
+  final List<_SearchOption> options;
+  final String? selectedValue;
+
+  const _SearchableOptionDialog({
+    required this.title,
+    required this.options,
+    required this.selectedValue,
+  });
+
+  @override
+  State<_SearchableOptionDialog> createState() =>
+      _SearchableOptionDialogState();
+}
+
+class _SearchableOptionDialogState extends State<_SearchableOptionDialog> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _searchController.text.trim().toLowerCase();
+    final filtered = widget.options
+        .where((option) => option.searchText.toLowerCase().contains(query))
+        .toList();
+
+    return AlertDialog(
+      title: Text('Pilih ${widget.title}'),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 360,
+        child: Column(
+          children: [
+            TextField(
+              controller: _searchController,
+              autofocus: true,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: 'Cari berdasarkan kode atau nama...',
+                prefixIcon: const Icon(Icons.search_rounded),
+                suffixIcon: _searchController.text.isEmpty
+                    ? null
+                    : IconButton(
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                        icon: const Icon(Icons.clear_rounded),
+                      ),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: filtered.isEmpty
+                  ? const Center(child: Text('Data tidak ditemukan'))
+                  : ListView.separated(
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final option = filtered[index];
+                        return ListTile(
+                          dense: true,
+                          title: Text(option.label),
+                          trailing: option.value == widget.selectedValue
+                              ? const Icon(
+                                  Icons.check_rounded,
+                                  color: Color(0xFF1F7A2E),
+                                )
+                              : null,
+                          onTap: () => Navigator.pop(context, option.value),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

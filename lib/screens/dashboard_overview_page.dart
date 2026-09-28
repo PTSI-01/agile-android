@@ -4,10 +4,8 @@ import '../data/menu_data.dart';
 import '../models/menu_item_model.dart';
 import '../models/user_model.dart';
 import '../models/dashboard_model.dart';
-import '../widgets/menu_bottom_sheet.dart';
 import 'supplier/supplier_list_page.dart';
 import 'purchase_page.dart';
-import '../services/auth_service.dart';
 
 class DashboardOverviewPage extends StatelessWidget {
   final UserModel? user;
@@ -23,32 +21,76 @@ class DashboardOverviewPage extends StatelessWidget {
     this.onOpenProfile,
   });
 
+  bool _hasMenuAccess(
+    List<DashboardMenuModel> menus,
+    SubMenuItem shortcut,
+  ) {
+    final target = _normalizeRoute(shortcut.route);
+    final aliases = _shortcutAliases(shortcut);
+    return menus.any((menu) {
+      final menuRoute = menu.url == null ? '' : _normalizeRoute(menu.url!);
+      final menuCode = menu.code.toLowerCase().trim();
+      final menuTitle = menu.title.toLowerCase().trim();
+      return menuRoute == target ||
+          aliases.contains(menuCode) ||
+          aliases.any(menuTitle.contains) ||
+          _hasMenuAccess(menu.children, shortcut);
+    });
+  }
+
+  Set<String> _shortcutAliases(SubMenuItem shortcut) {
+    switch (shortcut.id) {
+      case 'sc_pembelian':
+        return {'sc_pembelian', 'pb_transaksi', 'pembelian', 'purchase'};
+      case 'sc_timbangan':
+        return {
+          'sc_timbangan',
+          'pn_timbangan_masuk',
+          'timbangan masuk',
+          'timbangan masuk (bruto)',
+        };
+      case 'sc_qc':
+        return {'sc_qc', 'qc_incoming', 'qc lab incoming', 'input qc lab'};
+      case 'sc_approval':
+        return {
+          'sc_approval',
+          'fn_approval',
+          'finance approval',
+          'approval transaksi finance',
+        };
+      case 'sc_supplier':
+        return {'sc_supplier', 'md_supplier', 'master supplier', 'supplier'};
+      case 'sc_laporan':
+        return {
+          'sc_laporan',
+          'lp_pembelian',
+          'laporan pembelian',
+          'laporan pengadaan',
+        };
+      default:
+        return {shortcut.id, shortcut.title.toLowerCase()};
+    }
+  }
+
+  String _normalizeRoute(String route) {
+    final withoutQuery = route.split(RegExp(r'[?#]')).first;
+    final normalized = withoutQuery.replaceFirst(RegExp(r'/$'), '');
+    return normalized.isEmpty ? '/' : normalized;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final supportedShortcuts = MenuData.quickShortcuts
-        .where((item) => item.id == 'sc_supplier')
-        .toList();
-    final supportedGroups = MenuData.menuGroups
-        .where((group) => false)
-        .map((group) => MenuGroupItem(
-              id: group.id,
-              title: group.title,
-              subtitle: 'Supplier, Buyer, Item, Gudang, Surveyor, dan Wilayah',
-              icon: group.icon,
-              color: group.color,
-              lightColor: group.lightColor,
-              category: group.category,
-              isFeatured: group.isFeatured,
-              items: group.items.where((item) => const {
-                'md_supplier', 'md_buyer', 'md_inventory', 'md_warehouse',
-                'md_surveyor', 'md_wilayah'
-              }.contains(item.id)).toList(),
-            ))
+    final supportedShortcuts = dashboard == null
+      ? const <SubMenuItem>[]
+      : MenuData.quickShortcuts
+        .where((shortcut) => _hasMenuAccess(
+            dashboard!.menus,
+            shortcut,
+          ))
         .toList();
     const ink = Color(0xFF183C32);
-    const green = Color(0xFF1F7A2E);
     const muted = Color(0xFF7D8983);
 
     final displayName = user?.name.split(' ').first ?? 'Pengguna';
@@ -230,45 +272,7 @@ class DashboardOverviewPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            if (dashboard != null) ...[
-              const Text(
-                'DASHBOARD TERSEDIA',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.5,
-                  color: muted,
-                ),
-              ),
-              const SizedBox(height: 10),
-              if (dashboard!.dashboards.isEmpty)
-                _backendInfoCard(
-                  context,
-                  icon: Icons.lock_outline_rounded,
-                  title: 'Belum ada dashboard aktif',
-                  description: 'Akun ini belum memiliki akses dashboard di Laravel.',
-                )
-              else
-                ...dashboard!.dashboards.map(
-                  (card) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: _backendInfoCard(
-                      context,
-                      icon: card.code == 'laba_rugi'
-                          ? Icons.account_balance_wallet_outlined
-                          : Icons.shopping_cart_checkout_rounded,
-                      title: card.title,
-                      description: card.description,
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 14),
-            ],
-
-            _LiveMetrics(initial: dashboard),
-            const SizedBox(height: 28),
-
-            // 4. AKSES CEPAT (QUICK SHORTCUTS)
+            // 3. QUICK ACCESS
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -286,254 +290,31 @@ class DashboardOverviewPage extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.95,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 0.92,
               ),
               itemCount: supportedShortcuts.length,
-              itemBuilder: (context, index) {
-                final sc = supportedShortcuts[index];
-                return _shortcutButton(context, sc);
-              },
-            ),
-            const SizedBox(height: 28),
-
-            if (supportedGroups.isNotEmpty) ...[
-            // 5. MODUL UTAMA E-PROCUREMENT (KATEGORI)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Modul E-Procurement',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: ink,
-                  ),
-                ),
-                Text(
-                  '${supportedGroups.length} Modul',
-                  style: const TextStyle(fontSize: 12, color: muted),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: supportedGroups.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final group = supportedGroups[index];
-                return _moduleCategoryCard(context, group);
-              },
-            ),
-            const SizedBox(height: 28),
-            ],
-
-            // 6. TARGET BULANAN SOURCING
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1B2F25) : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark
-                      ? const Color(0xFF2C4438)
-                      : const Color(0xFFE9EDE5),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.track_changes_rounded,
-                        color: green,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Target Pengadaan September',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          '76% Tercapai',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: green,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Realisasi: 3.420 Ton',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white70 : Colors.black87,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Text(
-                        'Target: 4.500 Ton',
-                        style: TextStyle(fontSize: 12, color: muted),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: const LinearProgressIndicator(
-                      value: 0.76,
-                      minHeight: 8,
-                      color: green,
-                      backgroundColor: Color(0xFFE5EFDF),
-                    ),
-                  ),
-                ],
+              itemBuilder: (context, index) => _shortcutButton(
+                context,
+                supportedShortcuts[index],
               ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _metricCard({
-    required String title,
-    required String value,
-    required String subtitle,
-    required IconData icon,
-    required Color iconColor,
-    required Color bgColor,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFE9EDE5)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF183C32),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF5D6864),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Color(0xFF7D8983),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _backendInfoCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE9EDE5)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF1F7A2E)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF183C32))),
-                const SizedBox(height: 4),
-                Text(description, style: const TextStyle(fontSize: 11, color: Color(0xFF7D8983), height: 1.35)),
-              ],
-            ),
-          ),
-          Icon(icon, color: const Color(0xFF1F7A2E), size: 22),
-        ],
       ),
     );
   }
 
   Widget _shortcutButton(BuildContext context, SubMenuItem sc) {
+    final accent = sc.badgeColor ?? const Color(0xFF1F7A2E);
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
@@ -564,22 +345,73 @@ class DashboardOverviewPage extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE9EDE5)),
+            border: Border.all(color: accent.withValues(alpha: 0.18)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEAF4ED),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  sc.icon,
-                  color: const Color(0xFF1F7A2E),
-                  size: 20,
+              SizedBox(
+                width: 44,
+                height: 44,
+                child: Stack(
+                  alignment: Alignment.topLeft,
+                  children: [
+                    Positioned(
+                      left: 3,
+                      top: 4,
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Color.lerp(accent, Colors.black, 0.22),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color.lerp(Colors.white, accent, 0.18)!,
+                            accent,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.24),
+                            blurRadius: 7,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Positioned(
+                            top: 4,
+                            left: 7,
+                            child: Container(
+                              width: 12,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          Icon(sc.icon, color: Colors.white, size: 20),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 8),
@@ -595,6 +427,17 @@ class DashboardOverviewPage extends StatelessWidget {
                   height: 1.2,
                 ),
               ),
+              if (sc.badge != null) ...[
+                const SizedBox(height: 5),
+                Text(
+                  sc.badge!,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: accent,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -602,102 +445,4 @@ class DashboardOverviewPage extends StatelessWidget {
     );
   }
 
-  Widget _moduleCategoryCard(BuildContext context, MenuGroupItem group) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => MenuBottomSheet.show(context, group),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE9EDE5)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: group.color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(group.icon, color: group.color, size: 24),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      group.title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF183C32),
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      group.subtitle,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF7D8983),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: group.color.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${group.items.length} Menu',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: group.color,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 16,
-                      color: group.color,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LiveMetrics extends StatefulWidget {
-  final DashboardData? initial;
-  const _LiveMetrics({this.initial});
-  @override State<_LiveMetrics> createState() => _LiveMetricsState();
-}
-class _LiveMetricsState extends State<_LiveMetrics> {
-  String mode='month'; DateTime date=DateTime.now(); Map<String,dynamic> m={}; bool loading=true;
-  @override void initState(){super.initState();m=widget.initial?.metrics??{};_load();}
-  String _date()=> '${date.year}-${date.month.toString().padLeft(2,'0')}-${date.day.toString().padLeft(2,'0')}';
-  Future<void> _load() async { final q={'mode':mode,if(mode=='day')'date':_date(),if(mode=='month')'month':'${date.year}-${date.month.toString().padLeft(2,'0')}',if(mode=='year')'year':'${date.year}'}; final d=await AuthService.getDashboard(query:q); if(mounted&&d!=null)setState(()=>m=d.metrics); if(mounted)setState(()=>loading=false); }
-  String n(String k)=>((m[k] is num)?m[k]:num.tryParse('${m[k]}')??0).toStringAsFixed(1);
-  @override Widget build(BuildContext context){return Column(children:[Row(children:[for(final e in {'day':'Hari','month':'Bulan','year':'Tahun'}.entries)Expanded(child:Padding(padding:const EdgeInsets.only(right:5),child:ChoiceChip(label:Text(e.value,style:const TextStyle(fontSize:11)),selected:mode==e.key,onSelected:(_){setState(()=>mode=e.key);_load();}))),IconButton(icon:const Icon(Icons.calendar_month,size:20),onPressed:()async{final x=await showDatePicker(context:context,firstDate:DateTime(2020),lastDate:DateTime(2035),initialDate:date);if(x!=null){setState(()=>date=x);_load();}})]),const SizedBox(height:8),if(loading)const LinearProgressIndicator(minHeight:2),GridView.count(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),crossAxisCount:2,mainAxisSpacing:12,crossAxisSpacing:12,childAspectRatio:1.55,children:[_c('Tonase Final','${n('final_tonnage')} T',Icons.scale,0xfffbe9e7),_c('Total PO','${m['po_count']??0}',Icons.receipt_long,0xffe8f5e9),_c('Total Susut','${n('shrinkage_qty')} T',Icons.trending_down,0xfffff3e0),_c('Pencapaian','${n('final_tonnage')} / ${n('target_tonnage')} T',Icons.track_changes,0xffe3f2fd)])]);}
-  Widget _c(String t,String v,IconData i,int color)=>Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Color(color),borderRadius:BorderRadius.circular(16)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(i,color:const Color(0xff183c32)),const Spacer(),Text(v,style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800,color:Color(0xff183c32))),Text(t,style:const TextStyle(fontSize:11,color:Colors.black54))]));
 }

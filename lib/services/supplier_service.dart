@@ -274,5 +274,32 @@ class SupplierService {
       };
     }
   }
+
+  /// Hapus supplier secara permanen setelah konfirmasi backend.
+  static Future<Map<String, dynamic>> forceDelete(String id) async {
+    try {
+      final request = http.Request(
+        'DELETE',
+        Uri.parse('${ApiConfig.baseUrl}/suppliers/$id/force-delete'),
+      )
+        ..headers.addAll(await _getHeaders())
+        ..body = jsonEncode({'confirm': true});
+      final streamed = await request.send().timeout(const Duration(seconds: 20));
+      final response = await http.Response.fromStream(streamed);
+      final json = jsonDecode(response.body);
+      if (json is Map<String, dynamic>) return json;
+      return {
+        'success': response.statusCode < 400,
+        'message': response.statusCode < 400
+            ? 'Supplier berhasil dihapus permanen.'
+            : 'Gagal menghapus supplier permanen.',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Gagal menghapus supplier permanen: ${e.toString()}',
+      };
+    }
+  }
 }
 

@@ -111,6 +111,57 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
     }
   }
 
+  Future<void> _forceDelete() async {
+    final supplier = _supplier;
+    if (supplier == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus supplier permanen?'),
+        content: Text(
+          'Data ${supplier.namaVendor} akan dihapus permanen dan tidak dapat dipulihkan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFD14942),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus Permanen'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final result = await SupplierService.forceDelete(supplier.id);
+    if (!mounted) return;
+    if (result['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result['message']?.toString() ?? 'Supplier berhasil dihapus permanen.',
+          ),
+          backgroundColor: const Color(0xFF1F7A2E),
+        ),
+      );
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result['message']?.toString() ?? 'Gagal menghapus supplier permanen.',
+          ),
+          backgroundColor: const Color(0xFFD14942),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const ink = Color(0xFF183C32);
@@ -147,6 +198,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
               if (_can('delete')) PopupMenuButton<String>(
                 onSelected: (val) {
                   if (val == 'toggle_status') _toggleStatus();
+                  if (val == 'force_delete') _forceDelete();
                 },
                 itemBuilder: (ctx) => [
                   PopupMenuItem(
@@ -168,6 +220,21 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
                               ? 'Nonaktifkan Supplier'
                               : 'Aktifkan Supplier',
                         ),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'force_delete',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete_forever_rounded,
+                          size: 18,
+                          color: Color(0xFFD14942),
+                        ),
+                        SizedBox(width: 8),
+                        Text('Hapus Permanen'),
                       ],
                     ),
                   ),
@@ -296,6 +363,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
                             ),
                           ),
                         ),
+
 
                         // 2. TABS
                         TabBar(
