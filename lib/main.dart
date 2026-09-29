@@ -92,6 +92,12 @@ class _HomePageState extends State<HomePage> {
         user: _currentUser,
         dashboard: widget.dashboard,
         onOpenModules: () => setState(() => _currentIndex = 1),
+        onOpenModule: (module) {
+          setState(() => _currentIndex = 1);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _modulesKey.currentState?.openRootModule(module);
+          });
+        },
         onOpenProfile: () => setState(() => _currentIndex = 2),
       ),
       ModulesPage(key: _modulesKey, dashboard: widget.dashboard),
@@ -132,10 +138,7 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
-          children: pages,
-        ),
+        body: IndexedStack(index: _currentIndex, children: pages),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _currentIndex,
           onDestinationSelected: (idx) => setState(() => _currentIndex = idx),

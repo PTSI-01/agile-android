@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.2.2
   shared_preferences: ^2.3.2
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +48,11 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+# Versi 2.6.0 memakai native build hook yang gagal jika Flutter berada di
+# direktori Windows dengan spasi (misalnya D:\Program Files\flutter).
+dependency_overrides:
+  path_provider_foundation: 2.5.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -93,6 +93,47 @@ class SupplierGroupService {
   static Future<Map<String, dynamic>> create(Map<String, dynamic> data) =>
       _send('POST', _path, data, 'Gagal menambahkan supplier group');
 
+  static Future<Map<String, dynamic>> detail(String id) async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/$_path/$id'),
+            headers: await _headers(),
+          )
+          .timeout(const Duration(seconds: 15));
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        return {
+          'success': false,
+          'message': 'Format detail supplier group tidak valid.',
+        };
+      }
+      if (response.statusCode >= 400 || decoded['success'] != true) {
+        return {
+          'success': false,
+          'message': decoded['message']?.toString() ??
+              'Gagal memuat detail supplier group',
+        };
+      }
+      return decoded;
+    } on SocketException {
+      return {
+        'success': false,
+        'message': 'Tidak dapat terhubung ke server Laravel.',
+      };
+    } on TimeoutException {
+      return {
+        'success': false,
+        'message': 'Koneksi ke server timeout.',
+      };
+    } catch (error) {
+      return {
+        'success': false,
+        'message': 'Gagal memuat detail supplier group: $error',
+      };
+    }
+  }
+
   static Future<Map<String, dynamic>> update(
     String id,
     Map<String, dynamic> data,

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../models/supplier_model.dart';
@@ -7,6 +8,8 @@ import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import 'supplier_detail_page.dart';
 import 'supplier_form_page.dart';
+
+enum _SupplierStatusFilterChoice { all, active, inactive }
 
 class SupplierListPage extends StatefulWidget {
   const SupplierListPage({super.key});
@@ -43,7 +46,9 @@ class _SupplierListPageState extends State<SupplierListPage> {
     });
   }
 
-  bool _can(String action) => _user?.permissions['supplier.${action.toLowerCase()}'] ?? (_user?.role == 'superadmin');
+  bool _can(String action) =>
+      _user?.permissions['supplier.${action.toLowerCase()}'] ??
+      (_user?.role == 'superadmin');
 
   @override
   void dispose() {
@@ -101,12 +106,201 @@ class _SupplierListPageState extends State<SupplierListPage> {
     });
   }
 
+  String get _statusFilterLabel => switch (_statusFilter) {
+    1 => 'Aktif',
+    0 => 'Nonaktif',
+    _ => 'Semua Status',
+  };
+
+  String get _groupFilterLabel {
+    if (_groupIdFilter == null) return 'Semua Grup';
+    for (final group in _groups) {
+      if (group.id.toString() == _groupIdFilter) return group.name;
+    }
+    return 'Grup Supplier';
+  }
+
+  Future<void> _showStatusFilterSheet() async {
+    final selected = await showModalBottomSheet<_SupplierStatusFilterChoice>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Filter Status Supplier',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF183C32),
+                ),
+              ),
+              const SizedBox(height: 10),
+              for (final option
+                  in const <
+                    (_SupplierStatusFilterChoice, int?, String, IconData)
+                  >[
+                    (
+                      _SupplierStatusFilterChoice.all,
+                      null,
+                      'Semua Status',
+                      Icons.groups_rounded,
+                    ),
+                    (
+                      _SupplierStatusFilterChoice.active,
+                      1,
+                      'Aktif',
+                      Icons.check_circle_outline_rounded,
+                    ),
+                    (
+                      _SupplierStatusFilterChoice.inactive,
+                      0,
+                      'Nonaktif',
+                      Icons.block_rounded,
+                    ),
+                  ])
+                ListTile(
+                  leading: Icon(option.$4, color: const Color(0xFF1F7A2E)),
+                  title: Text(option.$3),
+                  trailing: _statusFilter == option.$2
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: Color(0xFF1F7A2E),
+                        )
+                      : null,
+                  onTap: () => Navigator.pop(ctx, option.$1),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (!mounted || selected == null) return;
+    final nextStatus = switch (selected) {
+      _SupplierStatusFilterChoice.all => null,
+      _SupplierStatusFilterChoice.active => 1,
+      _SupplierStatusFilterChoice.inactive => 0,
+    };
+    setState(() => _statusFilter = nextStatus);
+    await _fetchSuppliers(page: 1);
+  }
+
+  Future<void> _showGroupFilterSheet() async {
+    var searchQuery = '';
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, refresh) {
+          final filteredGroups = _groups.where((group) {
+            final searchable = '${group.code} ${group.name}'.toLowerCase();
+            return searchable.contains(searchQuery);
+          }).toList();
+          return SafeArea(
+            child: SizedBox(
+              height: MediaQuery.sizeOf(ctx).height * 0.68,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Filter Grup Supplier',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF183C32),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      autofocus: true,
+                      onChanged: (value) => refresh(
+                        () => searchQuery = value.trim().toLowerCase(),
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Cari kode atau nama grup...',
+                        prefixIcon: const Icon(Icons.search_rounded),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          ListTile(
+                            leading: const Icon(
+                              Icons.all_inclusive_rounded,
+                              color: Color(0xFF1F7A2E),
+                            ),
+                            title: const Text('Semua Grup'),
+                            trailing: _groupIdFilter == null
+                                ? const Icon(
+                                    Icons.check_rounded,
+                                    color: Color(0xFF1F7A2E),
+                                  )
+                                : null,
+                            onTap: () => Navigator.pop(ctx, '__all__'),
+                          ),
+                          if (filteredGroups.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 32),
+                              child: Center(
+                                child: Text('Grup supplier tidak ditemukan'),
+                              ),
+                            )
+                          else
+                            ...filteredGroups.map(
+                              (group) => ListTile(
+                                leading: const Icon(
+                                  Icons.group_work_outlined,
+                                  color: Color(0xFF1F7A2E),
+                                ),
+                                title: Text(group.name),
+                                subtitle: Text(group.code),
+                                trailing: _groupIdFilter == group.id.toString()
+                                    ? const Icon(
+                                        Icons.check_rounded,
+                                        color: Color(0xFF1F7A2E),
+                                      )
+                                    : null,
+                                onTap: () =>
+                                    Navigator.pop(ctx, group.id.toString()),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
+    if (!mounted || selected == null) return;
+    setState(() => _groupIdFilter = selected == '__all__' ? null : selected);
+    await _fetchSuppliers(page: 1);
+  }
+
   void _openAddSupplier() async {
     final created = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) => const SupplierFormPage(),
-      ),
+      MaterialPageRoute(builder: (_) => const SupplierFormPage()),
     );
     if (created == true) {
       _fetchSuppliers(page: 1);
@@ -129,7 +323,6 @@ class _SupplierListPageState extends State<SupplierListPage> {
   Widget build(BuildContext context) {
     const ink = Color(0xFF183C32);
     const green = Color(0xFF1F7A2E);
-    const muted = Color(0xFF7D8983);
 
     return Scaffold(
       appBar: AppBar(
@@ -154,16 +347,16 @@ class _SupplierListPageState extends State<SupplierListPage> {
       ),
       floatingActionButton: _can('create') || _can('update')
           ? FloatingActionButton.extended(
-        onPressed: _openAddSupplier,
-        backgroundColor: green,
-        foregroundColor: Colors.white,
-        elevation: 3,
-        icon: const Icon(Icons.person_add_alt_1_rounded),
-        label: const Text(
-          'Tambah Supplier',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      )
+              onPressed: _openAddSupplier,
+              backgroundColor: green,
+              foregroundColor: Colors.white,
+              elevation: 3,
+              icon: const Icon(Icons.person_add_alt_1_rounded),
+              label: const Text(
+                'Tambah Supplier',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            )
           : null,
       body: SafeArea(
         child: Column(
@@ -173,11 +366,26 @@ class _SupplierListPageState extends State<SupplierListPage> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Row(
                 children: [
-                  _statItem('Total Pemasok', '$_total', const Color(0xFF1E88E5), const Color(0xFFE3F2FD)),
+                  _statItem(
+                    'Total Pemasok',
+                    '$_total',
+                    const Color(0xFF1E88E5),
+                    const Color(0xFFE3F2FD),
+                  ),
                   const SizedBox(width: 10),
-                  _statItem('Aktif', '$_totalActive', green, const Color(0xFFE8F5E9)),
+                  _statItem(
+                    'Aktif',
+                    '$_totalActive',
+                    green,
+                    const Color(0xFFE8F5E9),
+                  ),
                   const SizedBox(width: 10),
-                  _statItem('Non-Aktif', '$_totalInactive', const Color(0xFFD84315), const Color(0xFFFBE9E7)),
+                  _statItem(
+                    'Non-Aktif',
+                    '$_totalInactive',
+                    const Color(0xFFD84315),
+                    const Color(0xFFFBE9E7),
+                  ),
                 ],
               ),
             ),
@@ -223,92 +431,28 @@ class _SupplierListPageState extends State<SupplierListPage> {
             ),
             const SizedBox(height: 10),
 
-            // 3. FILTER CHIPS
-            SizedBox(
-              height: 40,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+            // 3. FILTER BUTTONS
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
                 children: [
-                  _filterChip('Semua Status', _statusFilter == null, () {
-                    setState(() => _statusFilter = null);
-                    _fetchSuppliers(page: 1);
-                  }),
-                  _filterChip('Aktif', _statusFilter == 1, () {
-                    setState(() => _statusFilter = 1);
-                    _fetchSuppliers(page: 1);
-                  }),
-                  _filterChip('Non-Aktif', _statusFilter == 0, () {
-                    setState(() => _statusFilter = 0);
-                    _fetchSuppliers(page: 1);
-                  }),
-                  if (_groups.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    PopupMenuButton<String?>(
-                      tooltip: 'Filter Grup Supplier',
-                      onSelected: (val) {
-                        setState(() => _groupIdFilter = val);
-                        _fetchSuppliers(page: 1);
-                      },
-                      itemBuilder: (ctx) => [
-                        const PopupMenuItem(
-                          value: null,
-                          child: Text('Semua Grup'),
-                        ),
-                        ..._groups.map(
-                          (g) => PopupMenuItem(
-                            value: g.id?.toString(),
-                            child: Text(g.name),
-                          ),
-                        ),
-                      ],
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _groupIdFilter != null
-                              ? green.withValues(alpha: 0.1)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: _groupIdFilter != null
-                                ? green
-                                : const Color(0xFFE9EDE5),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.group_work_outlined,
-                              size: 16,
-                              color: _groupIdFilter != null ? green : muted,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              _groupIdFilter != null
-                                  ? (_groups.firstWhere((e) => e.id.toString() == _groupIdFilter, orElse: () => SupplierGroupRef(id: '', code: '', name: 'Grup')).name)
-                                  : 'Grup Supplier',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: _groupIdFilter != null
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: _groupIdFilter != null ? green : ink,
-                              ),
-                            ),
-                            const Icon(
-                              Icons.arrow_drop_down_rounded,
-                              size: 18,
-                              color: muted,
-                            ),
-                          ],
-                        ),
-                      ),
+                  Expanded(
+                    child: _filterDropdownButton(
+                      icon: Icons.tune_rounded,
+                      label: _statusFilterLabel,
+                      active: _statusFilter != null,
+                      onTap: _showStatusFilterSheet,
                     ),
-                  ],
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _filterDropdownButton(
+                      icon: Icons.group_work_outlined,
+                      label: _groupFilterLabel,
+                      active: _groupIdFilter != null,
+                      onTap: _showGroupFilterSheet,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -317,113 +461,123 @@ class _SupplierListPageState extends State<SupplierListPage> {
             // 4. SUPPLIER LIST
             Expanded(
               child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: green),
-                    )
+                  ? const Center(child: CircularProgressIndicator(color: green))
                   : _errorMessage != null
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.cloud_off_rounded,
-                                  size: 48,
-                                  color: Color(0xFFD14942),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _errorMessage!,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Color(0xFFD14942),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                FilledButton.icon(
-                                  onPressed: () => _fetchSuppliers(page: 1),
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: green,
-                                  ),
-                                  icon: const Icon(Icons.refresh_rounded, size: 18),
-                                  label: const Text('Coba Lagi'),
-                                ),
-                              ],
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.cloud_off_rounded,
+                              size: 48,
+                              color: Color(0xFFD14942),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              _errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFFD14942),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            FilledButton.icon(
+                              onPressed: () => _fetchSuppliers(page: 1),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: green,
+                              ),
+                              icon: const Icon(Icons.refresh_rounded, size: 18),
+                              label: const Text('Coba Lagi'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : _suppliers.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.people_outline_rounded,
+                            size: 56,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Belum ada data supplier',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        )
-                      : _suppliers.isEmpty
-                          ? Center(
-                              child: Column(
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Gunakan tombol di bawah untuk menambah supplier baru.',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () => _fetchSuppliers(page: 1),
+                      color: green,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 90),
+                        itemCount: _suppliers.length + 1,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          if (index == _suppliers.length) {
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                top: 8,
+                                bottom: 12,
+                              ),
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.people_outline_rounded,
-                                    size: 56,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                    'Belum ada data supplier',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
+                                  IconButton(
+                                    tooltip: 'Halaman sebelumnya',
+                                    onPressed: _currentPage > 1
+                                        ? () => _fetchSuppliers(
+                                            page: _currentPage - 1,
+                                          )
+                                        : null,
+                                    icon: const Icon(
+                                      Icons.chevron_left_rounded,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'Gunakan tombol di bawah untuk menambah supplier baru.',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
+                                  Text(
+                                    'Halaman $_currentPage dari $_lastPage',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    tooltip: 'Halaman berikutnya',
+                                    onPressed: _currentPage < _lastPage
+                                        ? () => _fetchSuppliers(
+                                            page: _currentPage + 1,
+                                          )
+                                        : null,
+                                    icon: const Icon(
+                                      Icons.chevron_right_rounded,
                                     ),
                                   ),
                                 ],
                               ),
-                            )
-                          : RefreshIndicator(
-                              onRefresh: () => _fetchSuppliers(page: 1),
-                              color: green,
-                              child: ListView.separated(
-                                padding: const EdgeInsets.fromLTRB(
-                                  20,
-                                  4,
-                                  20,
-                                  90,
-                                ),
-                                itemCount: _suppliers.length + 1,
-                                separatorBuilder: (context, index) =>
-                                    const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  if (index == _suppliers.length) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 8, bottom: 12),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            tooltip: 'Halaman sebelumnya',
-                                            onPressed: _currentPage > 1 ? () => _fetchSuppliers(page: _currentPage - 1) : null,
-                                            icon: const Icon(Icons.chevron_left_rounded),
-                                          ),
-                                          Text('Halaman $_currentPage dari $_lastPage', style: const TextStyle(fontWeight: FontWeight.w700)),
-                                          IconButton(
-                                            tooltip: 'Halaman berikutnya',
-                                            onPressed: _currentPage < _lastPage ? () => _fetchSuppliers(page: _currentPage + 1) : null,
-                                            icon: const Icon(Icons.chevron_right_rounded),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-                                  final supplier = _suppliers[index];
-                                  return _buildSupplierCard(supplier);
-                                },
-                              ),
-                            ),
+                            );
+                          }
+                          final supplier = _suppliers[index];
+                          return _buildSupplierCard(supplier);
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -481,32 +635,46 @@ class _SupplierListPageState extends State<SupplierListPage> {
     );
   }
 
-  Widget _filterChip(String label, bool isSelected, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF1F7A2E) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected
-                  ? const Color(0xFF1F7A2E)
-                  : const Color(0xFFE9EDE5),
+  Widget _filterDropdownButton({
+    required IconData icon,
+    required String label,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
+    const green = Color(0xFF1F7A2E);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFFE8F3E6) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: active ? green : const Color(0xFFE1E7DE)),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 17,
+              color: active ? green : const Color(0xFF7D8983),
             ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? Colors.white : const Color(0xFF183C32),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                  color: active ? green : const Color(0xFF183C32),
+                ),
+              ),
             ),
-          ),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+          ],
         ),
       ),
     );
@@ -579,8 +747,11 @@ class _SupplierListPageState extends State<SupplierListPage> {
                                 vertical: 2.5,
                               ),
                               decoration: BoxDecoration(
-                                color: (supplier.isActive ? green : const Color(0xFFD84315))
-                                    .withValues(alpha: 0.12),
+                                color:
+                                    (supplier.isActive
+                                            ? green
+                                            : const Color(0xFFD84315))
+                                        .withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -646,7 +817,8 @@ class _SupplierListPageState extends State<SupplierListPage> {
                   ],
                 ],
               ),
-              if (supplier.namaBank != null && supplier.nomorRekening != null) ...[
+              if (supplier.namaBank != null &&
+                  supplier.nomorRekening != null) ...[
                 const SizedBox(height: 6),
                 Row(
                   children: [

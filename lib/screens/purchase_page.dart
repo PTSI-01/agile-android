@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+
 import '../services/purchase_service.dart';
 
 class PurchasePage extends StatefulWidget {
@@ -13,6 +14,18 @@ class _PurchasePageState extends State<PurchasePage> {
   static const green = Color(0xFF1F7A2E);
   static const muted = Color(0xFF7D8983);
   static const gold = Color(0xFFA66F00);
+  static const Map<String, List<String>> _statusFilters = {
+    'Semua': <String>[],
+    'Proses Kirim': <String>['0'],
+    'Proses Lab Incoming': <String>['1'],
+    'Proses Timbang Masuk': <String>['2'],
+    'Proses Bongkar': <String>['3'],
+    'Proses Timbang Keluar': <String>['4', '5'],
+    'Proses Deal Harga': <String>['6'],
+    'Proses Finance': <String>['7', '8', '9'],
+    'Finance Selesai': <String>['10'],
+    'PO Batal': <String>['99'],
+  };
 
   String _fmt(num value, {bool decimal = false}) {
     final raw = value.toStringAsFixed(decimal ? 2 : 0).split('.');
@@ -31,7 +44,15 @@ class _PurchasePageState extends State<PurchasePage> {
   String _formatIndonesianDate(String dateStr) {
     try {
       final d = DateTime.parse(dateStr);
-      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const days = [
+        'Minggu',
+        'Senin',
+        'Selasa',
+        'Rabu',
+        'Kamis',
+        'Jumat',
+        'Sabtu',
+      ];
       const months = [
         '',
         'Jan',
@@ -45,7 +66,7 @@ class _PurchasePageState extends State<PurchasePage> {
         'Sep',
         'Okt',
         'Nov',
-        'Des'
+        'Des',
       ];
       final dayName = days[d.weekday % 7];
       final monthName = months[d.month];
@@ -88,7 +109,8 @@ class _PurchasePageState extends State<PurchasePage> {
       priceLists = (r['price_lists'] ?? []).cast<Map<String, dynamic>>();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
       }
     }
     if (mounted) setState(() => loading = false);
@@ -107,15 +129,20 @@ class _PurchasePageState extends State<PurchasePage> {
 
       // 2. Status filter
       if (selectedStatusFilter != 'Semua') {
-        final status = '${r['status'] ?? r['status_po'] ?? ''}'.toLowerCase();
-        if (!status.contains(selectedStatusFilter.toLowerCase())) return false;
+        final status =
+            '${r['status_transaksi'] ?? r['status'] ?? r['status_po'] ?? ''}'
+                .trim();
+        final acceptedStatuses =
+            _statusFilters[selectedStatusFilter] ?? const <String>[];
+        if (!acceptedStatuses.contains(status)) return false;
       }
 
       // 3. Supplier filter
       if (selectedSupplierFilter != 'Semua') {
         final suppId = '${r['supplier_id'] ?? ''}';
         final suppName = '${r['nama_supplier'] ?? ''}';
-        if (suppId != selectedSupplierFilter && !suppName.contains(selectedSupplierFilter)) {
+        if (suppId != selectedSupplierFilter &&
+            !suppName.contains(selectedSupplierFilter)) {
           return false;
         }
       }
@@ -126,7 +153,14 @@ class _PurchasePageState extends State<PurchasePage> {
         try {
           final d = DateTime.parse(dateStr.substring(0, 10));
           final start = DateTime(fromDate.year, fromDate.month, fromDate.day);
-          final end = DateTime(toDate.year, toDate.month, toDate.day, 23, 59, 59);
+          final end = DateTime(
+            toDate.year,
+            toDate.month,
+            toDate.day,
+            23,
+            59,
+            59,
+          );
           if (d.isBefore(start) || d.isAfter(end)) return false;
         } catch (_) {}
       }
@@ -163,13 +197,19 @@ class _PurchasePageState extends State<PurchasePage> {
           children: [
             const Text(
               'Filter Tanggal Transaksi',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: ink),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: ink,
+              ),
             ),
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.today_rounded, color: green),
               title: const Text('Hari Ini'),
-              trailing: datePresetLabel == 'Hari Ini' ? const Icon(Icons.check, color: green) : null,
+              trailing: datePresetLabel == 'Hari Ini'
+                  ? const Icon(Icons.check, color: green)
+                  : null,
               onTap: () {
                 setState(() {
                   fromDate = DateTime.now();
@@ -182,8 +222,9 @@ class _PurchasePageState extends State<PurchasePage> {
             ListTile(
               leading: const Icon(Icons.date_range_rounded, color: green),
               title: const Text('3 Hari Terakhir (Default)'),
-              trailing:
-                  datePresetLabel == '3 Hari Terakhir' ? const Icon(Icons.check, color: green) : null,
+              trailing: datePresetLabel == '3 Hari Terakhir'
+                  ? const Icon(Icons.check, color: green)
+                  : null,
               onTap: () {
                 setState(() {
                   fromDate = DateTime.now().subtract(const Duration(days: 3));
@@ -196,8 +237,9 @@ class _PurchasePageState extends State<PurchasePage> {
             ListTile(
               leading: const Icon(Icons.calendar_month_rounded, color: green),
               title: const Text('7 Hari Terakhir'),
-              trailing:
-                  datePresetLabel == '7 Hari Terakhir' ? const Icon(Icons.check, color: green) : null,
+              trailing: datePresetLabel == '7 Hari Terakhir'
+                  ? const Icon(Icons.check, color: green)
+                  : null,
               onTap: () {
                 setState(() {
                   fromDate = DateTime.now().subtract(const Duration(days: 7));
@@ -210,8 +252,9 @@ class _PurchasePageState extends State<PurchasePage> {
             ListTile(
               leading: const Icon(Icons.calendar_month_outlined, color: green),
               title: const Text('Bulan Ini (30 Hari)'),
-              trailing:
-                  datePresetLabel == '30 Hari Terakhir' ? const Icon(Icons.check, color: green) : null,
+              trailing: datePresetLabel == '30 Hari Terakhir'
+                  ? const Icon(Icons.check, color: green)
+                  : null,
               onTap: () {
                 setState(() {
                   fromDate = DateTime.now().subtract(const Duration(days: 30));
@@ -249,34 +292,53 @@ class _PurchasePageState extends State<PurchasePage> {
   }
 
   void _showStatusFilterSheet() {
-    final statuses = ['Semua', 'Open', 'Approved', 'Closed', 'Draft', 'Batal'];
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Filter Status PO',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: ink),
+      builder: (ctx) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(ctx).height * 0.68,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Filter Status PO',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: ink,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: ListView(
+                    children: _statusFilters.keys
+                        .map(
+                          (statusLabel) => ListTile(
+                            dense: true,
+                            title: Text(statusLabel),
+                            trailing: selectedStatusFilter == statusLabel
+                                ? const Icon(Icons.check, color: green)
+                                : null,
+                            onTap: () {
+                              setState(
+                                () => selectedStatusFilter = statusLabel,
+                              );
+                              Navigator.pop(ctx);
+                            },
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            ...statuses.map(
-              (s) => ListTile(
-                title: Text(s),
-                trailing: selectedStatusFilter == s ? const Icon(Icons.check, color: green) : null,
-                onTap: () {
-                  setState(() => selectedStatusFilter = s);
-                  Navigator.pop(ctx);
-                },
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -295,19 +357,29 @@ class _PurchasePageState extends State<PurchasePage> {
           builder: (ctx, refresh) {
             final q = controller.text.trim().toLowerCase();
             final filteredSuppliers = suppliers.where((s) {
-              final text = '${s['vendor_id']} ${s['nama_vendor']}'.toLowerCase();
+              final text = '${s['vendor_id']} ${s['nama_vendor']}'
+                  .toLowerCase();
               return text.contains(q);
             }).toList();
 
             return Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).padding.bottom + 20),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                MediaQuery.of(ctx).padding.bottom + 20,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Filter Supplier',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: ink),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: ink,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -340,7 +412,9 @@ class _PurchasePageState extends State<PurchasePage> {
                           final isSelected = selectedSupplierFilter == id;
                           return ListTile(
                             title: Text('$id - $name'),
-                            trailing: isSelected ? const Icon(Icons.check, color: green) : null,
+                            trailing: isSelected
+                                ? const Icon(Icons.check, color: green)
+                                : null,
                             onTap: () {
                               setState(() => selectedSupplierFilter = id);
                               Navigator.pop(ctx);
@@ -403,12 +477,6 @@ class _PurchasePageState extends State<PurchasePage> {
       ),
     );
   }
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Future<void> _delete(Map<String, dynamic> row) async {
     final id = row['id']?.toString();
@@ -417,14 +485,18 @@ class _PurchasePageState extends State<PurchasePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus PO'),
-        content: Text('Apakah Anda yakin ingin menghapus PO ${row['kode_transaksi'] ?? id}?'),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus PO ${row['kode_transaksi'] ?? id}?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Batal'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFFD14942)),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFD14942),
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Hapus'),
           ),
@@ -436,14 +508,15 @@ class _PurchasePageState extends State<PurchasePage> {
       try {
         await PurchaseService.remove(id);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PO berhasil dihapus')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('PO berhasil dihapus')));
         }
         _load();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('$e')));
         }
       }
     }
@@ -460,10 +533,17 @@ class _PurchasePageState extends State<PurchasePage> {
         final tonase = double.tryParse('${row['tonase_supplier'] ?? 0}') ?? 0;
         final harga = double.tryParse('${row['harga_supplier'] ?? 0}') ?? 0;
         final total = double.tryParse('${row['harga_beli_gabah'] ?? 0}') ?? 0;
-        final kategori = '${row['kategori_transaksi']}' == '1' ? 'Harga Dibawah' : 'Titip';
+        final kategori = '${row['kategori_transaksi']}' == '1'
+            ? 'Harga Dibawah'
+            : 'Titip';
 
         return Padding(
-          padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            16,
+            20,
+            MediaQuery.of(ctx).padding.bottom + 20,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +565,11 @@ class _PurchasePageState extends State<PurchasePage> {
                   Expanded(
                     child: Text(
                       'PO: ${row['kode_transaksi'] ?? '-'}',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: ink),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: ink,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -497,14 +581,27 @@ class _PurchasePageState extends State<PurchasePage> {
               const Divider(),
               const SizedBox(height: 8),
               _detailRow('Kode PO', '${row['kode_transaksi'] ?? '-'}'),
-              _detailRow('Supplier', '${row['nama_supplier'] ?? row['supplier_id'] ?? '-'}'),
+              _detailRow(
+                'Supplier',
+                '${row['nama_supplier'] ?? row['supplier_id'] ?? '-'}',
+              ),
               _detailRow('Kategori', kategori),
-              _detailRow('Site / Lokasi', '${row['site_name'] ?? row['site_code'] ?? row['site_id'] ?? '-'}'),
-              _detailRow('Tonase Supplier', '${_fmt(tonase, decimal: true)} Ton'),
+              _detailRow(
+                'Site / Lokasi',
+                '${row['site_name'] ?? row['site_code'] ?? row['site_id'] ?? '-'}',
+              ),
+              _detailRow(
+                'Tonase Supplier',
+                '${_fmt(tonase, decimal: true)} Ton',
+              ),
               _detailRow('Harga Supplier', 'Rp ${_fmt(harga, decimal: true)}'),
               _detailRow('Nopol Truk', '${row['nopol_truk'] ?? '-'}'),
               _detailRow('Pengiriman', '${row['jenis_pengiriman'] ?? '-'}'),
-              _detailRow('Total Harga Beli', 'Rp ${_fmt(total, decimal: true)}', isBold: true),
+              _detailRow(
+                'Total Harga Beli',
+                'Rp ${_fmt(total, decimal: true)}',
+                isBold: true,
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -549,7 +646,10 @@ class _PurchasePageState extends State<PurchasePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.black54, fontSize: 13)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.black54, fontSize: 13),
+          ),
           Flexible(
             child: Text(
               value,
@@ -574,7 +674,8 @@ class _PurchasePageState extends State<PurchasePage> {
         builder: (ctx, refresh) {
           final q = controller.text.trim().toLowerCase();
           final list = suppliers.where((x) {
-            final text = '${x['vendor_id'] ?? ''} ${x['nama_vendor'] ?? ''}'.toLowerCase();
+            final text = '${x['vendor_id'] ?? ''} ${x['nama_vendor'] ?? ''}'
+                .toLowerCase();
             return text.contains(q);
           }).toList();
           return AlertDialog(
@@ -607,7 +708,9 @@ class _PurchasePageState extends State<PurchasePage> {
                                   '${x['vendor_id'] ?? x['id'] ?? ''} - ${x['nama_vendor'] ?? ''}';
                               return ListTile(
                                 title: Text(label),
-                                trailing: id == current ? const Icon(Icons.check) : null,
+                                trailing: id == current
+                                    ? const Icon(Icons.check)
+                                    : null,
                                 onTap: () => Navigator.pop(ctx, id),
                               );
                             },
@@ -623,33 +726,49 @@ class _PurchasePageState extends State<PurchasePage> {
   }
 
   Future<void> _form([Map<String, dynamic>? row]) async {
-    String extractStr(Map<String, dynamic>? source, String key, [List<String> altKeys = const []]) {
+    String extractStr(
+      Map<String, dynamic>? source,
+      String key, [
+      List<String> altKeys = const [],
+    ]) {
       if (source == null) return '';
-      if (source[key] != null && source[key].toString().isNotEmpty && source[key].toString() != 'null') {
-        return source[key].toString();
+      if (source[key] != null &&
+          source[key].toString().isNotEmpty &&
+          source[key].toString() != 'null') {
+        return source[key].toString().trim();
       }
       for (final alt in altKeys) {
-        if (source[alt] != null && source[alt].toString().isNotEmpty && source[alt].toString() != 'null') {
-          return source[alt].toString();
+        if (source[alt] != null &&
+            source[alt].toString().isNotEmpty &&
+            source[alt].toString() != 'null') {
+          return source[alt].toString().trim();
         }
       }
       return '';
     }
 
     String getItemCanonicalValue(Map<String, dynamic> x) {
-      if (x['item_id'] != null && x['item_id'].toString().isNotEmpty && x['item_id'].toString() != 'null') {
+      if (x['item_id'] != null &&
+          x['item_id'].toString().isNotEmpty &&
+          x['item_id'].toString() != 'null') {
         return x['item_id'].toString();
       }
       if (x['item'] is Map) {
         final m = x['item'] as Map<String, dynamic>;
-        if (m['item_id'] != null && m['item_id'].toString().isNotEmpty && m['item_id'].toString() != 'null') {
+        if (m['item_id'] != null &&
+            m['item_id'].toString().isNotEmpty &&
+            m['item_id'].toString() != 'null') {
           return m['item_id'].toString();
         }
-        if (m['id'] != null && m['id'].toString().isNotEmpty && m['id'].toString() != 'null') {
+        if (m['id'] != null &&
+            m['id'].toString().isNotEmpty &&
+            m['id'].toString() != 'null') {
           return m['id'].toString();
         }
       }
-      if (x['id'] != null && x['id'].toString().isNotEmpty && x['id'].toString() != 'null') {
+      if (x['id'] != null &&
+          x['id'].toString().isNotEmpty &&
+          x['id'].toString() != 'null') {
         return x['id'].toString();
       }
       return '';
@@ -662,6 +781,7 @@ class _PurchasePageState extends State<PurchasePage> {
           set.add(v.toString().trim());
         }
       }
+
       add(x['item_id']);
       add(x['id_item']);
       add(x['master_item_id']);
@@ -706,6 +826,8 @@ class _PurchasePageState extends State<PurchasePage> {
     if (row != null) {
       final detailListKeys = [
         'details',
+        'buyer_detail',
+        'BuyerDetail',
         'purchase_order_details',
         'purchaseOrderDetails',
         'buyer_details',
@@ -758,6 +880,8 @@ class _PurchasePageState extends State<PurchasePage> {
 
       final detailListKeys = [
         'details',
+        'buyer_detail',
+        'BuyerDetail',
         'purchase_order_details',
         'purchaseOrderDetails',
         'buyer_details',
@@ -788,12 +912,22 @@ class _PurchasePageState extends State<PurchasePage> {
       }
     }
 
-    String selectedSupplier = extractStr(row, 'supplier_id', ['vendor_id', 'id_supplier']);
-    if (selectedSupplier.isEmpty && row?['supplier'] != null && row!['supplier'] is Map) {
-      selectedSupplier = extractStr(row['supplier'], 'vendor_id', ['id', 'supplier_id']);
+    String selectedSupplier = extractStr(row, 'supplier_id', [
+      'vendor_id',
+      'id_supplier',
+    ]);
+    if (selectedSupplier.isEmpty &&
+        row?['supplier'] != null &&
+        row!['supplier'] is Map) {
+      selectedSupplier = extractStr(row['supplier'], 'vendor_id', [
+        'id',
+        'supplier_id',
+      ]);
     }
 
-    String selectedCategory = extractStr(row, 'kategori_transaksi', ['kategori']);
+    String selectedCategory = extractStr(row, 'kategori_transaksi', [
+      'kategori',
+    ]);
     String selectedSite = extractStr(row, 'site_id', ['id_site']);
 
     String tonaseStr = '';
@@ -804,8 +938,10 @@ class _PurchasePageState extends State<PurchasePage> {
         tonaseStr = extractStr(firstDetail, 'tonase_supplier', ['tonase']);
         hargaStr = extractStr(firstDetail, 'harga_supplier', ['harga']);
       }
-      if (tonaseStr.isEmpty) tonaseStr = extractStr(row, 'tonase_supplier', ['tonase']);
-      if (hargaStr.isEmpty) hargaStr = extractStr(row, 'harga_supplier', ['harga']);
+      if (tonaseStr.isEmpty)
+        tonaseStr = extractStr(row, 'tonase_supplier', ['tonase']);
+      if (hargaStr.isEmpty)
+        hargaStr = extractStr(row, 'harga_supplier', ['harga']);
     } else if (selectedCategory == '2') {
       tonaseStr = extractStr(row, 'tonase_supplier', ['tonase']);
       hargaStr = '';
@@ -821,7 +957,9 @@ class _PurchasePageState extends State<PurchasePage> {
     }
 
     int step = 1;
-    List<Map<String, dynamic>> availableItems = List<Map<String, dynamic>>.from(items);
+    List<Map<String, dynamic>> availableItems = List<Map<String, dynamic>>.from(
+      items,
+    );
 
     if (selectedSite.isNotEmpty) {
       try {
@@ -859,23 +997,55 @@ class _PurchasePageState extends State<PurchasePage> {
 
     final t = TextEditingController(text: tonaseStr);
     final price = TextEditingController(text: hargaStr);
-    final n = TextEditingController(text: extractStr(row, 'nopol_truk', ['nopol']));
+    final n = TextEditingController(
+      text: extractStr(row, 'nopol_truk', ['nopol']),
+    );
 
-    String selectedProvince = extractStr(row, 'provinsi_id', ['provinsi_code', 'provinsi']);
-    String selectedCity = extractStr(row, 'kabupaten_id', ['kabupaten_code', 'kabupaten', 'kota_id']);
-    String selectedDistrict = extractStr(row, 'kecamatan_id', ['kecamatan_code', 'kecamatan']);
-    String selectedVillage = extractStr(row, 'desa_id', ['desa_code', 'desa', 'kelurahan_id']);
+    String selectedProvince = extractStr(row, 'provinsi_id', [
+      'provinsi_code',
+      'provinsi',
+    ]);
+    String selectedCity = extractStr(row, 'kabupaten_id', [
+      'kabupaten_code',
+      'kabupaten',
+      'kota_id',
+    ]);
+    String selectedDistrict = extractStr(row, 'kecamatan_id', [
+      'kecamatan_code',
+      'kecamatan',
+    ]);
+    String selectedVillage = extractStr(row, 'desa_id', [
+      'desa_code',
+      'desa',
+      'kelurahan_id',
+    ]);
 
-    String selectedShipping = extractStr(row, 'jenis_pengiriman', ['pengiriman']);
-    if (selectedShipping.isEmpty) selectedShipping = 'SEWA';
+    String selectedShipping = extractStr(row, 'jenis_pengiriman', [
+      'pengiriman',
+    ]).toUpperCase();
+    if (selectedShipping == 'AMBIL SENDIRI' ||
+        selectedShipping == 'MILIK SENDIRI') {
+      selectedShipping = 'AMBIL';
+    }
+    if (selectedShipping != 'SEWA' && selectedShipping != 'AMBIL') {
+      selectedShipping = selectedCategory == '2' ? 'AMBIL' : 'SEWA';
+    }
 
-    String selectedPriceList = extractStr(row, 'item_sewa_id', ['price_list_id']);
+    String selectedPriceList = extractStr(row, 'item_sewa_id', [
+      'price_list_id',
+    ]);
 
     List<Map<String, dynamic>> cities = [], districts = [], villages = [];
     final scroll = ScrollController();
-    final kuli = TextEditingController(text: extractStr(row, 'biaya_kuli', ['kuli']));
-    final intern = TextEditingController(text: extractStr(row, 'biaya_truk_intern', ['truk_intern']));
-    final sewaPrice = TextEditingController(text: extractStr(row, 'harga_sewa_truk', ['harga_sewa']));
+    final kuli = TextEditingController(
+      text: extractStr(row, 'biaya_kuli', ['kuli']),
+    );
+    final intern = TextEditingController(
+      text: extractStr(row, 'biaya_truk_intern', ['truk_intern']),
+    );
+    final sewaPrice = TextEditingController(
+      text: extractStr(row, 'harga_sewa_truk', ['harga_sewa']),
+    );
     if (sewaPrice.text.isEmpty) sewaPrice.text = '0';
 
     if (selectedProvince.isNotEmpty) {
@@ -918,37 +1088,51 @@ class _PurchasePageState extends State<PurchasePage> {
               final label = code.isNotEmpty && name.isNotEmpty
                   ? '$code - $name'
                   : (name.isNotEmpty ? name : (code.isNotEmpty ? code : val));
-              itemOptions.add(DropdownMenuItem<String>(
-                value: val,
-                child: Text(label, overflow: TextOverflow.ellipsis),
-              ));
+              itemOptions.add(
+                DropdownMenuItem<String>(
+                  value: val,
+                  child: Text(label, overflow: TextOverflow.ellipsis),
+                ),
+              );
             }
           }
 
           final siteOptions = sites
-              .map((x) => DropdownMenuItem<String>(
-                    value: '${x['id']}',
-                    child: Text('${x['site_code'] ?? ''} - ${x['site_name'] ?? ''}'),
-                  ))
+              .map(
+                (x) => DropdownMenuItem<String>(
+                  value: '${x['id']}',
+                  child: Text(
+                    '${x['site_code'] ?? ''} - ${x['site_name'] ?? ''}',
+                  ),
+                ),
+              )
               .toList();
           final siteLabel = sites
               .where((x) => '${x['id']}' == selectedSite)
               .map((x) => '${x['site_code'] ?? ''} - ${x['site_name'] ?? ''}')
               .firstWhere((_) => true, orElse: () => selectedSite);
 
-          String regionLabel(List<Map<String, dynamic>> list, String code) => list
-              .where((x) => '${x['code']}' == code)
-              .map((x) => '${x['name']}')
-              .firstWhere((_) => true, orElse: () => code);
+          String regionCode(Map<String, dynamic> region) =>
+              '${region['code']}'.trim();
+
+          String regionLabel(List<Map<String, dynamic>> list, String code) =>
+              list
+                  .where((x) => regionCode(x) == code.trim())
+                  .map((x) => '${x['name']}')
+                  .firstWhere((_) => true, orElse: () => code);
 
           final tonaseValue = double.tryParse(t.text.replaceAll(',', '.')) ?? 0,
-              hargaValue = double.tryParse(price.text.replaceAll(',', '.')) ?? 0,
-              sewaValue = double.tryParse(sewaPrice.text.replaceAll(',', '.')) ?? 0,
+              hargaValue =
+                  double.tryParse(price.text.replaceAll(',', '.')) ?? 0,
+              sewaValue =
+                  double.tryParse(sewaPrice.text.replaceAll(',', '.')) ?? 0,
               kuliValue = double.tryParse(kuli.text.replaceAll(',', '.')) ?? 0,
-              internValue = double.tryParse(intern.text.replaceAll(',', '.')) ?? 0;
+              internValue =
+                  double.tryParse(intern.text.replaceAll(',', '.')) ?? 0;
           final incTransport = tonaseValue > 0
-              ? (((tonaseValue * hargaValue) + sewaValue + kuliValue) / tonaseValue)
-                  .roundToDouble()
+              ? (((tonaseValue * hargaValue) + sewaValue + kuliValue) /
+                        tonaseValue)
+                    .roundToDouble()
               : 0;
           final totalGabah = (incTransport * tonaseValue) + internValue;
 
@@ -957,34 +1141,50 @@ class _PurchasePageState extends State<PurchasePage> {
               for (final item in const [
                 (1, 'Data Supplier'),
                 (2, 'Wilayah'),
-                (3, 'Logistik & Harga')
+                (3, 'Logistik & Harga'),
               ])
                 Expanded(
                   child: Column(
                     children: [
                       CircleAvatar(
                         radius: 15,
-                        backgroundColor: step == item.$1 ? green : const Color(0xFFE0E6DF),
-                        child: Text('${item.$1}',
-                            style: TextStyle(
-                                color: step == item.$1 ? Colors.white : Colors.black)),
+                        backgroundColor: step == item.$1
+                            ? green
+                            : const Color(0xFFE0E6DF),
+                        child: Text(
+                          '${item.$1}',
+                          style: TextStyle(
+                            color: step == item.$1
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 3),
                       FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Text(item.$2,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 9)),
-                      )
+                        child: Text(
+                          item.$2,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 9),
+                        ),
+                      ),
                     ],
                   ),
-                )
+                ),
             ],
           );
 
           return AlertDialog(
-            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            title: Text(row == null ? 'Tambah PO' : 'Edit PO (${row['kode_transaksi'] ?? ''})'),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 24,
+            ),
+            title: Text(
+              row == null
+                  ? 'Tambah PO'
+                  : 'Edit PO (${row['kode_transaksi'] ?? ''})',
+            ),
             content: SizedBox(
               width: double.infinity,
               height: 520,
@@ -1000,23 +1200,43 @@ class _PurchasePageState extends State<PurchasePage> {
                         children: [
                           DropdownButtonFormField<String>(
                             key: ValueKey('cat_$selectedCategory'),
-                            initialValue: ['1', '2'].contains(selectedCategory) ? selectedCategory : null,
+                            initialValue: ['1', '2'].contains(selectedCategory)
+                                ? selectedCategory
+                                : null,
                             decoration: const InputDecoration(
                               labelText: 'Kategori pembelian *',
                               border: OutlineInputBorder(),
                             ),
                             items: const [
-                              DropdownMenuItem(value: '1', child: Text('Harga Dibawah')),
-                              DropdownMenuItem(value: '2', child: Text('Titip'))
+                              DropdownMenuItem(
+                                value: '1',
+                                child: Text('Harga Dibawah'),
+                              ),
+                              DropdownMenuItem(
+                                value: '2',
+                                child: Text('Titip'),
+                              ),
                             ],
                             onChanged: (v) => refresh(() {
                               selectedCategory = v ?? '';
+                              if (selectedCategory == '2') {
+                                selectedShipping = 'AMBIL';
+                                selectedPriceList = '';
+                                sewaPrice.text = '0';
+                                kuli.text = '0';
+                                intern.text = '0';
+                              }
                             }),
                           ),
                           const SizedBox(height: 10),
                           DropdownButtonFormField<String>(
-                            key: ValueKey('site_${selectedSite}_${siteOptions.length}'),
-                            initialValue: siteOptions.any((x) => x.value == selectedSite) ? selectedSite : null,
+                            key: ValueKey(
+                              'site_${selectedSite}_${siteOptions.length}',
+                            ),
+                            initialValue:
+                                siteOptions.any((x) => x.value == selectedSite)
+                                ? selectedSite
+                                : null,
                             decoration: const InputDecoration(
                               labelText: 'Lokasi site *',
                               border: OutlineInputBorder(),
@@ -1025,8 +1245,11 @@ class _PurchasePageState extends State<PurchasePage> {
                             onChanged: (v) async {
                               if (v == null) return;
                               try {
-                                final r = await PurchaseService.siteReferences(v);
-                                final list = (r['items'] ?? []).cast<Map<String, dynamic>>();
+                                final r = await PurchaseService.siteReferences(
+                                  v,
+                                );
+                                final list = (r['items'] ?? [])
+                                    .cast<Map<String, dynamic>>();
                                 refresh(() {
                                   selectedSite = v;
                                   availableItems = list;
@@ -1034,8 +1257,9 @@ class _PurchasePageState extends State<PurchasePage> {
                                 });
                               } catch (e) {
                                 if (ctx.mounted) {
-                                  ScaffoldMessenger.of(ctx)
-                                      .showSnackBar(SnackBar(content: Text('$e')));
+                                  ScaffoldMessenger.of(
+                                    ctx,
+                                  ).showSnackBar(SnackBar(content: Text('$e')));
                                 }
                               }
                             },
@@ -1062,8 +1286,15 @@ class _PurchasePageState extends State<PurchasePage> {
                           if (selectedCategory.isNotEmpty) ...[
                             const SizedBox(height: 10),
                             DropdownButtonFormField<String>(
-                              key: ValueKey('item_${selectedItem}_${itemOptions.length}'),
-                              initialValue: itemOptions.any((x) => x.value == selectedItem) ? selectedItem : null,
+                              key: ValueKey(
+                                'item_${selectedItem}_${itemOptions.length}',
+                              ),
+                              initialValue:
+                                  itemOptions.any(
+                                    (x) => x.value == selectedItem,
+                                  )
+                                  ? selectedItem
+                                  : null,
                               decoration: const InputDecoration(
                                 labelText: 'Item *',
                                 border: OutlineInputBorder(),
@@ -1106,27 +1337,43 @@ class _PurchasePageState extends State<PurchasePage> {
                             const Divider(height: 24),
                             const Align(
                               alignment: Alignment.centerLeft,
-                              child: Text('Wilayah Pengambilan',
-                                  style: TextStyle(fontWeight: FontWeight.bold)),
+                              child: Text(
+                                'Wilayah Pengambilan',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
-                              key: ValueKey('prov_${selectedProvince}_${provinces.length}'),
-                              initialValue: provinces.any((x) => '${x['code']}' == selectedProvince) ? selectedProvince : null,
+                              key: ValueKey(
+                                'prov_${selectedProvince}_${provinces.length}',
+                              ),
+                              initialValue:
+                                  provinces.any(
+                                    (x) =>
+                                        regionCode(x) ==
+                                        selectedProvince.trim(),
+                                  )
+                                  ? selectedProvince
+                                  : null,
                               decoration: const InputDecoration(
                                 labelText: 'Provinsi *',
                                 border: OutlineInputBorder(),
                               ),
                               items: provinces
-                                  .map((x) => DropdownMenuItem(
-                                        value: '${x['code']}',
-                                        child: Text('${x['name']}'),
-                                      ))
+                                  .map(
+                                    (x) => DropdownMenuItem(
+                                      value: regionCode(x),
+                                      child: Text('${x['name']}'),
+                                    ),
+                                  )
                                   .toList(),
                               onChanged: (v) async {
                                 if (v == null) return;
                                 try {
-                                  final data = await PurchaseService.wilayah('kabupaten', v);
+                                  final data = await PurchaseService.wilayah(
+                                    'kabupaten',
+                                    v,
+                                  );
                                   refresh(() {
                                     selectedProvince = v;
                                     selectedCity = '';
@@ -1138,30 +1385,43 @@ class _PurchasePageState extends State<PurchasePage> {
                                   });
                                 } catch (e) {
                                   if (ctx.mounted) {
-                                    ScaffoldMessenger.of(ctx)
-                                        .showSnackBar(SnackBar(content: Text('$e')));
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      SnackBar(content: Text('$e')),
+                                    );
                                   }
                                 }
                               },
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
-                              key: ValueKey('city_${selectedCity}_${cities.length}'),
-                              initialValue: cities.any((x) => '${x['code']}' == selectedCity) ? selectedCity : null,
+                              key: ValueKey(
+                                'city_${selectedCity}_${cities.length}',
+                              ),
+                              initialValue:
+                                  cities.any(
+                                    (x) => regionCode(x) == selectedCity.trim(),
+                                  )
+                                  ? selectedCity
+                                  : null,
                               decoration: const InputDecoration(
                                 labelText: 'Kabupaten/Kota *',
                                 border: OutlineInputBorder(),
                               ),
                               items: cities
-                                  .map((x) => DropdownMenuItem(
-                                        value: '${x['code']}',
-                                        child: Text('${x['name']}'),
-                                      ))
+                                  .map(
+                                    (x) => DropdownMenuItem(
+                                      value: regionCode(x),
+                                      child: Text('${x['name']}'),
+                                    ),
+                                  )
                                   .toList(),
                               onChanged: (v) async {
                                 if (v == null) return;
                                 try {
-                                  final data = await PurchaseService.wilayah('kecamatan', v);
+                                  final data = await PurchaseService.wilayah(
+                                    'kecamatan',
+                                    v,
+                                  );
                                   refresh(() {
                                     selectedCity = v;
                                     selectedDistrict = '';
@@ -1171,60 +1431,91 @@ class _PurchasePageState extends State<PurchasePage> {
                                   });
                                 } catch (e) {
                                   if (ctx.mounted) {
-                                    ScaffoldMessenger.of(ctx)
-                                        .showSnackBar(SnackBar(content: Text('$e')));
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      SnackBar(content: Text('$e')),
+                                    );
                                   }
                                 }
                               },
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
-                              key: ValueKey('dist_${selectedDistrict}_${districts.length}'),
-                              initialValue: districts.any((x) => '${x['code']}' == selectedDistrict) ? selectedDistrict : null,
+                              key: ValueKey(
+                                'dist_${selectedDistrict}_${districts.length}',
+                              ),
+                              initialValue:
+                                  districts.any(
+                                    (x) =>
+                                        regionCode(x) ==
+                                        selectedDistrict.trim(),
+                                  )
+                                  ? selectedDistrict
+                                  : null,
                               decoration: const InputDecoration(
                                 labelText: 'Kecamatan *',
                                 border: OutlineInputBorder(),
                               ),
                               items: districts
-                                  .map((x) => DropdownMenuItem(
-                                        value: '${x['code']}',
-                                        child: Text('${x['name']}'),
-                                      ))
+                                  .map(
+                                    (x) => DropdownMenuItem(
+                                      value: regionCode(x),
+                                      child: Text('${x['name']}'),
+                                    ),
+                                  )
                                   .toList(),
                               onChanged: (v) async {
                                 if (v == null) return;
                                 try {
-                                  final data = await PurchaseService.wilayah('desa', v);
+                                  final data = await PurchaseService.wilayah(
+                                    'desa',
+                                    v,
+                                  );
                                   refresh(() {
                                     selectedDistrict = v;
                                     selectedVillage = '';
                                     villages = data;
                                   });
                                   if (data.isEmpty && ctx.mounted) {
-                                    ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
-                                        content: Text('Desa untuk kecamatan ini tidak ditemukan')));
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Desa untuk kecamatan ini tidak ditemukan',
+                                        ),
+                                      ),
+                                    );
                                   }
                                 } catch (e) {
                                   if (ctx.mounted) {
-                                    ScaffoldMessenger.of(ctx)
-                                        .showSnackBar(SnackBar(content: Text('$e')));
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      SnackBar(content: Text('$e')),
+                                    );
                                   }
                                 }
                               },
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
-                              key: ValueKey('vill_${selectedVillage}_${villages.length}'),
-                              initialValue: villages.any((x) => '${x['code']}' == selectedVillage) ? selectedVillage : null,
+                              key: ValueKey(
+                                'vill_${selectedVillage}_${villages.length}',
+                              ),
+                              initialValue:
+                                  villages.any(
+                                    (x) =>
+                                        regionCode(x) == selectedVillage.trim(),
+                                  )
+                                  ? selectedVillage
+                                  : null,
                               decoration: const InputDecoration(
                                 labelText: 'Desa/Kelurahan *',
                                 border: OutlineInputBorder(),
                               ),
                               items: villages
-                                  .map((x) => DropdownMenuItem(
-                                        value: '${x['code']}',
-                                        child: Text('${x['name']}'),
-                                      ))
+                                  .map(
+                                    (x) => DropdownMenuItem(
+                                      value: regionCode(x),
+                                      child: Text('${x['name']}'),
+                                    ),
+                                  )
                                   .toList(),
                               onChanged: (v) => refresh(() {
                                 selectedVillage = v ?? '';
@@ -1235,46 +1526,75 @@ class _PurchasePageState extends State<PurchasePage> {
                             const Divider(height: 24),
                             const Align(
                               alignment: Alignment.centerLeft,
-                              child: Text('Logistik & Harga',
-                                  style: TextStyle(fontWeight: FontWeight.bold)),
+                              child: Text(
+                                'Logistik & Harga',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
                               key: ValueKey('ship_$selectedShipping'),
-                              initialValue: ['SEWA', 'MILIK SENDIRI'].contains(selectedShipping) ? selectedShipping : 'SEWA',
+                              initialValue:
+                                  ['SEWA', 'AMBIL'].contains(selectedShipping)
+                                  ? selectedShipping
+                                  : 'AMBIL',
                               decoration: const InputDecoration(
                                 labelText: 'Jenis pengiriman *',
                                 border: OutlineInputBorder(),
                               ),
                               items: const [
-                                DropdownMenuItem(value: 'SEWA', child: Text('Sewa Truk')),
-                                DropdownMenuItem(value: 'MILIK SENDIRI', child: Text('Milik Sendiri'))
+                                DropdownMenuItem(
+                                  value: 'SEWA',
+                                  child: Text('Sewa Truk'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'AMBIL',
+                                  child: Text('Ambil Sendiri'),
+                                ),
                               ],
-                              onChanged: (v) => refresh(() {
-                                selectedShipping = v ?? 'SEWA';
-                              }),
+                              onChanged: selectedCategory == '2'
+                                  ? null
+                                  : (v) => refresh(() {
+                                      selectedShipping = v ?? 'AMBIL';
+                                      if (selectedShipping == 'AMBIL') {
+                                        selectedPriceList = '';
+                                        sewaPrice.text = '0';
+                                        kuli.text = '0';
+                                        intern.text = '0';
+                                      }
+                                    }),
                             ),
                             if (selectedShipping == 'SEWA') ...[
                               const SizedBox(height: 8),
                               DropdownButtonFormField<String>(
-                                key: ValueKey('price_${selectedPriceList}_${priceLists.length}'),
+                                key: ValueKey(
+                                  'price_${selectedPriceList}_${priceLists.length}',
+                                ),
                                 initialValue:
-                                    priceLists.any((x) => '${x['id']}' == selectedPriceList) ? selectedPriceList : null,
+                                    priceLists.any(
+                                      (x) => '${x['id']}' == selectedPriceList,
+                                    )
+                                    ? selectedPriceList
+                                    : null,
                                 decoration: const InputDecoration(
                                   labelText: 'Item sewa *',
                                   border: OutlineInputBorder(),
                                 ),
                                 items: priceLists.map((x) {
-                                  final item = x['item'] ?? x['ItemSite']?['item'];
+                                  final item =
+                                      x['item'] ?? x['ItemSite']?['item'];
                                   return DropdownMenuItem(
                                     value: '${x['id']}',
                                     child: Text(
-                                        '${item?['nama_item'] ?? x['price_list_name'] ?? 'Item sewa'}'),
+                                      '${item?['nama_item'] ?? x['price_list_name'] ?? 'Item sewa'}',
+                                    ),
                                   );
                                 }).toList(),
                                 onChanged: (v) {
                                   if (v == null) return;
-                                  final p = priceLists.where((x) => '${x['id']}' == v).toList();
+                                  final p = priceLists
+                                      .where((x) => '${x['id']}' == v)
+                                      .toList();
                                   refresh(() {
                                     selectedPriceList = v;
                                     sewaPrice.text = p.isNotEmpty
@@ -1283,35 +1603,36 @@ class _PurchasePageState extends State<PurchasePage> {
                                   });
                                 },
                               ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: sewaPrice,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText:
+                                      'Harga sewa truk (otomatis, bisa diubah)',
+                                  prefixText: 'Rp ',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: kuli,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Biaya kuli',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: intern,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Biaya truk intern',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
                             ],
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: sewaPrice,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Harga sewa truk (otomatis, bisa diubah)',
-                                prefixText: 'Rp ',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: kuli,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Biaya kuli',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: intern,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Biaya truk intern',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
                           ],
                         ],
                       ),
@@ -1321,7 +1642,10 @@ class _PurchasePageState extends State<PurchasePage> {
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Batal'),
+              ),
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: green),
                 onPressed: () async {
@@ -1330,7 +1654,11 @@ class _PurchasePageState extends State<PurchasePage> {
                       selectedSite.isEmpty ||
                       selectedItem.isEmpty) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      const SnackBar(content: Text('Lengkapi kategori, site, supplier, dan item')),
+                      const SnackBar(
+                        content: Text(
+                          'Lengkapi kategori, site, supplier, dan item',
+                        ),
+                      ),
                     );
                     return;
                   }
@@ -1338,10 +1666,13 @@ class _PurchasePageState extends State<PurchasePage> {
                     refresh(() {
                       step = 2;
                     });
-                    WidgetsBinding.instance.addPostFrameCallback((_) => scroll.animateTo(
+                    WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => scroll.animateTo(
                         scroll.position.maxScrollExtent,
                         duration: const Duration(milliseconds: 350),
-                        curve: Curves.easeOut));
+                        curve: Curves.easeOut,
+                      ),
+                    );
                     return;
                   }
                   if (step == 2) {
@@ -1351,48 +1682,80 @@ class _PurchasePageState extends State<PurchasePage> {
                         selectedVillage.isEmpty) {
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         const SnackBar(
-                            content: Text('Lengkapi wilayah pengambilan terlebih dahulu')),
+                          content: Text(
+                            'Lengkapi wilayah pengambilan terlebih dahulu',
+                          ),
+                        ),
                       );
                       return;
                     }
                     refresh(() {
                       step = 3;
                     });
-                    WidgetsBinding.instance.addPostFrameCallback((_) => scroll.animateTo(
+                    WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => scroll.animateTo(
                         scroll.position.maxScrollExtent,
                         duration: const Duration(milliseconds: 350),
-                        curve: Curves.easeOut));
+                        curve: Curves.easeOut,
+                      ),
+                    );
                     return;
                   }
 
-                  final tonase = double.tryParse(t.text.replaceAll(',', '.')) ?? 0;
-                  final harga = double.tryParse(price.text.replaceAll(',', '.')) ?? 0;
+                  final tonase =
+                      double.tryParse(t.text.replaceAll(',', '.')) ?? 0;
+                  final harga =
+                      double.tryParse(price.text.replaceAll(',', '.')) ?? 0;
 
                   final confirm = await showDialog<bool>(
                     context: ctx,
                     builder: (previewCtx) => AlertDialog(
-                      title: Text(row == null ? 'Preview PO' : 'Preview Edit PO'),
+                      title: Text(
+                        row == null ? 'Preview PO' : 'Preview Edit PO',
+                      ),
                       content: SizedBox(
-                        width: (MediaQuery.sizeOf(previewCtx).width - 64).clamp(260.0, 360.0),
+                        width: (MediaQuery.sizeOf(previewCtx).width - 64).clamp(
+                          260.0,
+                          360.0,
+                        ),
                         child: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Kategori: ${selectedCategory == '1' ? 'Harga Dibawah' : 'Titip'}'),
+                              Text(
+                                'Kategori: ${selectedCategory == '1' ? 'Harga Dibawah' : 'Titip'}',
+                              ),
                               Text('Supplier: $supplierLabel'),
                               Text('Site: $siteLabel'),
-                              Text('Tonase: ${_fmt(tonaseValue, decimal: true)} Ton'),
                               Text(
-                                  'Wilayah: ${regionLabel(provinces, selectedProvince)} / ${regionLabel(cities, selectedCity)} / ${regionLabel(districts, selectedDistrict)} / ${regionLabel(villages, selectedVillage)}'),
-                              Text('Pengiriman: ${selectedShipping == 'SEWA' ? 'Sewa Truk' : 'Milik Sendiri'}'),
+                                'Tonase: ${_fmt(tonaseValue, decimal: true)} Ton',
+                              ),
+                              Text(
+                                'Wilayah: ${regionLabel(provinces, selectedProvince)} / ${regionLabel(cities, selectedCity)} / ${regionLabel(districts, selectedDistrict)} / ${regionLabel(villages, selectedVillage)}',
+                              ),
+                              Text(
+                                'Pengiriman: ${selectedShipping == 'SEWA' ? 'Sewa Truk' : 'Ambil Sendiri'}',
+                              ),
                               if (selectedShipping == 'SEWA') ...[
-                                Text('Harga sewa: Rp ${_fmt(sewaValue, decimal: true)}'),
+                                Text(
+                                  'Harga sewa: Rp ${_fmt(sewaValue, decimal: true)}',
+                                ),
+                                Text('Biaya kuli: Rp ${_fmt(kuliValue)}'),
+                                Text(
+                                  'Biaya truk intern: Rp ${_fmt(internValue)}',
+                                ),
                               ],
-                              Text('Biaya kuli: Rp ${_fmt(kuliValue)}'),
-                              Text('Biaya truk intern: Rp ${_fmt(internValue)}'),
-                              Text('Harga inc transport: Rp ${_fmt(incTransport)}'),
-                              Text('Total harga beli gabah: Rp ${_fmt(totalGabah)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                              if (selectedCategory == '1') ...[
+                                Text(
+                                  'Harga inc transport: Rp ${_fmt(incTransport)}',
+                                ),
+                                Text(
+                                  'Total harga beli gabah: Rp ${_fmt(totalGabah)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -1414,45 +1777,67 @@ class _PurchasePageState extends State<PurchasePage> {
                   if (confirm != true) return;
 
                   try {
-                    await PurchaseService.save(
-                      {
-                        'supplier_id': selectedSupplier,
-                        'tanggal_transaksi': DateTime.now().toIso8601String().substring(0, 10),
-                        'site_id': selectedSite,
-                        'kategori_transaksi': selectedCategory,
-                        'item_id': selectedCategory == '2' ? selectedItem : null,
-                        'tonase_supplier': tonase,
-                        'harga_supplier': selectedCategory == '2' ? null : harga,
-                        'nopol_truk': n.text,
-                        'provinsi_id': selectedProvince,
-                        'kabupaten_id': selectedCity,
-                        'kecamatan_id': selectedDistrict,
-                        'desa_id': selectedVillage,
-                        'jenis_pengiriman': selectedShipping,
-                        'item_sewa_id': selectedShipping == 'SEWA' && selectedPriceList.isNotEmpty
-                            ? selectedPriceList
-                            : null,
-                        'harga_sewa_truk': sewaValue,
-                        'harga_inc_transport': incTransport,
-                        'harga_beli_gabah': totalGabah,
-                        'biaya_kuli': kuliValue,
-                        'biaya_truk_intern': internValue,
-                        'details': selectedCategory == '1'
-                            ? [
-                                {'item_id': selectedItem, 'tonase_supplier': tonase, 'harga_supplier': harga}
-                              ]
-                            : []
-                      },
-                      id: row?['id']?.toString(),
-                    );
+                    await PurchaseService.save({
+                      'supplier_id': selectedSupplier,
+                      'tanggal_transaksi': DateTime.now()
+                          .toIso8601String()
+                          .substring(0, 10),
+                      'site_id': selectedSite,
+                      'kategori_transaksi': selectedCategory,
+                      'item_id': selectedCategory == '2' ? selectedItem : null,
+                      'tonase_supplier': tonase,
+                      'harga_supplier': selectedCategory == '2' ? null : harga,
+                      'nopol_truk': n.text,
+                      'provinsi_id': selectedProvince,
+                      'kabupaten_id': selectedCity,
+                      'kecamatan_id': selectedDistrict,
+                      'desa_id': selectedVillage,
+                      'jenis_pengiriman': selectedShipping,
+                      'item_sewa_id':
+                          selectedShipping == 'SEWA' &&
+                              selectedPriceList.isNotEmpty
+                          ? selectedPriceList
+                          : null,
+                      'harga_sewa_truk': selectedShipping == 'SEWA'
+                          ? sewaValue
+                          : null,
+                      'harga_inc_transport': selectedCategory == '1'
+                          ? incTransport
+                          : null,
+                      'harga_beli_gabah': selectedCategory == '1'
+                          ? totalGabah
+                          : null,
+                      'biaya_kuli': selectedShipping == 'SEWA'
+                          ? kuliValue
+                          : null,
+                      'biaya_truk_intern': selectedShipping == 'SEWA'
+                          ? internValue
+                          : null,
+                      'details': selectedCategory == '1'
+                          ? [
+                              {
+                                'item_id': selectedItem,
+                                'tonase_supplier': tonase,
+                                'harga_supplier': harga,
+                              },
+                            ]
+                          : [],
+                    }, id: row?['id']?.toString());
                     if (ctx.mounted) Navigator.pop(ctx, true);
                   } catch (e) {
                     if (ctx.mounted) {
-                      ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('$e')));
+                      ScaffoldMessenger.of(ctx)
+                          .showSnackBar(SnackBar(content: Text('$e')));
                     }
                   }
                 },
-                child: Text(step == 1 ? 'Selanjutnya' : step == 2 ? 'Selanjutnya' : 'Preview'),
+                child: Text(
+                  step == 1
+                      ? 'Selanjutnya'
+                      : step == 2
+                      ? 'Selanjutnya'
+                      : 'Preview',
+                ),
               ),
             ],
           );
@@ -1489,11 +1874,15 @@ class _PurchasePageState extends State<PurchasePage> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: isTitip ? const Color(0xFFFFF3C4) : const Color(0xFFE5F2E7),
+                  color: isTitip
+                      ? const Color(0xFFFFF3C4)
+                      : const Color(0xFFE5F2E7),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
-                  isTitip ? Icons.bookmark_added_rounded : Icons.shopping_bag_rounded,
+                  isTitip
+                      ? Icons.bookmark_added_rounded
+                      : Icons.shopping_bag_rounded,
                   color: isTitip ? gold : green,
                   size: 22,
                 ),
@@ -1537,9 +1926,14 @@ class _PurchasePageState extends State<PurchasePage> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
-                      color: isTitip ? const Color(0xFFFFF3C4) : const Color(0xFFE5F2E7),
+                      color: isTitip
+                          ? const Color(0xFFFFF3C4)
+                          : const Color(0xFFE5F2E7),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -1565,7 +1959,11 @@ class _PurchasePageState extends State<PurchasePage> {
                   PopupMenuButton<String>(
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    icon: const Icon(Icons.more_vert_rounded, size: 18, color: muted),
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      size: 18,
+                      color: muted,
+                    ),
                     onSelected: (value) {
                       if (value == 'detail') _showDetail(r);
                       if (value == 'edit') _form(r);
@@ -1596,7 +1994,11 @@ class _PurchasePageState extends State<PurchasePage> {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                            Icon(
+                              Icons.delete_outline,
+                              size: 18,
+                              color: Colors.red,
+                            ),
                             SizedBox(width: 8),
                             Text('Hapus', style: TextStyle(color: Colors.red)),
                           ],
@@ -1622,7 +2024,7 @@ class _PurchasePageState extends State<PurchasePage> {
       backgroundColor: const Color(0xFFF7F9F5),
       appBar: AppBar(
         title: const Text(
-          'Riwayat Pembelian / PO',
+          'Riwayat Transaksi',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
@@ -1667,7 +2069,9 @@ class _PurchasePageState extends State<PurchasePage> {
                   children: [
                     Expanded(
                       child: _filterChip(
-                        label: datePresetLabel == '3 Hari Terakhir' ? 'Tanggal' : datePresetLabel,
+                        label: datePresetLabel == '3 Hari Terakhir'
+                            ? 'Tanggal'
+                            : datePresetLabel,
                         isActive: datePresetLabel != '3 Hari Terakhir',
                         onTap: _showDateFilterSheet,
                       ),
@@ -1675,7 +2079,9 @@ class _PurchasePageState extends State<PurchasePage> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: _filterChip(
-                        label: selectedStatusFilter == 'Semua' ? 'Status' : selectedStatusFilter,
+                        label: selectedStatusFilter == 'Semua'
+                            ? 'Status'
+                            : selectedStatusFilter,
                         isActive: selectedStatusFilter != 'Semua',
                         onTap: _showStatusFilterSheet,
                       ),
@@ -1683,7 +2089,9 @@ class _PurchasePageState extends State<PurchasePage> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: _filterChip(
-                        label: selectedSupplierFilter == 'Semua' ? 'Supplier' : selectedSupplierFilter,
+                        label: selectedSupplierFilter == 'Semua'
+                            ? 'Supplier'
+                            : selectedSupplierFilter,
                         isActive: selectedSupplierFilter != 'Semua',
                         onTap: _showSupplierFilterSheet,
                       ),
@@ -1699,66 +2107,67 @@ class _PurchasePageState extends State<PurchasePage> {
             child: loading
                 ? const Center(child: CircularProgressIndicator(color: green))
                 : sortedDates.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Tidak ada transaksi PO ditemukan.',
-                          style: TextStyle(color: muted),
-                        ),
-                      )
-                    : RefreshIndicator(
-                        color: green,
-                        onRefresh: _load,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.only(bottom: 90),
-                          itemCount: sortedDates.length,
-                          itemBuilder: (context, index) {
-                            final dateKey = sortedDates[index];
-                            final itemsForDate = grouped[dateKey]!;
+                ? const Center(
+                    child: Text(
+                      'Tidak ada transaksi PO ditemukan.',
+                      style: TextStyle(color: muted),
+                    ),
+                  )
+                : RefreshIndicator(
+                    color: green,
+                    onRefresh: _load,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 90),
+                      itemCount: sortedDates.length,
+                      itemBuilder: (context, index) {
+                        final dateKey = sortedDates[index];
+                        final itemsForDate = grouped[dateKey]!;
 
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // DATE HEADER
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                                  child: Text(
-                                    _formatIndonesianDate(dateKey),
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w800,
-                                      color: ink,
-                                    ),
-                                  ),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // DATE HEADER
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                              child: Text(
+                                _formatIndonesianDate(dateKey),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: ink,
                                 ),
+                              ),
+                            ),
 
-                                // ITEMS FOR THIS DATE
-                                Container(
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border(
-                                      top: BorderSide(color: Color(0xFFECEFE8)),
-                                      bottom: BorderSide(color: Color(0xFFECEFE8)),
-                                    ),
-                                  ),
-                                  child: ListView.separated(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    itemCount: itemsForDate.length,
-                                    separatorBuilder: (context, itemIdx) => const Divider(
+                            // ITEMS FOR THIS DATE
+                            Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                border: Border(
+                                  top: BorderSide(color: Color(0xFFECEFE8)),
+                                  bottom: BorderSide(color: Color(0xFFECEFE8)),
+                                ),
+                              ),
+                              child: ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: itemsForDate.length,
+                                separatorBuilder: (context, itemIdx) =>
+                                    const Divider(
                                       height: 1,
                                       indent: 72,
                                       color: Color(0xFFF0F3ED),
                                     ),
-                                    itemBuilder: (context, itemIdx) {
-                                      return _poCard(itemsForDate[itemIdx]);
-                                    },
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
+                                itemBuilder: (context, itemIdx) {
+                                  return _poCard(itemsForDate[itemIdx]);
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -1766,7 +2175,10 @@ class _PurchasePageState extends State<PurchasePage> {
         backgroundColor: green,
         foregroundColor: Colors.white,
         onPressed: () => _form(),
-        label: const Text('Tambah PO', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text(
+          'Tambah PO',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         icon: const Icon(Icons.add_rounded),
       ),
     );

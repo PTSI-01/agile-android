@@ -1,18 +1,31 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import '../config/api_config.dart';
 import 'auth_service.dart';
 
 class MasterDataService {
-  static Future<List<Map<String, dynamic>>> list(String type, {String search = ''}) async {
+  static Future<List<Map<String, dynamic>>> list(
+    String type, {
+    String search = '',
+  }) async {
     final token = await AuthService.getToken();
     final uri = Uri.parse('${ApiConfig.baseUrl}/master-data/$type').replace(
-      queryParameters: {'per_page': '100', if (search.trim().isNotEmpty) 'search': search.trim()},
+      queryParameters: {
+        'per_page': '100',
+        if (search.trim().isNotEmpty) 'search': search.trim(),
+      },
     );
-    final response = await http.get(uri, headers: {
-      'Accept': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    }).timeout(const Duration(seconds: 15));
+    final response = await http
+        .get(
+          uri,
+          headers: {
+            'Accept': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        )
+        .timeout(const Duration(seconds: 15));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode >= 400 || body['success'] != true) {
       throw Exception(body['message'] ?? 'Gagal memuat data master');
@@ -21,71 +34,207 @@ class MasterDataService {
     return (data['data'] as List? ?? []).cast<Map<String, dynamic>>();
   }
 
-  static Future<List<Map<String, dynamic>>> buyers({String search = ''}) => list('buyer', search: search);
+  static Future<List<Map<String, dynamic>>> buyers({String search = ''}) =>
+      list('buyer', search: search);
 
   static Future<List<Map<String, dynamic>>> banks({String search = ''}) async {
     final token = await AuthService.getToken();
     final uri = Uri.parse('${ApiConfig.baseUrl}/master-banks').replace(
-      queryParameters: {'per_page': '100', if (search.trim().isNotEmpty) 'search': search.trim()},
+      queryParameters: {
+        'per_page': '100',
+        if (search.trim().isNotEmpty) 'search': search.trim(),
+      },
     );
-    final response = await http.get(uri, headers: {'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 15));
+    final response = await http
+        .get(
+          uri,
+          headers: {
+            'Accept': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        )
+        .timeout(const Duration(seconds: 15));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode >= 400 || body['success'] != true) throw Exception(body['message'] ?? 'Gagal memuat master bank');
+    if (response.statusCode >= 400 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Gagal memuat master bank');
+    }
     final data = body['data'] as Map<String, dynamic>;
     return (data['data'] as List? ?? []).cast<Map<String, dynamic>>();
   }
 
-  static Future<Map<String, dynamic>> saveBank(Map<String, dynamic> data, {String? id}) async {
+  static Future<Map<String, dynamic>> saveBank(
+    Map<String, dynamic> data, {
+    String? id,
+  }) async {
     final token = await AuthService.getToken();
-    final uri = Uri.parse('${ApiConfig.baseUrl}/master-banks${id == null ? '' : '/$id'}');
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}/master-banks${id == null ? '' : '/$id'}',
+    );
     final response = id == null
-        ? await http.post(uri, headers: {'Content-Type': 'application/json', 'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}, body: jsonEncode(data)).timeout(const Duration(seconds: 20))
-        : await http.put(uri, headers: {'Content-Type': 'application/json', 'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}, body: jsonEncode(data)).timeout(const Duration(seconds: 20));
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode >= 400) throw Exception(body['message'] ?? 'Gagal menyimpan master bank');
+        ? await http
+              .post(
+                uri,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  if (token != null) 'Authorization': 'Bearer $token',
+                },
+                body: jsonEncode(data),
+              )
+              .timeout(const Duration(seconds: 20))
+        : await http
+              .put(
+                uri,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  if (token != null) 'Authorization': 'Bearer $token',
+                },
+                body: jsonEncode(data),
+              )
+              .timeout(const Duration(seconds: 20));
+    final body = _responseMap(response, 'Gagal menyimpan master bank');
+    if (response.statusCode >= 400 || body['success'] != true) {
+      throw Exception(_responseMessage(body, 'Gagal menyimpan master bank'));
+    }
     return body;
+  }
+
+  static Map<String, dynamic> _responseMap(
+    http.Response response,
+    String fallback,
+  ) {
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map) return decoded.cast<String, dynamic>();
+    } catch (_) {
+      // Pesan yang ramah pengguna diberikan di bawah.
+    }
+
+    if (response.statusCode == 401) {
+      throw Exception('Sesi login sudah berakhir. Silakan masuk kembali.');
+    }
+    if (response.statusCode == 403) {
+      throw Exception('Anda tidak memiliki hak untuk menyimpan master bank.');
+    }
+    throw Exception('$fallback (HTTP ${response.statusCode}).');
+  }
+
+  static String _responseMessage(Map<String, dynamic> body, String fallback) {
+    final errors = body['errors'];
+    if (errors is Map) {
+      for (final value in errors.values) {
+        if (value is List && value.isNotEmpty) return value.first.toString();
+        if (value != null && value.toString().trim().isNotEmpty) {
+          return value.toString();
+        }
+      }
+    }
+    return body['message']?.toString() ?? fallback;
   }
 
   static Future<Map<String, dynamic>> bankDetail(String id) async {
     final token = await AuthService.getToken();
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/master-banks/$id'), headers: {
-      'Accept': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    }).timeout(const Duration(seconds: 15));
+    final response = await http
+        .get(
+          Uri.parse('${ApiConfig.baseUrl}/master-banks/$id'),
+          headers: {
+            'Accept': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        )
+        .timeout(const Duration(seconds: 15));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode >= 400 || body['success'] != true) throw Exception(body['message'] ?? 'Gagal memuat detail bank');
+    if (response.statusCode >= 400 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Gagal memuat detail bank');
+    }
     return (body['data'] as Map).cast<String, dynamic>();
   }
 
   static Future<void> deleteBank(String id) async {
     final token = await AuthService.getToken();
-    final response = await http.delete(Uri.parse('${ApiConfig.baseUrl}/master-banks/$id'), headers: {'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 20));
+    final response = await http
+        .delete(
+          Uri.parse('${ApiConfig.baseUrl}/master-banks/$id'),
+          headers: {
+            'Accept': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        )
+        .timeout(const Duration(seconds: 20));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode >= 400) throw Exception(body['message'] ?? 'Gagal menghapus master bank');
+    if (response.statusCode >= 400) {
+      throw Exception(body['message'] ?? 'Gagal menghapus master bank');
+    }
   }
 
-  static Future<Map<String, dynamic>> saveBuyer(Map<String, dynamic> data, {String? id}) async {
+  static Future<Map<String, dynamic>> saveBuyer(
+    Map<String, dynamic> data, {
+    String? id,
+  }) async {
     final token = await AuthService.getToken();
-    final uri = Uri.parse('${ApiConfig.baseUrl}/master-buyers${id == null ? '' : '/$id'}');
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}/master-buyers${id == null ? '' : '/$id'}',
+    );
     final finalResponse = id == null
-        ? await http.post(uri, headers: {'Content-Type': 'application/json', 'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}, body: jsonEncode(data)).timeout(const Duration(seconds: 20))
-        : await http.put(uri, headers: {'Content-Type': 'application/json', 'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}, body: jsonEncode(data)).timeout(const Duration(seconds: 20));
+        ? await http
+              .post(
+                uri,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  if (token != null) 'Authorization': 'Bearer $token',
+                },
+                body: jsonEncode(data),
+              )
+              .timeout(const Duration(seconds: 20))
+        : await http
+              .put(
+                uri,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  if (token != null) 'Authorization': 'Bearer $token',
+                },
+                body: jsonEncode(data),
+              )
+              .timeout(const Duration(seconds: 20));
     final body = jsonDecode(finalResponse.body) as Map<String, dynamic>;
-    if (finalResponse.statusCode >= 400) throw Exception(body['message'] ?? 'Gagal menyimpan buyer');
+    if (finalResponse.statusCode >= 400) {
+      throw Exception(body['message'] ?? 'Gagal menyimpan buyer');
+    }
     return body;
   }
 
   static Future<Map<String, dynamic>> buyerDetail(String id) async {
     final token = await AuthService.getToken();
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/master-buyers/$id'), headers: {'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 15));
+    final response = await http
+        .get(
+          Uri.parse('${ApiConfig.baseUrl}/master-buyers/$id'),
+          headers: {
+            'Accept': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        )
+        .timeout(const Duration(seconds: 15));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode >= 400 || body['success'] != true) throw Exception(body['message'] ?? 'Gagal memuat detail buyer');
+    if (response.statusCode >= 400 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Gagal memuat detail buyer');
+    }
     return (body['data'] as Map).cast<String, dynamic>();
   }
 
   static Future<void> deactivateBuyer(String id) async {
     final token = await AuthService.getToken();
-    final response = await http.delete(Uri.parse('${ApiConfig.baseUrl}/master-buyers/$id'), headers: {'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'});
-    if (response.statusCode >= 400) throw Exception('Gagal menonaktifkan buyer');
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/master-buyers/$id'),
+      headers: {
+        'Accept': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode >= 400) {
+      throw Exception('Gagal menonaktifkan buyer');
+    }
   }
 }

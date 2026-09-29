@@ -259,13 +259,18 @@ class SupplierGroupModel {
 
   factory SupplierGroupModel.fromJson(Map<String, dynamic> json) {
     final rawStatus = json['status'] ?? json['status_user'] ?? 1;
+    final normalizedStatus = rawStatus is int
+        ? rawStatus
+        : rawStatus.toString().toLowerCase() == 'active'
+        ? 1
+        : rawStatus.toString().toLowerCase() == 'inactive'
+        ? 0
+        : (int.tryParse(rawStatus.toString()) ?? 1);
     return SupplierGroupModel(
       id: json['id']?.toString() ?? '',
       code: (json['group_code'] ?? json['code'] ?? '').toString(),
       name: (json['group_name'] ?? json['name'] ?? '').toString(),
-      status: rawStatus is int
-          ? rawStatus
-          : (int.tryParse(rawStatus.toString()) ?? 1),
+      status: normalizedStatus,
       createdAt: json['created_at']?.toString(),
     );
   }
@@ -316,4 +321,3 @@ class RegionRef {
         name: json['name'] ?? '',
       );
 }
-

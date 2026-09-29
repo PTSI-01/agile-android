@@ -1,9 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../data/menu_data.dart';
 import '../models/menu_item_model.dart';
 import '../models/user_model.dart';
 import '../models/dashboard_model.dart';
+import 'buyer_page.dart';
+import 'master_data_page.dart';
 import 'supplier/supplier_list_page.dart';
 import 'purchase_page.dart';
 
@@ -11,6 +14,7 @@ class DashboardOverviewPage extends StatelessWidget {
   final UserModel? user;
   final DashboardData? dashboard;
   final VoidCallback? onOpenModules;
+  final ValueChanged<DashboardMenuModel>? onOpenModule;
   final VoidCallback? onOpenProfile;
 
   const DashboardOverviewPage({
@@ -18,13 +22,11 @@ class DashboardOverviewPage extends StatelessWidget {
     this.user,
     this.dashboard,
     this.onOpenModules,
+    this.onOpenModule,
     this.onOpenProfile,
   });
 
-  bool _hasMenuAccess(
-    List<DashboardMenuModel> menus,
-    SubMenuItem shortcut,
-  ) {
+  bool _hasMenuAccess(List<DashboardMenuModel> menus, SubMenuItem shortcut) {
     final target = _normalizeRoute(shortcut.route);
     final aliases = _shortcutAliases(shortcut);
     return menus.any((menu) {
@@ -60,6 +62,27 @@ class DashboardOverviewPage extends StatelessWidget {
         };
       case 'sc_supplier':
         return {'sc_supplier', 'md_supplier', 'master supplier', 'supplier'};
+      case 'sc_buyer':
+        return {'sc_buyer', 'md_buyer', 'master buyer', 'data buyer', 'buyer'};
+      case 'sc_item':
+        return {'sc_item', 'md_inventory', 'master item', 'data item', 'item'};
+      case 'sc_surveyor':
+        return {
+          'sc_surveyor',
+          'md_surveyor',
+          'master surveyor',
+          'data surveyor',
+          'surveyor',
+        };
+      case 'sc_gudang':
+        return {
+          'sc_gudang',
+          'md_warehouse',
+          'master gudang',
+          'data gudang',
+          'warehouse',
+          'gudang',
+        };
       case 'sc_laporan':
         return {
           'sc_laporan',
@@ -83,13 +106,11 @@ class DashboardOverviewPage extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final supportedShortcuts = dashboard == null
-      ? const <SubMenuItem>[]
-      : MenuData.quickShortcuts
-        .where((shortcut) => _hasMenuAccess(
-            dashboard!.menus,
-            shortcut,
-          ))
-        .toList();
+        ? const <SubMenuItem>[]
+        : MenuData.quickShortcuts
+              .where((shortcut) => _hasMenuAccess(dashboard!.menus, shortcut))
+              .toList();
+    final quickShortcuts = supportedShortcuts.take(7).toList();
     const ink = Color(0xFF183C32);
     const muted = Color(0xFF7D8983);
 
@@ -273,38 +294,31 @@ class DashboardOverviewPage extends StatelessWidget {
             const SizedBox(height: 24),
 
             // 3. QUICK ACCESS
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Akses Cepat',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: ink,
-                  ),
-                ),
-                TextButton(
-                  onPressed: onOpenModules,
-                  child: const Text('Lihat Semua'),
-                ),
-              ],
+            const Text(
+              'Akses Cepat',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: ink,
+              ),
             ),
             const SizedBox(height: 10),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.92,
+                crossAxisCount: 4,
+                mainAxisSpacing: 4,
+                crossAxisSpacing: 4,
+                mainAxisExtent: 96,
               ),
-              itemCount: supportedShortcuts.length,
-              itemBuilder: (context, index) => _shortcutButton(
-                context,
-                supportedShortcuts[index],
-              ),
+              itemCount: quickShortcuts.length + 1,
+              itemBuilder: (context, index) {
+                if (index == quickShortcuts.length) {
+                  return _allModulesButton(context);
+                }
+                return _shortcutButton(context, quickShortcuts[index]);
+              },
             ),
             const SizedBox(height: 24),
           ],
@@ -313,20 +327,147 @@ class DashboardOverviewPage extends StatelessWidget {
     );
   }
 
+  Widget _shortcutIcon(SubMenuItem sc, Color accent) {
+    final isPurchase =
+        sc.id == 'sc_pembelian' ||
+        sc.id == 'pb_transaksi' ||
+        sc.route == '/pembelian/transaksi';
+    final isWeighing =
+        sc.id == 'sc_timbangan' ||
+        sc.id == 'pn_timbangan_masuk' ||
+        sc.route == '/penerimaan/timbangan-masuk';
+    final isSupplier =
+        sc.id == 'sc_supplier' || sc.route == '/master-data/supplier';
+    final isBuyer = sc.id == 'sc_buyer' || sc.route == '/master-data/buyer';
+    final isItem = sc.id == 'sc_item' || sc.route == '/master-data/item';
+    final isSurveyor =
+        sc.id == 'sc_surveyor' || sc.route == '/master-data/surveyor';
+    final isWarehouse =
+        sc.id == 'sc_gudang' || sc.route == '/master-data/warehouse';
+    final networkIcon = isPurchase
+        ? 'https://img.icons8.com/3d-fluency/94/bill.png'
+        : isWeighing
+        ? 'https://img.icons8.com/3d-fluency/94/truck.png'
+        : isSupplier
+        ? 'https://img.icons8.com/3d-fluency/94/supplier.png'
+        : isBuyer
+        ? 'https://img.icons8.com/3d-fluency/94/salary-male.png'
+        : isItem
+        ? 'https://img.icons8.com/3d-fluency/94/open-box.png'
+        : isSurveyor
+        ? 'https://img.icons8.com/3d-fluency/94/writer-male.png'
+        : isWarehouse
+        ? 'https://img.icons8.com/3d-fluency/94/hangar.png'
+        : null;
+    if (networkIcon != null) {
+      return SizedBox(
+        width: 46,
+        height: 46,
+        child: CachedNetworkImage(
+          imageUrl: networkIcon,
+          fit: BoxFit.contain,
+          memCacheWidth: 94,
+          memCacheHeight: 94,
+          fadeInDuration: const Duration(milliseconds: 180),
+          errorWidget: (_, _, _) => Icon(sc.icon, color: accent, size: 30),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: 44,
+      height: 44,
+      child: Stack(
+        alignment: Alignment.topLeft,
+        children: [
+          Positioned(
+            left: 3,
+            top: 4,
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Color.lerp(accent, Colors.black, 0.22),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color.lerp(Colors.white, accent, 0.18)!, accent],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.24),
+                  blurRadius: 7,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(sc.icon, color: Colors.white, size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _shortcutButton(BuildContext context, SubMenuItem sc) {
     final accent = sc.badgeColor ?? const Color(0xFF1F7A2E);
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         onTap: () {
           if (sc.id == 'sc_supplier' || sc.route == '/master-data/supplier') {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const SupplierListPage()),
             );
-          } else if (sc.id == 'pb_transaksi' || sc.route == '/pembelian/transaksi') {
+          } else if (sc.id == 'sc_buyer' || sc.route == '/master-data/buyer') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const BuyerPage()),
+            );
+          } else if (sc.id == 'sc_item' || sc.route == '/master-data/item') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    const MasterDataPage(type: 'item', title: 'Master Item'),
+              ),
+            );
+          } else if (sc.id == 'sc_surveyor' ||
+              sc.route == '/master-data/surveyor') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const MasterDataPage(
+                  type: 'surveyor',
+                  title: 'Master Surveyor',
+                ),
+              ),
+            );
+          } else if (sc.id == 'sc_gudang' ||
+              sc.route == '/master-data/warehouse') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const MasterDataPage(
+                  type: 'warehouse',
+                  title: 'Master Gudang',
+                ),
+              ),
+            );
+          } else if (sc.id == 'pb_transaksi' ||
+              sc.route == '/pembelian/transaksi') {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const PurchasePage()),
@@ -341,98 +482,33 @@ class DashboardOverviewPage extends StatelessWidget {
             );
           }
         },
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: accent.withValues(alpha: 0.18)),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                width: 44,
-                height: 44,
-                child: Stack(
-                  alignment: Alignment.topLeft,
-                  children: [
-                    Positioned(
-                      left: 3,
-                      top: 4,
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: Color.lerp(accent, Colors.black, 0.22),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color.lerp(Colors.white, accent, 0.18)!,
-                            accent,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.7),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.24),
-                            blurRadius: 7,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Positioned(
-                            top: 4,
-                            left: 7,
-                            child: Container(
-                              width: 12,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                          Icon(sc.icon, color: Colors.white, size: 20),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
+              _shortcutIcon(sc, accent),
+              const SizedBox(height: 5),
               Text(
                 sc.title,
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 9.5,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF183C32),
                   height: 1.2,
                 ),
               ),
               if (sc.badge != null) ...[
-                const SizedBox(height: 5),
+                const SizedBox(height: 2),
                 Text(
                   sc.badge!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 8,
                     fontWeight: FontWeight.w800,
                     color: accent,
                   ),
@@ -445,4 +521,256 @@ class DashboardOverviewPage extends StatelessWidget {
     );
   }
 
+  Widget _allModulesButton(BuildContext context) {
+    const ink = Color(0xFF183C32);
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _showAllModules(context),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 46,
+                height: 46,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE7EEDD),
+                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                  ),
+                  child: Icon(Icons.grid_view_rounded, color: ink, size: 25),
+                ),
+              ),
+              SizedBox(height: 5),
+              Text(
+                'Semua',
+                style: TextStyle(
+                  fontSize: 9.5,
+                  height: 1.2,
+                  fontWeight: FontWeight.w700,
+                  color: ink,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAllModules(BuildContext context) async {
+    final modules = dashboard?.menus ?? const <DashboardMenuModel>[];
+    final pageController = PageController();
+    var currentPage = 0;
+    final pageCount = modules.isEmpty ? 1 : (modules.length / 24).ceil();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, updateSheet) {
+            return FractionallySizedBox(
+              heightFactor: 0.84,
+              child: Material(
+                color: const Color(0xFFF8FBF5),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(30),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC6D2C7),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 15, 12, 8),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Modul E-Procurement',
+                              style: TextStyle(
+                                color: Color(0xFF183C32),
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Tutup',
+                            onPressed: () => Navigator.pop(sheetContext),
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1, color: Color(0xFFE1E9E1)),
+                    Expanded(
+                      child: modules.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'Belum ada modul yang dapat diakses.',
+                              ),
+                            )
+                          : PageView.builder(
+                              controller: pageController,
+                              itemCount: pageCount,
+                              onPageChanged: (page) =>
+                                  updateSheet(() => currentPage = page),
+                              itemBuilder: (context, page) {
+                                final start = page * 24;
+                                final end = (start + 24).clamp(
+                                  0,
+                                  modules.length,
+                                );
+                                final pageModules = modules.sublist(start, end);
+                                return GridView.builder(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    12,
+                                    14,
+                                    12,
+                                    10,
+                                  ),
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: pageModules.length,
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 4,
+                                        crossAxisSpacing: 5,
+                                        mainAxisSpacing: 5,
+                                        mainAxisExtent: 83,
+                                      ),
+                                  itemBuilder: (context, index) =>
+                                      _moduleSheetItem(
+                                        sheetContext,
+                                        pageModules[index],
+                                      ),
+                                );
+                              },
+                            ),
+                    ),
+                    if (pageCount > 1)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(pageCount, (index) {
+                            final active = index == currentPage;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: active ? 20 : 6,
+                              height: 6,
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              decoration: BoxDecoration(
+                                color: active
+                                    ? const Color(0xFF1F7A2E)
+                                    : const Color(0xFFCAD5CA),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    pageController.dispose();
+  }
+
+  Widget _moduleSheetItem(
+    BuildContext sheetContext,
+    DashboardMenuModel module,
+  ) {
+    final value = '${module.code} ${module.title}'.toLowerCase();
+    final iconUrl = value.contains('master data')
+        ? 'https://img.icons8.com/3d-fluency/94/data-configuration.png'
+        : value.contains('pembelian')
+        ? 'https://img.icons8.com/3d-fluency/94/bill.png'
+        : value.contains('penerimaan') || value.contains('timbangan')
+        ? 'https://img.icons8.com/3d-fluency/94/truck.png'
+        : null;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.pop(sheetContext);
+          if (onOpenModule != null) {
+            onOpenModule!(module);
+          } else {
+            onOpenModules?.call();
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (iconUrl != null)
+                SizedBox(
+                  width: 43,
+                  height: 43,
+                  child: CachedNetworkImage(
+                    imageUrl: iconUrl,
+                    fit: BoxFit.contain,
+                    memCacheWidth: 94,
+                    memCacheHeight: 94,
+                    errorWidget: (_, _, _) => const Icon(
+                      Icons.grid_view_rounded,
+                      color: Color(0xFF1F7A2E),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: 41,
+                  height: 41,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE6EFE0),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.grid_view_rounded,
+                    color: Color(0xFF1F7A2E),
+                    size: 22,
+                  ),
+                ),
+              const SizedBox(height: 4),
+              Text(
+                module.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 9,
+                  height: 1.05,
+                  color: Color(0xFF183C32),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

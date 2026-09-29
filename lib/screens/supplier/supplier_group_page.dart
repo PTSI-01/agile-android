@@ -6,6 +6,7 @@ import '../../models/supplier_model.dart';
 import '../../services/supplier_group_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
+import 'supplier_group_detail_page.dart';
 
 class SupplierGroupPage extends StatefulWidget {
   const SupplierGroupPage({super.key});
@@ -45,7 +46,7 @@ class _SupplierGroupPageState extends State<SupplierGroupPage> {
       _loading = true;
       _error = null;
     });
-    final result = await SupplierGroupService.list(search: _searchController.text);
+    final result = await SupplierGroupService.list();
     if (!mounted) return;
     setState(() {
       _loading = false;
@@ -56,7 +57,18 @@ class _SupplierGroupPageState extends State<SupplierGroupPage> {
 
   void _onSearchChanged(String value) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), _load);
+    _debounce = Timer(const Duration(milliseconds: 250), () {
+      if (mounted) setState(() {});
+    });
+  }
+
+  List<SupplierGroupModel> get _filteredItems {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return _items;
+    return _items.where((item) {
+      final searchable = '${item.code} ${item.name}'.toLowerCase();
+      return searchable.contains(query);
+    }).toList();
   }
 
   Future<void> _openForm([SupplierGroupModel? item]) async {
@@ -65,6 +77,14 @@ class _SupplierGroupPageState extends State<SupplierGroupPage> {
       builder: (_) => _SupplierGroupForm(item: item),
     );
     if (changed == true) _load();
+  }
+
+  Future<void> _openDetail(SupplierGroupModel item) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => SupplierGroupDetailPage(group: item)),
+    );
+    if (mounted) _load();
   }
 
   Future<void> _delete(SupplierGroupModel item) async {
@@ -101,7 +121,7 @@ class _SupplierGroupPageState extends State<SupplierGroupPage> {
         title: const Text('Supplier Group', style: TextStyle(fontWeight: FontWeight.w800, color: ink)),
         actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh_rounded))],
       ),
-      floatingActionButton: _can('update')
+      floatingActionButton: _can('create')
           ? FloatingActionButton.extended(
         onPressed: _openForm,
         backgroundColor: green,
@@ -122,7 +142,7 @@ class _SupplierGroupPageState extends State<SupplierGroupPage> {
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _searchController.text.isEmpty
                     ? null
-                    : IconButton(onPressed: () { _searchController.clear(); _load(); }, icon: const Icon(Icons.clear_rounded)),
+                    : IconButton(onPressed: () { _searchController.clear(); setState(() {}); }, icon: const Icon(Icons.clear_rounded)),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE9EDE5))),
@@ -145,20 +165,24 @@ class _SupplierGroupPageState extends State<SupplierGroupPage> {
       ]));
     }
     if (_items.isEmpty) return const Center(child: Text('Belum ada supplier group'));
+    final visibleItems = _filteredItems;
+    if (visibleItems.isEmpty) {
+      return const Center(child: Text('Supplier group tidak ditemukan'));
+    }
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-        itemCount: _items.length,
+        itemCount: visibleItems.length,
         separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (_, index) {
-          final item = _items[index];
+          final item = visibleItems[index];
           return Card(
             child: ListTile(
               leading: CircleAvatar(backgroundColor: green.withValues(alpha: 0.12), child: Text('${index + 1}', style: TextStyle(color: green, fontWeight: FontWeight.bold))),
               title: Text(item.name, style: TextStyle(fontWeight: FontWeight.w700, color: ink)),
               subtitle: Text('${item.code} • ${item.isActive ? 'Aktif' : 'Nonaktif'}'),
-              onTap: _can('update') ? () => _openForm(item) : null,
+              onTap: () => _openDetail(item),
               trailing: (_can('update') || _can('delete')) ? PopupMenuButton<String>(
                 onSelected: (value) { if (value == 'edit') _openForm(item); if (value == 'delete') _delete(item); },
                 itemBuilder: (_) => [
