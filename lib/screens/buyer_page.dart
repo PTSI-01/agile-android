@@ -39,11 +39,13 @@ class _BuyerPageState extends State<BuyerPage> {
         TextFormField(controller: name, decoration: const InputDecoration(labelText: 'Nama Buyer *'), validator: (v) => v == null || v.trim().isEmpty ? 'Wajib diisi' : null),
         TextFormField(controller: email, decoration: const InputDecoration(labelText: 'Email'), keyboardType: TextInputType.emailAddress),
         TextFormField(controller: phone, decoration: const InputDecoration(labelText: 'Nomor Telepon'), keyboardType: TextInputType.phone),
-        DropdownButtonFormField<String>(value: status, decoration: const InputDecoration(labelText: 'Status'), items: const [DropdownMenuItem(value: 'active', child: Text('Aktif')), DropdownMenuItem(value: 'inactive', child: Text('Nonaktif'))], onChanged: (v) => setModal(() => status = v ?? 'active')),
+        DropdownButtonFormField<String>(initialValue: status, decoration: const InputDecoration(labelText: 'Status'), items: const [DropdownMenuItem(value: 'active', child: Text('Aktif')), DropdownMenuItem(value: 'inactive', child: Text('Nonaktif'))], onChanged: (v) => setModal(() => status = v ?? 'active')),
       ]))),
       actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')), FilledButton(onPressed: () async { if (!formKey.currentState!.validate()) return; try { await MasterDataService.saveBuyer({'buyer_id': buyerId.text.trim(), 'full_name': name.text.trim(), 'email_buyer': email.text.trim().isEmpty ? null : email.text.trim(), 'phone_buyer': phone.text.trim().isEmpty ? null : phone.text.trim(), 'status': status, 'active_date': row?['active_date']?.toString() ?? DateTime.now().toIso8601String().substring(0, 10)}, id: row?['id']?.toString()); if (ctx.mounted) Navigator.pop(ctx, true); } catch (e) { if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')))); } }, child: const Text('Simpan'))],
     )));
-    for (final c in [buyerId, name, email, phone]) c.dispose();
+    for (final c in [buyerId, name, email, phone]) {
+      c.dispose();
+    }
     if (saved == true) _load();
   }
 
@@ -62,7 +64,7 @@ class _BuyerPageState extends State<BuyerPage> {
         child: ListView.separated(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 90),
           itemCount: _rows.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (_, i) {
             final row = _rows[i];
             return Card(

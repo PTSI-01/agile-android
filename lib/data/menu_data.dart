@@ -9,7 +9,7 @@ class MenuData {
       id: 'master_data',
       title: 'Master Data',
       subtitle: '11 Modul Master & Referensi Sistem',
-      icon: Icons.folder_shared_rounded,
+      icon: Icons.inventory_2_rounded,
       color: Color(0xFF1E88E5),
       lightColor: Color(0xFFE3F2FD),
       category: MenuCategory.masterData,

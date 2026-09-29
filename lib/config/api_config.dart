@@ -5,7 +5,7 @@ class ApiConfig {
 
   // Development backend on the same Wi-Fi as the physical Android device.
   // For an Android Emulator, use http://10.0.2.2:8000/api instead.
-  static const String defaultBaseUrl = 'http://192.168.3.55:8000/api';
+  static const String defaultBaseUrl = 'https://agilejayaabadi.com/api';
 
   static String _baseUrl = defaultBaseUrl;
 
@@ -18,8 +18,7 @@ class ApiConfig {
     // The development machine received a new LAN address; migrate the old
     // default automatically while preserving any other custom server URL.
     if (stored == null ||
-        stored.contains('192.168.3.241') ||
-        stored.contains('192.168.3.160')) {
+        stored.contains('agilejayaabadi.com')) {
       _baseUrl = defaultBaseUrl;
       await prefs.setString(_keyBaseUrl, _baseUrl);
     } else {

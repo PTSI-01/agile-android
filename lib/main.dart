@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'config/api_config.dart';
 import 'models/dashboard_model.dart';
@@ -65,6 +66,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   late UserModel? _currentUser;
+  final GlobalKey<ModulesPageState> _modulesKey = GlobalKey<ModulesPageState>();
+  DateTime? _lastBackPressTime;
 
   @override
   void initState() {
@@ -91,38 +94,72 @@ class _HomePageState extends State<HomePage> {
         onOpenModules: () => setState(() => _currentIndex = 1),
         onOpenProfile: () => setState(() => _currentIndex = 2),
       ),
-      ModulesPage(dashboard: widget.dashboard),
+      ModulesPage(key: _modulesKey, dashboard: widget.dashboard),
       ProfilePage(user: _currentUser),
     ];
 
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFFE5EFDF),
-        elevation: 4,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Beranda',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view_rounded),
-            label: 'Modul',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: 'Akun',
-          ),
-        ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        if (_currentIndex == 1) {
+          final handled = _modulesKey.currentState?.handleBack() ?? false;
+          if (handled) return;
+
+          setState(() => _currentIndex = 0);
+          return;
+        }
+
+        if (_currentIndex == 2) {
+          setState(() => _currentIndex = 0);
+          return;
+        }
+
+        final now = DateTime.now();
+        if (_lastBackPressTime == null ||
+            now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+          _lastBackPressTime = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tekan sekali lagi untuk keluar dari aplikasi'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: pages,
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
+          backgroundColor: Colors.white,
+          indicatorColor: const Color(0xFFE5EFDF),
+          elevation: 4,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded),
+              label: 'Beranda',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.grid_view_outlined),
+              selectedIcon: Icon(Icons.grid_view_rounded),
+              label: 'Modul',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(Icons.person_rounded),
+              label: 'Akun',
+            ),
+          ],
+        ),
       ),
     );
   }

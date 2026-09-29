@@ -8,11 +8,59 @@ import 'master_bank_page.dart';
 import 'master_data_page.dart';
 import 'purchase_page.dart';
 
-class ModulesPage extends StatefulWidget { final DashboardData? dashboard; const ModulesPage({super.key,this.dashboard}); @override State<ModulesPage> createState()=>_ModulesPageState(); }
-class _ModulesPageState extends State<ModulesPage>{final search=TextEditingController();final parents=<DashboardMenuModel>[];String query='';List<DashboardMenuModel> get items{final s=parents.isEmpty?(widget.dashboard?.menus??const <DashboardMenuModel>[]):parents.last.children;if(query.isEmpty)return s;final q=query.toLowerCase();return s.where((x)=>x.title.toLowerCase().contains(q)||x.code.toLowerCase().contains(q)).toList();} @override void dispose(){search.dispose();super.dispose();}
+class ModulesPage extends StatefulWidget { final DashboardData? dashboard; const ModulesPage({super.key,this.dashboard}); @override State<ModulesPage> createState()=>ModulesPageState(); }
+class ModulesPageState extends State<ModulesPage>{
+  final search=TextEditingController();
+  final parents=<DashboardMenuModel>[];
+  String query='';
+
+  bool handleBack() {
+    if (parents.isNotEmpty) {
+      setState(() => parents.removeLast());
+      return true;
+    }
+    return false;
+  }
+
+  List<DashboardMenuModel> get items{final s=parents.isEmpty?(widget.dashboard?.menus??const <DashboardMenuModel>[]):parents.last.children;if(query.isEmpty)return s;final q=query.toLowerCase();return s.where((x)=>x.title.toLowerCase().contains(q)||x.code.toLowerCase().contains(q)).toList();} @override void dispose(){search.dispose();super.dispose();}
 IconData _icon(DashboardMenuModel x){final v='${x.icon} ${x.title}'.toLowerCase();if(v.contains('supplier'))return Icons.people_alt_rounded;if(v.contains('buyer'))return Icons.badge_rounded;if(v.contains('pembelian'))return Icons.shopping_bag_rounded;if(v.contains('penerimaan'))return Icons.scale_rounded;if(v.contains('qc')||v.contains('lab'))return Icons.science_rounded;if(v.contains('finance'))return Icons.payments_rounded;if(v.contains('laporan'))return Icons.analytics_rounded;if(v.contains('user'))return Icons.manage_accounts_rounded;return Icons.dashboard_customize_rounded;}
 Color _color(DashboardMenuModel x){final v=x.title.toLowerCase();if(v.contains('pembelian')||v.contains('penerimaan'))return const Color(0xff1f7a2e);if(v.contains('master')||v.contains('target'))return const Color(0xffa66f00);if(v.contains('finance')||v.contains('user'))return const Color(0xff183c32);return const Color(0xff2e7d32);}
-void _open(DashboardMenuModel x){if(x.children.isNotEmpty){setState(()=>parents.add(x));return;}final u=x.url??'';Widget? p;if(u.contains('supplier-group'))p=const SupplierGroupPage();else if(u.contains('supplier'))p=const SupplierListPage();else if(u.contains('master-buyer'))p=const BuyerPage();else if(u.contains('buyer-group')||u.contains('purchasing-group'))p=const BuyerGroupPage();else if(u.contains('master-bank'))p=const MasterBankPage();else if(u=='/pembelian/transaksi'||u=='/buyer')p=const PurchasePage();else if(u.contains('/master-data/item'))p=const MasterDataPage(type:'item',title:'Master Item');else if(u.contains('warehouse'))p=const MasterDataPage(type:'warehouse',title:'Master Gudang');else if(u.contains('surveyor'))p=const MasterDataPage(type:'surveyor',title:'Master Surveyor');else if(u.contains('wilayah'))p=const MasterDataPage(type:'wilayah',title:'Master Wilayah');if(p!=null)Navigator.push(context,MaterialPageRoute(builder:(_)=>p!));else ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('${x.title} belum tersedia di Android')));}
+void _open(DashboardMenuModel x) {
+  if (x.children.isNotEmpty) {
+    setState(() => parents.add(x));
+    return;
+  }
+  final u = x.url ?? '';
+  Widget? p;
+  if (u.contains('supplier-group')) {
+    p = const SupplierGroupPage();
+  } else if (u.contains('supplier')) {
+    p = const SupplierListPage();
+  } else if (u.contains('master-buyer')) {
+    p = const BuyerPage();
+  } else if (u.contains('buyer-group') || u.contains('purchasing-group')) {
+    p = const BuyerGroupPage();
+  } else if (u.contains('master-bank')) {
+    p = const MasterBankPage();
+  } else if (u == '/pembelian/transaksi' || u == '/buyer') {
+    p = const PurchasePage();
+  } else if (u.contains('/master-data/item')) {
+    p = const MasterDataPage(type: 'item', title: 'Master Item');
+  } else if (u.contains('warehouse')) {
+    p = const MasterDataPage(type: 'warehouse', title: 'Master Gudang');
+  } else if (u.contains('surveyor')) {
+    p = const MasterDataPage(type: 'surveyor', title: 'Master Surveyor');
+  } else if (u.contains('wilayah')) {
+    p = const MasterDataPage(type: 'wilayah', title: 'Master Wilayah');
+  }
+
+  if (p != null) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => p!));
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${x.title} belum tersedia di Android')));
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,7 +77,7 @@ void _open(DashboardMenuModel x){if(x.children.isNotEmpty){setState(()=>parents.
   }
   Widget _moduleCard(DashboardMenuModel x) {
     final c = _color(x);
-    final bg = c.value == 0xffa66f00 ? const Color(0xfffff3c4) : c.value == 0xff183c32 ? const Color(0xffe2e9e3) : const Color(0xffe5f2e7);
+    final bg = c.toARGB32() == 0xffa66f00 ? const Color(0xfffff3c4) : c.toARGB32() == 0xff183c32 ? const Color(0xffe2e9e3) : const Color(0xffe5f2e7);
     return Card(
       margin: EdgeInsets.zero,
       elevation: 2,
