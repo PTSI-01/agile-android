@@ -205,37 +205,41 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
+            Material(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE9EDE5)),
+                side: const BorderSide(color: Color(0xFFE9EDE5)),
               ),
+              clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE3F2FD),
-                        borderRadius: BorderRadius.circular(8),
+                  Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.settings_ethernet_rounded,
+                          color: Color(0xFF1E88E5),
+                          size: 20,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.settings_ethernet_rounded,
-                        color: Color(0xFF1E88E5),
-                        size: 20,
+                      title: const Text(
+                        'Base URL Server API',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                       ),
+                      subtitle: Text(
+                        ApiConfig.baseUrl,
+                        style: const TextStyle(fontSize: 11, color: muted),
+                      ),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => _showServerConfigDialog(context),
                     ),
-                    title: const Text(
-                      'Base URL Server API',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                    ),
-                    subtitle: Text(
-                      ApiConfig.baseUrl,
-                      style: const TextStyle(fontSize: 11, color: muted),
-                    ),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => _showServerConfigDialog(context),
                   ),
                   const Divider(height: 1, color: Color(0xFFF0F3ED)),
                   ListTile(

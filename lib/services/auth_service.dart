@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,6 +28,7 @@ class AuthResult {
 class AuthService {
   static const String _keyToken = 'auth_token';
   static const String _keyUser = 'auth_user_data';
+  static const String _keyDashboard = 'dashboard_data';
 
   /// Melakukan login ke backend Laravel
   static Future<AuthResult> login({
@@ -52,7 +54,8 @@ class AuthService {
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final isSuccess = data['success'] == true;
-      final message = data['message'] as String? ??
+      final message =
+          data['message'] as String? ??
           (isSuccess ? 'Login berhasil' : 'Gagal masuk.');
 
       if (isSuccess && data['data'] != null) {
@@ -138,12 +141,22 @@ class AuthService {
     final token = await getToken();
     if (token == null) return getCurrentUser();
     try {
-      final r = await http.get(Uri.parse(ApiConfig.meUrl), headers: {'Accept':'application/json','Authorization':'Bearer $token'});
+      final r = await http.get(
+        Uri.parse(ApiConfig.meUrl),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
       if (r.statusCode >= 200 && r.statusCode < 300) {
-        final body = jsonDecode(r.body) as Map<String,dynamic>;
-        final raw = body['data'] is Map ? body['data'] as Map<String,dynamic> : body;
+        final body = jsonDecode(r.body) as Map<String, dynamic>;
+        final raw = body['data'] is Map
+            ? body['data'] as Map<String, dynamic>
+            : body;
         final u = UserModel.fromJson(raw);
-        final prefs = await SharedPreferences.getInstance(); await prefs.setString(_keyUser, jsonEncode(u.toJson())); return u;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_keyUser, jsonEncode(u.toJson()));
+        return u;
       }
     } catch (_) {}
     return getCurrentUser();
@@ -161,19 +174,50 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
-  static Future<DashboardData?> getDashboard({Map<String,String>? query}) async {
+  static Future<DashboardData?> getDashboard({
+    Map<String, String>? query,
+  }) async {
     final token = await getToken();
     if (token == null || token.isEmpty) return null;
 
     try {
-      final response = await http.get(
-        Uri.parse(ApiConfig.dashboardUrl).replace(queryParameters: query),
-        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 15));
-      if (response.statusCode < 200 || response.statusCode >= 300) return null;
+      final response = await http
+          .get(
+            Uri.parse(ApiConfig.dashboardUrl).replace(queryParameters: query),
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode == 401) {
+        await clearSession();
+        return null;
+      }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        return await _cachedDashboard();
+      }
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      if (data['success'] != true || data['data'] is! Map<String, dynamic>) return null;
-      return DashboardData.fromJson(data['data'] as Map<String, dynamic>);
+      if (data['success'] != true || data['data'] is! Map<String, dynamic>) {
+        return await _cachedDashboard();
+      }
+      final dashboardData = data['data'] as Map<String, dynamic>;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyDashboard, jsonEncode(dashboardData));
+      return DashboardData.fromJson(dashboardData);
+    } catch (_) {
+      return await _cachedDashboard();
+    }
+  }
+
+  static Future<DashboardData?> _cachedDashboard() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keyDashboard);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return DashboardData.fromJson(
+        Map<String, dynamic>.from(jsonDecode(raw) as Map),
+      );
     } catch (_) {
       return null;
     }
@@ -194,5 +238,6 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyToken);
     await prefs.remove(_keyUser);
+    await prefs.remove(_keyDashboard);
   }
 }

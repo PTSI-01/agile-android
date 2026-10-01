@@ -17,30 +17,35 @@ class ItemCategoryModel {
 
   factory ItemCategoryModel.fromJson(Map<String, dynamic> json) {
     final rawStatus = json['status'] ?? json['status_user'] ?? 1;
+    final normalizedStatus = rawStatus.toString().trim().toLowerCase();
     return ItemCategoryModel(
       id: json['id']?.toString() ?? '',
-      code: (json['category_code'] ??
-              json['kategori_code'] ??
-              json['kode_kategori'] ??
-              json['code'] ??
-              '')
-          .toString(),
-      name: (json['category_name'] ??
-              json['kategori_name'] ??
-              json['nama_kategori'] ??
-              json['name'] ??
-              '')
-          .toString(),
+      code:
+          (json['category_code'] ??
+                  json['kategori_code'] ??
+                  json['kode_kategori'] ??
+                  json['code'] ??
+                  '')
+              .toString(),
+      name:
+          (json['category_name'] ??
+                  json['kategori_name'] ??
+                  json['nama_kategori'] ??
+                  json['name'] ??
+                  '')
+              .toString(),
       status: rawStatus is int
           ? rawStatus
-          : (int.tryParse(rawStatus.toString()) ?? 1),
+          : ['aktif', 'active', 'true', '1'].contains(normalizedStatus)
+          ? 1
+          : 0,
       createdAt: json['created_at']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'category_code': code,
-        'category_name': name,
-        'status': status,
-      };
+    'category_code': code,
+    'category_name': name,
+    'status': status,
+  };
 }

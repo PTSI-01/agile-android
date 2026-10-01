@@ -8,7 +8,13 @@ import 'buyer_page.dart';
 import 'buyer_group_page.dart';
 import 'master_bank_page.dart';
 import 'master_data_page.dart';
+import 'master_item_page.dart';
+import 'master_unit_page.dart';
+import 'unit_conversion_page.dart';
+import 'price_list_item_page.dart';
+import 'item_category_page.dart';
 import 'purchase_page.dart';
+import 'purchase_target_page.dart';
 import 'province_page.dart';
 import 'city_page.dart';
 import 'district_page.dart';
@@ -335,11 +341,18 @@ class ModulesPageState extends State<ModulesPage> {
       return;
     }
     final u = x.url ?? '';
+    final identity = '${x.code} ${x.title} $u'.toLowerCase();
     Widget? p;
     if (u.contains('supplier-group')) {
       p = const SupplierGroupPage();
     } else if (u.contains('supplier')) {
       p = const SupplierListPage();
+    } else if (identity.contains('master-target') ||
+        identity.contains('target pembelian') ||
+        identity.contains('target_pembelian') ||
+        identity.contains('target-pembelian') ||
+        identity.contains('target po')) {
+      p = const PurchaseTargetPage();
     } else if (u.contains('master-buyer')) {
       p = const BuyerPage();
     } else if (u.contains('buyer-group') || u.contains('purchasing-group')) {
@@ -348,8 +361,30 @@ class ModulesPageState extends State<ModulesPage> {
       p = const MasterBankPage();
     } else if (u == '/pembelian/transaksi' || u == '/buyer') {
       p = const PurchasePage();
-    } else if (u.contains('/master-data/item')) {
-      p = const MasterDataPage(type: 'item', title: 'Master Item');
+    } else if (identity.contains('master-item-category') ||
+        identity.contains('item category') ||
+        identity.contains('item_category') ||
+        identity.contains('item-category') ||
+        identity.contains('kategori item')) {
+      p = const ItemCategoryPage();
+    } else if (u == '/master-item' ||
+        u == '/master-data/item' ||
+        x.code.toUpperCase() == 'MASTER_ITEM') {
+      p = const MasterItemPage();
+    } else if (u == '/master-unit' ||
+        u == '/master-data/unit' ||
+        x.code.toUpperCase() == 'MASTER_UNIT') {
+      p = const MasterUnitPage();
+    } else if (u == '/master-unit-conversion' ||
+        identity.contains('master_unit_conversion') ||
+        identity.contains('konversi satuan') ||
+        identity.contains('unit-conversion')) {
+      p = const UnitConversionPage();
+    } else if (u == '/pricelist-item' ||
+        identity.contains('price list item') ||
+        identity.contains('pricelist item') ||
+        identity.contains('price-list')) {
+      p = const PriceListItemPage();
     } else if (u.contains('warehouse')) {
       p = const MasterDataPage(type: 'warehouse', title: 'Master Gudang');
     } else if (u.contains('surveyor')) {

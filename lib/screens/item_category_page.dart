@@ -6,6 +6,7 @@ import '../models/item_category_model.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/item_category_service.dart';
+import 'item_category_detail_page.dart';
 
 class ItemCategoryPage extends StatefulWidget {
   const ItemCategoryPage({super.key});
@@ -26,14 +27,14 @@ class _ItemCategoryPageState extends State<ItemCategoryPage> {
   void initState() {
     super.initState();
     _load();
-    AuthService.getCurrentUser().then((user) {
+    AuthService.refreshCurrentUser().then((user) {
       if (mounted) setState(() => _user = user);
     });
   }
 
   bool _can(String action) =>
-      _user?.permissions['item_category.${action.toLowerCase()}'] ??
-      (_user?.role == 'superadmin');
+      _user?.role?.toLowerCase() == 'superadmin' ||
+      _user?.permissions['item_category.${action.toLowerCase()}'] == true;
 
   @override
   void dispose() {
@@ -47,7 +48,9 @@ class _ItemCategoryPageState extends State<ItemCategoryPage> {
       _loading = true;
       _error = null;
     });
-    final result = await ItemCategoryService.list(search: _searchController.text);
+    final result = await ItemCategoryService.list(
+      search: _searchController.text,
+    );
     if (!mounted) return;
     setState(() {
       _loading = false;
@@ -67,6 +70,14 @@ class _ItemCategoryPageState extends State<ItemCategoryPage> {
       builder: (_) => _ItemCategoryForm(item: item),
     );
     if (changed == true) _load();
+  }
+
+  Future<void> _openDetail(ItemCategoryModel item) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ItemCategoryDetailPage(category: item)),
+    );
+    if (mounted) _load();
   }
 
   Future<void> _delete(ItemCategoryModel item) async {
@@ -120,7 +131,7 @@ class _ItemCategoryPageState extends State<ItemCategoryPage> {
           IconButton(onPressed: _load, icon: const Icon(Icons.refresh_rounded)),
         ],
       ),
-      floatingActionButton: _can('update')
+      floatingActionButton: _can('create')
           ? FloatingActionButton.extended(
               onPressed: _openForm,
               backgroundColor: accent,
@@ -205,8 +216,10 @@ class _ItemCategoryPageState extends State<ItemCategoryPage> {
                 item.name,
                 style: TextStyle(fontWeight: FontWeight.w700, color: ink),
               ),
-              subtitle: Text('${item.code} • ${item.isActive ? 'Aktif' : 'Nonaktif'}'),
-              onTap: _can('update') ? () => _openForm(item) : null,
+              subtitle: Text(
+                '${item.code} • ${item.isActive ? 'Aktif' : 'Nonaktif'}',
+              ),
+              onTap: () => _openDetail(item),
               trailing: (_can('update') || _can('delete'))
                   ? PopupMenuButton<String>(
                       onSelected: (value) {
@@ -283,7 +296,9 @@ class _ItemCategoryFormState extends State<_ItemCategoryForm> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result['message']?.toString() ?? 'Gagal menyimpan data'),
+          content: Text(
+            result['message']?.toString() ?? 'Gagal menyimpan data',
+          ),
         ),
       );
     }
@@ -291,54 +306,54 @@ class _ItemCategoryFormState extends State<_ItemCategoryForm> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: Text(
-          widget.item == null ? 'Tambah Kategori Item' : 'Edit Kategori Item',
-        ),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _code,
-                textCapitalization: TextCapitalization.characters,
-                decoration: const InputDecoration(labelText: 'Kode kategori'),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Kode wajib diisi'
-                    : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _name,
-                decoration: const InputDecoration(labelText: 'Nama kategori'),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Nama wajib diisi'
-                    : null,
-              ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Status aktif'),
-                value: _active,
-                onChanged: (value) => setState(() => _active = value),
-              ),
-            ],
+    title: Text(
+      widget.item == null ? 'Tambah Kategori Item' : 'Edit Kategori Item',
+    ),
+    content: Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFormField(
+            controller: _code,
+            textCapitalization: TextCapitalization.characters,
+            decoration: const InputDecoration(labelText: 'Kode kategori'),
+            validator: (value) => value == null || value.trim().isEmpty
+                ? 'Kode wajib diisi'
+                : null,
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: _saving ? null : () => Navigator.pop(context),
-            child: const Text('Batal'),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _name,
+            decoration: const InputDecoration(labelText: 'Nama kategori'),
+            validator: (value) => value == null || value.trim().isEmpty
+                ? 'Nama wajib diisi'
+                : null,
           ),
-          FilledButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Simpan'),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Status aktif'),
+            value: _active,
+            onChanged: (value) => setState(() => _active = value),
           ),
         ],
-      );
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: _saving ? null : () => Navigator.pop(context),
+        child: const Text('Batal'),
+      ),
+      FilledButton(
+        onPressed: _saving ? null : _save,
+        child: _saving
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Text('Simpan'),
+      ),
+    ],
+  );
 }

@@ -32,6 +32,13 @@ class MenuData {
           route: '/master-data/supplier-group',
         ),
         SubMenuItem(
+          id: 'md_item_category',
+          title: 'Kategori Item',
+          description: 'Pengelompokan kategori komoditas dan item barang',
+          icon: Icons.category_rounded,
+          route: '/master-data/item-category',
+        ),
+        SubMenuItem(
           id: 'md_buyer',
           title: 'Master Buyer',
           description: 'Data buyer dan penanggung jawab pengadaan',

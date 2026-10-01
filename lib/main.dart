@@ -14,8 +14,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ApiConfig.init();
   final loggedIn = await AuthService.isLoggedIn();
-  final user = loggedIn ? await AuthService.getCurrentUser() : null;
+  UserModel? user = loggedIn ? await AuthService.getCurrentUser() : null;
   final dashboard = loggedIn ? await AuthService.getDashboard() : null;
+  if (dashboard == null && !await AuthService.isLoggedIn()) user = null;
 
   runApp(MyApp(initialUser: user, initialDashboard: dashboard));
 }
@@ -66,6 +67,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   late UserModel? _currentUser;
+  late DashboardData? _dashboard;
+  bool _loadingDashboard = false;
   final GlobalKey<ModulesPageState> _modulesKey = GlobalKey<ModulesPageState>();
   DateTime? _lastBackPressTime;
 
@@ -73,8 +76,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _currentUser = widget.user;
+    _dashboard = widget.dashboard;
     if (_currentUser == null) {
       _loadUser();
+    }
+    if (_dashboard == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _reloadDashboard());
     }
   }
 
@@ -85,22 +92,79 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _reloadDashboard() async {
+    if (_loadingDashboard) return;
+    setState(() => _loadingDashboard = true);
+    final dashboard = await AuthService.getDashboard();
+    if (!mounted) return;
+    if (dashboard != null) {
+      setState(() {
+        _dashboard = dashboard;
+        _loadingDashboard = false;
+      });
+      return;
+    }
+    if (!await AuthService.isLoggedIn()) {
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (_) => false,
+      );
+      return;
+    }
+    setState(() => _loadingDashboard = false);
+  }
+
+  Widget _dashboardState() {
+    if (_loadingDashboard) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off_rounded, size: 52, color: muted),
+            const SizedBox(height: 12),
+            const Text(
+              'Menu belum berhasil dimuat.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: _reloadDashboard,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Muat Ulang Menu'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasDashboard = _dashboard != null;
     final pages = [
-      DashboardOverviewPage(
-        user: _currentUser,
-        dashboard: widget.dashboard,
-        onOpenModules: () => setState(() => _currentIndex = 1),
-        onOpenModule: (module) {
-          setState(() => _currentIndex = 1);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _modulesKey.currentState?.openRootModule(module);
-          });
-        },
-        onOpenProfile: () => setState(() => _currentIndex = 2),
-      ),
-      ModulesPage(key: _modulesKey, dashboard: widget.dashboard),
+      hasDashboard
+          ? DashboardOverviewPage(
+              user: _currentUser,
+              dashboard: _dashboard,
+              onOpenModules: () => setState(() => _currentIndex = 1),
+              onOpenModule: (module) {
+                setState(() => _currentIndex = 1);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _modulesKey.currentState?.openRootModule(module);
+                });
+              },
+              onOpenProfile: () => setState(() => _currentIndex = 2),
+            )
+          : _dashboardState(),
+      hasDashboard
+          ? ModulesPage(key: _modulesKey, dashboard: _dashboard)
+          : _dashboardState(),
       ProfilePage(user: _currentUser),
     ];
 

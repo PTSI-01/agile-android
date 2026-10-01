@@ -57,14 +57,15 @@ class ItemCategoryService {
       final rows = data is List
           ? data
           : data is Map<String, dynamic>
-              ? (data['data'] ?? data['items'] ?? [])
-              : [];
+          ? (data['data'] ?? data['items'] ?? [])
+          : [];
       final items = (rows as List)
           .whereType<Map<String, dynamic>>()
           .map(ItemCategoryModel.fromJson)
           .toList();
       final total = data is Map<String, dynamic>
-          ? int.tryParse((data['total'] ?? items.length).toString()) ?? items.length
+          ? int.tryParse((data['total'] ?? items.length).toString()) ??
+                items.length
           : items.length;
       return ItemCategoryListResult(
         success: true,
@@ -90,14 +91,16 @@ class ItemCategoryService {
     }
   }
 
+  static Future<Map<String, dynamic>> detail(String id) =>
+      _send('GET', '$_path/$id', null, 'Gagal memuat detail kategori item');
+
   static Future<Map<String, dynamic>> create(Map<String, dynamic> data) =>
       _send('POST', _path, data, 'Gagal menambahkan kategori item');
 
   static Future<Map<String, dynamic>> update(
     String id,
     Map<String, dynamic> data,
-  ) =>
-      _send('PUT', '$_path/$id', data, 'Gagal memperbarui kategori item');
+  ) => _send('PUT', '$_path/$id', data, 'Gagal memperbarui kategori item');
 
   static Future<Map<String, dynamic>> delete(String id) =>
       _send('DELETE', '$_path/$id', null, 'Gagal menghapus kategori item');
@@ -109,10 +112,14 @@ class ItemCategoryService {
     String fallback,
   ) async {
     try {
-      final request = http.Request(method, Uri.parse('${ApiConfig.baseUrl}/$path'))
-        ..headers.addAll(await _headers());
+      final request = http.Request(
+        method,
+        Uri.parse('${ApiConfig.baseUrl}/$path'),
+      )..headers.addAll(await _headers());
       if (data != null) request.body = jsonEncode(data);
-      final streamed = await request.send().timeout(const Duration(seconds: 20));
+      final streamed = await request.send().timeout(
+        const Duration(seconds: 20),
+      );
       final response = await http.Response.fromStream(streamed);
       final body = jsonDecode(response.body);
       if (body is Map<String, dynamic>) return body;
