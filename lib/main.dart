@@ -10,11 +10,13 @@ import 'screens/modules_page.dart';
 import 'screens/profile_page.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
+import 'services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ApiConfig.init();
   await ThemeService.init();
+  await PushNotificationService.initialize();
   final loggedIn = await AuthService.isLoggedIn();
   UserModel? user = loggedIn ? await AuthService.getCurrentUser() : null;
   final dashboard = loggedIn ? await AuthService.getDashboard() : null;
@@ -50,6 +52,14 @@ class MyApp extends StatelessWidget {
   ThemeData _theme(Brightness brightness) {
     final dark = brightness == Brightness.dark;
     final surface = dark ? const Color(0xFF102019) : Colors.white;
+    final filterSurface = dark ? const Color(0xFF14271F) : Colors.white;
+    final selectedFilter = dark
+        ? const Color(0xFF294737)
+        : const Color(0xFFE5EFDF);
+    final onSurface = dark ? const Color(0xFFEAF3EE) : ink;
+    final filterBorder = dark
+        ? const Color(0xFF365247)
+        : const Color(0xFFD7E0D8);
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
@@ -82,6 +92,43 @@ class MyApp extends StatelessWidget {
         filled: true,
         fillColor: dark ? const Color(0xFF14271F) : Colors.white,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: filterSurface,
+        selectedColor: selectedFilter,
+        disabledColor: dark ? const Color(0xFF102019) : const Color(0xFFF0F3EF),
+        labelStyle: TextStyle(color: onSurface),
+        secondaryLabelStyle: TextStyle(color: onSurface),
+        side: BorderSide(color: filterBorder),
+        shape: const StadiumBorder(),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? selectedFilter
+                : filterSurface,
+          ),
+          foregroundColor: WidgetStatePropertyAll(onSurface),
+          side: WidgetStatePropertyAll(BorderSide(color: filterBorder)),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: filterSurface,
+        textStyle: TextStyle(color: onSurface),
+      ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        textStyle: TextStyle(color: onSurface),
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(filterSurface),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(filterSurface),
+          foregroundColor: WidgetStatePropertyAll(onSurface),
+          side: WidgetStatePropertyAll(BorderSide(color: filterBorder)),
+        ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: surface,

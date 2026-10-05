@@ -40,7 +40,11 @@ class _BongkaranPageState extends State<BongkaranPage> {
       _user?.permissions['bongkaran.$action'] == true;
 
   String _message(Object error) =>
-      error.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+      error.toString().replaceFirst(RegExp(r'^Exception:\s*'), '').contains(
+        'SQLSTATE',
+      )
+      ? 'Data Bongkaran belum dapat dimuat karena API server belum diperbarui.'
+      : error.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
 
   Map<String, dynamic> _map(dynamic value) =>
       value is Map ? value.cast<String, dynamic>() : <String, dynamic>{};
@@ -56,18 +60,24 @@ class _BongkaranPageState extends State<BongkaranPage> {
       _error = null;
     });
     try {
-      final results = await Future.wait([
-        BongkaranService.references(),
-        BongkaranService.list(search: _searchController.text),
-      ]);
+      final history = await BongkaranService.list(
+        search: _searchController.text,
+      );
+      Map<String, dynamic>? references;
+      Object? referenceError;
+      try {
+        references = await BongkaranService.references();
+      } catch (error) {
+        referenceError = error;
+      }
       if (!mounted) return;
-      final references = results[0] as Map<String, dynamic>;
       setState(() {
-        _ready = (references['ready_receptions'] as List? ?? [])
+        _ready = (references?['ready_receptions'] as List? ?? [])
             .whereType<Map>()
             .map((row) => row.cast<String, dynamic>())
             .toList();
-        _history = results[1] as List<Map<String, dynamic>>;
+        _history = history;
+        _error = referenceError == null ? null : _message(referenceError);
         _loading = false;
       });
     } catch (error) {
@@ -285,7 +295,7 @@ class _BongkaranPageState extends State<BongkaranPage> {
 
   Widget _buildBody(Color ink, Color green) {
     if (_loading) return Center(child: CircularProgressIndicator());
-    if (_error != null) {
+    if (_error != null && _tab == 0) {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(24),

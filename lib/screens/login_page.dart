@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/push_notification_service.dart';
 import '../services/theme_service.dart';
 
 /// Native adaptation of Laravel's resources/views/login.blade.php.
@@ -50,6 +51,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     if (result.success && result.user != null) {
+      await PushNotificationService.registerCurrentToken();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Selamat datang, ${result.user!.name}!'),

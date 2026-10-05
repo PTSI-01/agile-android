@@ -39,16 +39,21 @@ class BongkaranService {
   }
 
   static Future<Map<String, dynamic>> references({String? bongkaranId}) async {
-    final uri =
-        Uri.parse('${ApiConfig.baseUrl}/v1/transactions/bongkaran/references')
-            .replace(
-              queryParameters: bongkaranId == null
-                  ? const <String, String>{}
-                  : <String, String>{'bongkaran_id': bongkaranId},
-            );
+    final queryParameters = bongkaranId == null
+        ? const <String, String>{}
+        : <String, String>{'bongkaran_id': bongkaranId};
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}/v1/transactions/bongkaran-references',
+    ).replace(queryParameters: queryParameters);
     final response = await http
         .get(uri, headers: await _headers())
         .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 404) {
+      throw Exception(
+        'API referensi Bongkaran belum diperbarui di server. '
+        'Silakan deploy route terbaru lalu coba lagi.',
+      );
+    }
     final body = _responseMap(response, 'Gagal memuat referensi bongkaran');
     if (response.statusCode >= 400 || body['success'] != true) {
       throw Exception(_message(body, 'Gagal memuat referensi bongkaran'));

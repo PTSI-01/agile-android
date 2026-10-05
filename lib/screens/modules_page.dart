@@ -83,6 +83,36 @@ class ModulesPageState extends State<ModulesPage> {
       'https://img.icons8.com/3d-fluency/94/bill.png';
   static const _legalNumberIconUrl =
       'https://img.icons8.com/3d-fluency/94/legal-document.png';
+  static const _bongkaranIconUrl =
+      'https://img.icons8.com/3d-fluency/94/forklift.png';
+  static const _labIconUrl =
+      'https://img.icons8.com/3d-fluency/94/microscope.png';
+  static const _gabahIconUrl =
+      'https://img.icons8.com/3d-fluency/94/wheat.png';
+  static const _labIncomingIconUrl =
+      'https://img.icons8.com/3d-fluency/94/water.png';
+  static const _labAktualIconUrl =
+      'https://img.icons8.com/3d-fluency/94/gas.png';
+  static const _labParameterIconUrl =
+      'https://img.icons8.com/3d-fluency/94/gear--v2.png';
+  static const _labRiceIconUrl =
+      'https://img.icons8.com/3d-fluency/94/flour-of-rye.png';
+  static const _receptionIconUrl =
+      'https://img.icons8.com/3d-fluency/94/delivery.png';
+  static const _weighingIconUrl =
+      'https://img.icons8.com/3d-fluency/94/truck.png';
+  static const _financeIconUrl =
+      'https://img.icons8.com/3d-fluency/94/money-yours.png';
+  static const _dataVerificationIconUrl =
+      'https://img.icons8.com/3d-fluency/94/verified-account.png';
+  static const _finalDataVerificationIconUrl =
+      'https://img.icons8.com/3d-fluency/94/approval.png';
+  static const _reportIconUrl =
+      'https://img.icons8.com/3d-fluency/94/chart.png';
+  static const _changeLogIconUrl =
+      'https://img.icons8.com/3d-fluency/94/edit-property.png';
+  static const _reportHistoryIconUrl =
+      'https://img.icons8.com/3d-fluency/94/edit-property.png';
 
   final search = TextEditingController();
   final _pageController = PageController();
@@ -165,6 +195,122 @@ class ModulesPageState extends State<ModulesPage> {
     final value = '${x.code} ${x.title} ${x.url ?? ''}'.toLowerCase();
     final identity = '${x.code} ${x.title}'.toLowerCase();
     if (_isMasterWilayah(x)) return _masterWilayahIconUrl;
+    if (value.contains('change log') ||
+        value.contains('changelog') ||
+        value.contains('change_log') ||
+        value.contains('change-log')) {
+      return _changeLogIconUrl;
+    }
+    final isReportContext = value.contains('report') ||
+        value.contains('laporan') ||
+        value.contains('report_') ||
+        value.contains('report-');
+    if (isReportContext &&
+        (value.contains('master data') ||
+            value.contains('master_data') ||
+            value.contains('master-data'))) {
+      return _masterDataIconUrl;
+    }
+    if (isReportContext &&
+        (value.contains('pembelian') || value.contains('purchase'))) {
+      return _purchaseIconUrl;
+    }
+    if (isReportContext &&
+        (value.contains('penerimaan') || value.contains('reception'))) {
+      return _receptionIconUrl;
+    }
+    if (value.contains('laporan pembelian') ||
+        value.contains('report purchase')) {
+      return _purchaseIconUrl;
+    }
+    if (value.contains('laporan penerimaan') ||
+        value.contains('report reception')) {
+      return _receptionIconUrl;
+    }
+    if (value.contains('laporan kualitas') ||
+        value.contains('laporan qc') ||
+        value.contains('report qc')) {
+      return _labIconUrl;
+    }
+    if (value.contains('laba rugi') || value.contains('profit loss')) {
+      return _financeIconUrl;
+    }
+    if (value.contains('kinerja buyer') || value.contains('report buyer')) {
+      return _buyerIconUrl;
+    }
+    if (value.contains('histori semua transaksi') ||
+        value.contains('history all transaction')) {
+      return _reportHistoryIconUrl;
+    }
+    if (identity.trim() == 'report' ||
+        identity.trim() == 'laporan' ||
+        identity.contains('folder_laporan') ||
+        identity.contains('folder laporan') ||
+        identity.contains('menu_report')) {
+      return _reportIconUrl;
+    }
+    if (value.contains('bongkaran') || value.contains('/bongkaran')) {
+      return _bongkaranIconUrl;
+    }
+    if (value.contains('lab aktual') ||
+        value.contains('lab_aktual') ||
+        value.contains('lab-aktual')) {
+      return _labAktualIconUrl;
+    }
+    if (value.contains('parameter lab') ||
+        value.contains('parameter_lab') ||
+        value.contains('parameter-lab') ||
+        value.contains('parameter qc')) {
+      return _labParameterIconUrl;
+    }
+    if (value.contains('beras') &&
+        (value.contains('lab') || value.contains('qc'))) {
+      return _labRiceIconUrl;
+    }
+    if (value.contains('lab incoming') ||
+        value.contains('lab_incoming') ||
+        value.contains('lab-incoming') ||
+        RegExp(r'(^|\s)/lab($|\s)').hasMatch(value)) {
+      return _labIncomingIconUrl;
+    }
+    if (value.contains('gabah')) return _gabahIconUrl;
+    if (identity.contains('menu lab') ||
+        identity.contains('folder_lab') ||
+        identity.contains('folder lab') ||
+        identity.trim() == 'lab') {
+      return _labIconUrl;
+    }
+    if (value.contains('verifikasi final data') ||
+        value.contains('verifikasi_final_data') ||
+        value.contains('verifikasi-final-data') ||
+        value.contains('final verification')) {
+      return _finalDataVerificationIconUrl;
+    }
+    if (value.contains('verifikasi data') ||
+        value.contains('verifikasi_data') ||
+        value.contains('verifikasi-data') ||
+        value.contains('data verification')) {
+      return _dataVerificationIconUrl;
+    }
+    if (value.contains('timbangan masuk') ||
+        value.contains('timbangan keluar') ||
+        value.contains('timbangan_masuk') ||
+        value.contains('timbangan_keluar') ||
+        value.contains('timbangan-masuk') ||
+        value.contains('timbangan-keluar')) {
+      return _weighingIconUrl;
+    }
+    if (identity.trim() == 'penerimaan' ||
+        identity.contains('folder_penerimaan') ||
+        identity.contains('menu_penerimaan')) {
+      return _receptionIconUrl;
+    }
+    if (identity.trim() == 'finance' ||
+        identity.contains('folder_finance') ||
+        identity.contains('menu_finance') ||
+        identity.contains('menu finance')) {
+      return _financeIconUrl;
+    }
     if (value.contains('legal number') ||
         value.contains('legal_number') ||
         value.contains('legal-number')) {

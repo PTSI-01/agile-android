@@ -11,6 +11,7 @@ import 'inventory_location_pages.dart';
 import 'supplier/supplier_list_page.dart';
 import 'purchase_page.dart';
 import 'master_surveyor_page.dart';
+import '../services/notification_service.dart';
 
 class DashboardOverviewPage extends StatelessWidget {
   final UserModel? user;
@@ -173,20 +174,22 @@ class DashboardOverviewPage extends StatelessWidget {
                 Spacer(),
                 IconButton(
                   tooltip: 'Notifikasi',
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Tidak ada notifikasi baru.'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                  icon: Badge(
-                    label: Text('3'),
-                    child: Icon(
-                      Icons.notifications_none_rounded,
-                      color: theme.colorScheme.onSurface,
-                    ),
+                  onPressed: () => _showNotifications(context),
+                  icon: FutureBuilder<List<Map<String, dynamic>>>(
+                    future: NotificationService.list(),
+                    builder: (context, snapshot) {
+                      final count = snapshot.data?.length ?? 0;
+                      final icon = Icon(
+                        Icons.notifications_none_rounded,
+                        color: theme.colorScheme.onSurface,
+                      );
+                      return count > 0
+                          ? Badge(
+                              label: Text('$count'),
+                              child: icon,
+                            )
+                          : icon;
+                    },
                   ),
                 ),
                 SizedBox(width: 6),
@@ -327,6 +330,87 @@ class DashboardOverviewPage extends StatelessWidget {
             SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _showNotifications(BuildContext context) async {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => FutureBuilder<List<Map<String, dynamic>>>(
+        future: NotificationService.list(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const SizedBox(
+              height: 220,
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (snapshot.hasError) {
+            return SizedBox(
+              height: 220,
+              child: Center(child: Text(snapshot.error.toString())),
+            );
+          }
+          final items = snapshot.data ?? const <Map<String, dynamic>>[];
+          return SafeArea(
+            child: SizedBox(
+              height: 420,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
+                    child: Text(
+                      'Notifikasi',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  if (items.isEmpty)
+                    const Expanded(
+                      child: Center(child: Text('Tidak ada notifikasi baru.')),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 18),
+                        itemCount: items.length,
+                        separatorBuilder: (_, _) => const Divider(height: 1),
+                        itemBuilder: (_, index) {
+                          final item = items[index];
+                          final isBongkaran = item['type'] == 'bongkaran';
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: isBongkaran
+                                  ? const Color(0xFFFFE4C7)
+                                  : const Color(0xFFE5EFDF),
+                              child: Icon(
+                                isBongkaran
+                                    ? Icons.local_shipping_rounded
+                                    : Icons.receipt_long_rounded,
+                                color: const Color(0xFF1F7A2E),
+                              ),
+                            ),
+                            title: Text(item['title']?.toString() ?? '-'),
+                            subtitle: Text(
+                              [
+                                if (item['status_label'] != null)
+                                  item['status_label'].toString(),
+                                item['message']?.toString() ?? '-',
+                              ].join(' · '),
+                            ),
+                            onTap: () => Navigator.pop(sheetContext),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -692,6 +776,75 @@ class DashboardOverviewPage extends StatelessWidget {
     final value = '${module.code} ${module.title}'.toLowerCase();
     final iconUrl = value.contains('master data')
         ? 'https://img.icons8.com/3d-fluency/94/data-configuration.png'
+        : value.contains('change log') ||
+              value.contains('changelog') ||
+              value.contains('change_log')
+        ? 'https://img.icons8.com/3d-fluency/94/edit-property.png'
+        : (value.contains('report') || value.contains('laporan')) &&
+              (value.contains('master data') ||
+                  value.contains('master_data') ||
+                  value.contains('master-data'))
+        ? 'https://img.icons8.com/3d-fluency/94/data-configuration.png'
+        : (value.contains('report') || value.contains('laporan')) &&
+              (value.contains('pembelian') || value.contains('purchase'))
+        ? 'https://img.icons8.com/3d-fluency/94/bill.png'
+        : (value.contains('report') || value.contains('laporan')) &&
+              (value.contains('penerimaan') || value.contains('reception'))
+        ? 'https://img.icons8.com/3d-fluency/94/delivery.png'
+        : value.contains('laporan pembelian') ||
+              value.contains('report purchase')
+        ? 'https://img.icons8.com/3d-fluency/94/bill.png'
+        : value.contains('laporan penerimaan') ||
+              value.contains('report reception')
+        ? 'https://img.icons8.com/3d-fluency/94/delivery.png'
+        : value.contains('laporan kualitas') ||
+              value.contains('laporan qc') ||
+              value.contains('report qc')
+        ? 'https://img.icons8.com/3d-fluency/94/microscope.png'
+        : value.contains('laba rugi') || value.contains('profit loss')
+        ? 'https://img.icons8.com/3d-fluency/94/money-yours.png'
+        : value.contains('kinerja buyer') || value.contains('report buyer')
+        ? 'https://img.icons8.com/3d-fluency/94/salary-male.png'
+        : value.contains('histori semua transaksi') ||
+              value.contains('history all transaction')
+        ? 'https://img.icons8.com/3d-fluency/94/edit-property.png'
+        : value.trim() == 'report' ||
+              value.trim() == 'laporan' ||
+              value.contains('folder_laporan') ||
+              value.contains('menu_report')
+        ? 'https://img.icons8.com/3d-fluency/94/chart.png'
+        : value.contains('bongkaran')
+        ? 'https://img.icons8.com/3d-fluency/94/forklift.png'
+        : value.contains('lab incoming') || value.contains('lab_incoming')
+        ? 'https://img.icons8.com/3d-fluency/94/water.png'
+        : value.contains('lab aktual') || value.contains('lab_aktual')
+        ? 'https://img.icons8.com/3d-fluency/94/gas.png'
+        : value.contains('parameter lab') || value.contains('parameter_lab')
+        ? 'https://img.icons8.com/3d-fluency/94/gear--v2.png'
+        : value.contains('beras') &&
+              (value.contains('lab') || value.contains('qc'))
+        ? 'https://img.icons8.com/3d-fluency/94/flour-of-rye.png'
+        : value.contains('gabah')
+        ? 'https://img.icons8.com/3d-fluency/94/wheat.png'
+        : value.contains('menu lab') || value.trim() == 'lab'
+        ? 'https://img.icons8.com/3d-fluency/94/microscope.png'
+        : value.contains('verifikasi final data') ||
+              value.contains('verifikasi_final_data')
+        ? 'https://img.icons8.com/3d-fluency/94/approval.png'
+        : value.contains('verifikasi data') ||
+              value.contains('verifikasi_data')
+        ? 'https://img.icons8.com/3d-fluency/94/verified-account.png'
+        : value.contains('timbangan masuk') ||
+              value.contains('timbangan keluar') ||
+              value.contains('timbangan_masuk') ||
+              value.contains('timbangan_keluar')
+        ? 'https://img.icons8.com/3d-fluency/94/truck.png'
+        : value.trim() == 'penerimaan' || value.contains('folder_penerimaan')
+        ? 'https://img.icons8.com/3d-fluency/94/delivery.png'
+        : value.trim() == 'finance' ||
+              value.contains('folder_finance') ||
+              value.contains('menu finance')
+        ? 'https://img.icons8.com/3d-fluency/94/money-yours.png'
         : value.contains('pembelian')
         ? 'https://img.icons8.com/3d-fluency/94/bill.png'
         : value.contains('penerimaan') || value.contains('timbangan')
