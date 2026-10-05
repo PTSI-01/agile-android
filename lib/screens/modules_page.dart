@@ -7,9 +7,11 @@ import 'supplier/supplier_group_page.dart';
 import 'buyer_page.dart';
 import 'buyer_group_page.dart';
 import 'master_bank_page.dart';
-import 'master_data_page.dart';
 import 'master_item_page.dart';
 import 'master_unit_page.dart';
+import 'master_site_page.dart';
+import 'master_surveyor_page.dart';
+import 'inventory_location_pages.dart';
 import 'unit_conversion_page.dart';
 import 'price_list_item_page.dart';
 import 'item_category_page.dart';
@@ -19,6 +21,8 @@ import 'province_page.dart';
 import 'city_page.dart';
 import 'district_page.dart';
 import 'village_page.dart';
+import 'bongkaran_page.dart';
+import 'finance_page.dart';
 
 class ModulesPage extends StatefulWidget {
   final DashboardData? dashboard;
@@ -353,6 +357,13 @@ class ModulesPageState extends State<ModulesPage> {
         identity.contains('target-pembelian') ||
         identity.contains('target po')) {
       p = const PurchaseTargetPage();
+    } else if (u == '/bongkaran' || identity.contains('bongkaran')) {
+      p = const BongkaranPage();
+    } else if (u.contains('finance') ||
+        identity.contains('finance') ||
+        identity.contains('approval transaksi finance') ||
+        identity.contains('approval finance')) {
+      p = const FinancePage();
     } else if (u.contains('master-buyer')) {
       p = const BuyerPage();
     } else if (u.contains('buyer-group') || u.contains('purchasing-group')) {
@@ -375,6 +386,19 @@ class ModulesPageState extends State<ModulesPage> {
         u == '/master-data/unit' ||
         x.code.toUpperCase() == 'MASTER_UNIT') {
       p = const MasterUnitPage();
+    } else if (u == '/master-site' ||
+        u == '/master-data/site' ||
+        x.code.toUpperCase() == 'MASTER_SITE') {
+      p = const MasterSitePage();
+    } else if (u == '/master-warehouse' ||
+        u == '/master-data/warehouse' ||
+        x.code.toUpperCase() == 'MASTER_WAREHOUSE') {
+      p = const MasterWarehousePage();
+    } else if (u == '/master-bin' ||
+        identity.contains('master_bin') ||
+        identity.contains('master bin') ||
+        x.code.toUpperCase() == 'MENU_BIN') {
+      p = const MasterBinPage();
     } else if (u == '/master-unit-conversion' ||
         identity.contains('master_unit_conversion') ||
         identity.contains('konversi satuan') ||
@@ -386,9 +410,12 @@ class ModulesPageState extends State<ModulesPage> {
         identity.contains('price-list')) {
       p = const PriceListItemPage();
     } else if (u.contains('warehouse')) {
-      p = const MasterDataPage(type: 'warehouse', title: 'Master Gudang');
-    } else if (u.contains('surveyor')) {
-      p = const MasterDataPage(type: 'surveyor', title: 'Master Surveyor');
+      p = const MasterWarehousePage();
+    } else if (u == '/master-surveyor' ||
+        u == '/master-data/surveyor' ||
+        x.code.toUpperCase() == 'MASTER_SURVEYOR' ||
+        u.contains('surveyor')) {
+      p = const MasterSurveyorPage();
     } else if (u.contains('wilayah')) {
       p = const ProvincePage();
     } else if (u.contains('provinsi')) {
@@ -438,7 +465,7 @@ class ModulesPageState extends State<ModulesPage> {
                 bottom: MediaQuery.viewInsetsOf(context).bottom + 18,
               ),
               child: Material(
-                color: const Color(0xFFF8FBF5),
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(28),
                 clipBehavior: Clip.antiAlias,
                 child: Padding(
@@ -477,7 +504,7 @@ class ModulesPageState extends State<ModulesPage> {
                                   icon: const Icon(Icons.close_rounded),
                                 ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: Theme.of(context).colorScheme.surface,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 18,
                             vertical: 15,
@@ -671,11 +698,11 @@ class ModulesPageState extends State<ModulesPage> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 9,
                 height: 1.05,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF183C32),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],

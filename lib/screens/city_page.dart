@@ -331,7 +331,7 @@ class _CityPageState extends State<CityPage> {
                           icon: const Icon(Icons.clear_rounded),
                         ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -444,7 +444,7 @@ class _CityPageState extends State<CityPage> {
                 [
                   province ?? city['province_code']?.toString() ?? '-',
                   if (districtCount != null) '$districtCount kecamatan',
-                ].join(' • '),
+                ].join(' \u2022 '),
               ),
               trailing: (_can('update') || _can('delete'))
                   ? PopupMenuButton<String>(

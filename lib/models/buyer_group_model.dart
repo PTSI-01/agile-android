@@ -19,7 +19,9 @@ class BuyerGroupModel {
     final rawStatus = json['status'] ?? json['status_user'] ?? 1;
     final normalizedStatus = rawStatus is String
         ? (rawStatus.toLowerCase() == 'active' ? 1 : 0)
-        : (rawStatus is bool ? (rawStatus ? 1 : 0) : (int.tryParse(rawStatus.toString()) ?? 1));
+        : (rawStatus is bool
+              ? (rawStatus ? 1 : 0)
+              : (int.tryParse(rawStatus.toString()) ?? 1));
     return BuyerGroupModel(
       id: json['id']?.toString() ?? '',
       code: (json['group_code'] ?? json['code'] ?? '').toString(),
@@ -30,8 +32,8 @@ class BuyerGroupModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'group_code': code,
-        'group_name': name,
-        'status': status,
-      };
+    'group_code': code,
+    'group_name': name,
+    'status': status,
+  };
 }

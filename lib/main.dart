@@ -9,10 +9,12 @@ import 'screens/login_page.dart';
 import 'screens/modules_page.dart';
 import 'screens/profile_page.dart';
 import 'services/auth_service.dart';
+import 'services/theme_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ApiConfig.init();
+  await ThemeService.init();
   final loggedIn = await AuthService.isLoggedIn();
   UserModel? user = loggedIn ? await AuthService.getCurrentUser() : null;
   final dashboard = loggedIn ? await AuthService.getDashboard() : null;
@@ -31,28 +33,74 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key, this.initialUser, this.initialDashboard});
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'Agile E-Procurement',
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
+  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
+    valueListenable: ThemeService.mode,
+    builder: (context, themeMode, _) => MaterialApp(
+      title: 'Agile E-Procurement',
+      debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
+      theme: _theme(Brightness.light),
+      darkTheme: _theme(Brightness.dark),
+      home: initialUser != null
+          ? HomePage(user: initialUser, dashboard: initialDashboard)
+          : const LoginPage(),
+    ),
+  );
+
+  ThemeData _theme(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    final surface = dark ? const Color(0xFF102019) : Colors.white;
+    return ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: const Color(0xFFF7F9F5),
-      colorScheme: ColorScheme.fromSeed(seedColor: green),
+      brightness: brightness,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: green,
+        brightness: brightness,
+        surface: surface,
+      ),
       fontFamily: 'Roboto',
-      textTheme: const TextTheme(
+      scaffoldBackgroundColor: dark
+          ? const Color(0xFF09130F)
+          : const Color(0xFFF7F9F5),
+      canvasColor: surface,
+      cardColor: dark ? const Color(0xFF14271F) : Colors.white,
+      dialogTheme: DialogThemeData(backgroundColor: surface),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: dark
+            ? const Color(0xFF09130F)
+            : const Color(0xFFF7F9F5),
+        foregroundColor: dark ? const Color(0xFFEAF3EE) : ink,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: surface,
+        indicatorColor: dark
+            ? const Color(0xFF294737)
+            : const Color(0xFFE5EFDF),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: dark ? const Color(0xFF14271F) : Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: surface,
+        modalBackgroundColor: surface,
+      ),
+      textTheme: TextTheme(
         headlineMedium: TextStyle(
-          color: ink,
+          color: dark ? const Color(0xFFEAF3EE) : ink,
           fontWeight: FontWeight.w800,
           letterSpacing: -1,
         ),
-        titleLarge: TextStyle(color: ink, fontWeight: FontWeight.w700),
-        bodyMedium: TextStyle(color: ink),
+        titleLarge: TextStyle(
+          color: dark ? const Color(0xFFEAF3EE) : ink,
+          fontWeight: FontWeight.w700,
+        ),
+        bodyMedium: TextStyle(color: dark ? const Color(0xFFD7E5DD) : ink),
       ),
-    ),
-    home: initialUser != null
-        ? HomePage(user: initialUser, dashboard: initialDashboard)
-        : const LoginPage(),
-  );
+    );
+  }
 }
 
 class HomePage extends StatefulWidget {
@@ -206,8 +254,6 @@ class _HomePageState extends State<HomePage> {
         bottomNavigationBar: NavigationBar(
           selectedIndex: _currentIndex,
           onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-          backgroundColor: Colors.white,
-          indicatorColor: const Color(0xFFE5EFDF),
           elevation: 4,
           destinations: const [
             NavigationDestination(

@@ -94,35 +94,32 @@ class _MasterBankPageState extends State<MasterBankPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text(
-        'Master Bank',
-        style: TextStyle(fontWeight: FontWeight.w800),
-      ),
-      actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+      title: Text('Master Bank', style: TextStyle(fontWeight: FontWeight.w800)),
+      actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh))],
     ),
     floatingActionButton: _can('create')
         ? FloatingActionButton.extended(
             onPressed: () => _edit(),
-            icon: const Icon(Icons.add),
-            label: const Text('Tambah Bank'),
+            icon: Icon(Icons.add),
+            label: Text('Tambah Bank'),
           )
         : null,
     body: Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: TextField(
             controller: _search,
             onSubmitted: (_) => _load(),
             decoration: InputDecoration(
               hintText: 'Cari kode atau nama bank...',
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: Icon(Icons.search),
               suffixIcon: IconButton(
                 onPressed: () {
                   _search.clear();
                   _load();
                 },
-                icon: const Icon(Icons.clear),
+                icon: Icon(Icons.clear),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -132,15 +129,15 @@ class _MasterBankPageState extends State<MasterBankPage> {
         ),
         Expanded(
           child: _loading
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator())
               : _error != null
               ? Center(child: Text(_error!, textAlign: TextAlign.center))
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 90),
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 90),
                     itemCount: _items.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => SizedBox(height: 8),
                     itemBuilder: (_, i) {
                       final bank = _items[i];
                       final active = bank['status'] == 'active';
@@ -156,21 +153,21 @@ class _MasterBankPageState extends State<MasterBankPage> {
                           ),
                           leading: CircleAvatar(
                             backgroundColor: active
-                                ? const Color(0xFFE5F2E4)
-                                : const Color(0xFFE8E8E8),
+                                ? Color(0xFFE5F2E4)
+                                : Color(0xFFE8E8E8),
                             child: Icon(
                               Icons.account_balance_rounded,
                               color: active
-                                  ? const Color(0xFF1B5E20)
+                                  ? Color(0xFF1B5E20)
                                   : Colors.black54,
                             ),
                           ),
                           title: Text(
-                            '${bank['bank_code'] ?? '-'} • ${bank['bank_name'] ?? '-'}',
-                            style: const TextStyle(fontWeight: FontWeight.w700),
+                            '${bank['bank_code'] ?? '-'} \u2022 ${bank['bank_name'] ?? '-'}',
+                            style: TextStyle(fontWeight: FontWeight.w700),
                           ),
                           subtitle: Text(
-                            '${active ? 'Aktif' : 'Nonaktif'} • ${bank['bank_accounts_count'] ?? 0} rekening',
+                            '${active ? 'Aktif' : 'Nonaktif'} \u2022 ${bank['bank_accounts_count'] ?? 0} rekening',
                           ),
                           trailing: PopupMenuButton<String>(
                             onSelected: (v) {
@@ -179,12 +176,12 @@ class _MasterBankPageState extends State<MasterBankPage> {
                             },
                             itemBuilder: (_) => [
                               if (_can('update'))
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'edit',
                                   child: Text('Edit'),
                                 ),
                               if (_can('delete'))
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'delete',
                                   child: Text('Hapus'),
                                 ),
@@ -269,39 +266,38 @@ class _MasterBankFormDialogState extends State<_MasterBankFormDialog> {
   @override
   Widget build(BuildContext context) {
     const green = Color(0xFF1F7A2E);
-    const ink = Color(0xFF183C32);
     return AlertDialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      insetPadding: EdgeInsets.symmetric(horizontal: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-      titlePadding: const EdgeInsets.fromLTRB(22, 22, 22, 8),
-      contentPadding: const EdgeInsets.fromLTRB(22, 8, 22, 8),
-      actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      titlePadding: EdgeInsets.fromLTRB(22, 22, 22, 8),
+      contentPadding: EdgeInsets.fromLTRB(22, 8, 22, 8),
+      actionsPadding: EdgeInsets.fromLTRB(16, 8, 16, 16),
       title: Row(
         children: [
           Container(
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFFE8F3E6),
+              color: Color(0xFFE8F3E6),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.account_balance_rounded, color: green),
+            child: Icon(Icons.account_balance_rounded, color: green),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   _isEditing ? 'Edit Master Bank' : 'Tambah Master Bank',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: ink,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 2),
-                const Text(
+                SizedBox(height: 2),
+                Text(
                   'Lengkapi data bank untuk supplier',
                   style: TextStyle(fontSize: 11, color: Color(0xFF7D8983)),
                 ),
@@ -322,28 +318,28 @@ class _MasterBankFormDialogState extends State<_MasterBankFormDialog> {
                 if (_errorMessage != null) ...[
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFECEA),
+                      color: Color(0xFFFFECEA),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFF0B5B0)),
+                      border: Border.all(color: Color(0xFFF0B5B0)),
                     ),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFFB3261E),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                 ],
                 TextFormField(
                   controller: _codeController,
                   enabled: !_saving,
                   textCapitalization: TextCapitalization.characters,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Kode Bank *',
                     hintText: 'Contoh: BBRI',
                     prefixIcon: Icon(Icons.tag_rounded),
@@ -352,12 +348,12 @@ class _MasterBankFormDialogState extends State<_MasterBankFormDialog> {
                       ? 'Kode bank wajib diisi'
                       : null,
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 TextFormField(
                   controller: _nameController,
                   enabled: !_saving,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Nama Bank *',
                     hintText: 'Contoh: Bank BRI',
                     prefixIcon: Icon(Icons.account_balance_outlined),
@@ -366,14 +362,14 @@ class _MasterBankFormDialogState extends State<_MasterBankFormDialog> {
                       ? 'Nama bank wajib diisi'
                       : null,
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 DropdownButtonFormField<String>(
                   initialValue: _status,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Status *',
                     prefixIcon: Icon(Icons.toggle_on_outlined),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(value: 'active', child: Text('Aktif')),
                     DropdownMenuItem(
                       value: 'inactive',
@@ -392,17 +388,17 @@ class _MasterBankFormDialogState extends State<_MasterBankFormDialog> {
       actions: [
         TextButton(
           onPressed: _saving ? null : () => Navigator.pop(context, false),
-          child: const Text('Batal'),
+          child: Text('Batal'),
         ),
         FilledButton.icon(
           onPressed: _saving ? null : _save,
           style: FilledButton.styleFrom(
             backgroundColor: green,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           ),
           icon: _saving
-              ? const SizedBox(
+              ? SizedBox(
                   width: 17,
                   height: 17,
                   child: CircularProgressIndicator(
@@ -410,7 +406,7 @@ class _MasterBankFormDialogState extends State<_MasterBankFormDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Icon(Icons.save_rounded, size: 18),
+              : Icon(Icons.save_rounded, size: 18),
           label: Text(_saving ? 'Menyimpan...' : 'Simpan'),
         ),
       ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../services/theme_service.dart';
+
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
 
@@ -10,24 +12,24 @@ class ReportsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Laporan & Analisis',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: ink,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         centerTitle: false,
-        backgroundColor: const Color(0xFFF7F9F5),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         actions: [
           IconButton(
             tooltip: 'Export Laporan',
-            icon: const Icon(Icons.download_rounded, color: ink),
+            icon: Icon(Icons.download_rounded, color: ink),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text('Menyiapkan file export Excel & PDF...'),
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -38,19 +40,19 @@ class ReportsPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 90),
+          padding: EdgeInsets.fromLTRB(20, 12, 20, 90),
           children: [
             // 1. STATS BANNER
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: ink,
+                color: Theme.of(context).colorScheme.onSurface,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'TOTAL PENGADAAN BULAN INI',
                     style: TextStyle(
                       color: Color(0xFFD8EFAC),
@@ -59,8 +61,8 @@ class ReportsPage extends StatelessWidget {
                       letterSpacing: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     '3.420,5 Ton',
                     style: TextStyle(
                       color: Colors.white,
@@ -68,32 +70,32 @@ class ReportsPage extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'Nilai Pengadaan: Rp 23,8 Miliar (412 Transaksi)',
                     style: TextStyle(color: Color(0xFFB5CBC0), fontSize: 12),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // 2. DISTRIBUSI KUALITAS / MUTU QC
-            const Text(
+            Text(
               'Distribusi Kualitas QC (Bulan Ini)',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
-                color: ink,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE9EDE5)),
+                border: Border.all(color: Color(0xFFE9EDE5)),
               ),
               child: Column(
                 children: [
@@ -103,40 +105,40 @@ class ReportsPage extends StatelessWidget {
                     color: green,
                     tonnage: '1.984 Ton (58%)',
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   _gradeBar(
                     label: 'Grade B (KA 17 - 20%, Rendemen 60-64%)',
                     percentage: 0.32,
-                    color: const Color(0xFFF57F17),
+                    color: Color(0xFFF57F17),
                     tonnage: '1.094 Ton (32%)',
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   _gradeBar(
                     label: 'Grade C / Rafaksi (KA > 20%)',
                     percentage: 0.10,
-                    color: const Color(0xFFD84315),
+                    color: Color(0xFFD84315),
                     tonnage: '342 Ton (10%)',
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // 3. TOP SUPPLIER
-            const Text(
+            Text(
               'Top 5 Pemasok Terbesar',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
-                color: ink,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE9EDE5)),
+                border: Border.all(color: Color(0xFFE9EDE5)),
               ),
               child: Column(
                 children: [
@@ -146,28 +148,28 @@ class ReportsPage extends StatelessWidget {
                     tonnage: '428 Ton',
                     amount: 'Rp 2,98 M',
                   ),
-                  const Divider(height: 1, color: Color(0xFFF0F3ED)),
+                  Divider(height: 1, color: Color(0xFFF0F3ED)),
                   _supplierRank(
                     rank: 2,
                     name: 'H. Rohmat Jaya',
                     tonnage: '385 Ton',
                     amount: 'Rp 2,69 M',
                   ),
-                  const Divider(height: 1, color: Color(0xFFF0F3ED)),
+                  Divider(height: 1, color: Color(0xFFF0F3ED)),
                   _supplierRank(
                     rank: 3,
                     name: 'Mitra Padi Sentosa',
                     tonnage: '312 Ton',
                     amount: 'Rp 2,43 M',
                   ),
-                  const Divider(height: 1, color: Color(0xFFF0F3ED)),
+                  Divider(height: 1, color: Color(0xFFF0F3ED)),
                   _supplierRank(
                     rank: 4,
                     name: 'Gapoktan Sri Rejeki',
                     tonnage: '276 Ton',
                     amount: 'Rp 1,91 M',
                   ),
-                  const Divider(height: 1, color: Color(0xFFF0F3ED)),
+                  Divider(height: 1, color: Color(0xFFF0F3ED)),
                   _supplierRank(
                     rank: 5,
                     name: 'CV Berkah Tani Bersama',
@@ -198,10 +200,12 @@ class ReportsPage extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF183C32),
+                  color: ThemeService.isDark
+                      ? Color(0xFFEAF3EE)
+                      : Color(0xFF183C32),
                 ),
               ),
             ),
@@ -215,14 +219,14 @@ class ReportsPage extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         ClipRRect(
           borderRadius: BorderRadius.circular(5),
           child: LinearProgressIndicator(
             value: percentage,
             minHeight: 8,
             color: color,
-            backgroundColor: const Color(0xFFEEF2EC),
+            backgroundColor: Color(0xFFEEF2EC),
           ),
         ),
       ],
@@ -236,31 +240,33 @@ class ReportsPage extends StatelessWidget {
     required String amount,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           CircleAvatar(
             radius: 14,
-            backgroundColor: rank == 1
-                ? const Color(0xFFD8EFAC)
-                : const Color(0xFFF0F4EC),
+            backgroundColor: rank == 1 ? Color(0xFFD8EFAC) : Color(0xFFF0F4EC),
             child: Text(
               '$rank',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF183C32),
+                color: ThemeService.isDark
+                    ? Color(0xFFEAF3EE)
+                    : Color(0xFF183C32),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF183C32),
+                color: ThemeService.isDark
+                    ? Color(0xFFEAF3EE)
+                    : Color(0xFF183C32),
               ),
             ),
           ),
@@ -269,15 +275,17 @@ class ReportsPage extends StatelessWidget {
             children: [
               Text(
                 tonnage,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF183C32),
+                  color: ThemeService.isDark
+                      ? Color(0xFFEAF3EE)
+                      : Color(0xFF183C32),
                 ),
               ),
               Text(
                 amount,
-                style: const TextStyle(fontSize: 10, color: Color(0xFF7D8983)),
+                style: TextStyle(fontSize: 10, color: Color(0xFF7D8983)),
               ),
             ],
           ),
@@ -286,4 +294,3 @@ class ReportsPage extends StatelessWidget {
     );
   }
 }
-

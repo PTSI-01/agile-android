@@ -6,21 +6,21 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/master_data_service.dart';
 
-class MasterUnitPage extends StatefulWidget {
-  const MasterUnitPage({super.key});
+class MasterSitePage extends StatefulWidget {
+  const MasterSitePage({super.key});
 
   @override
-  State<MasterUnitPage> createState() => _MasterUnitPageState();
+  State<MasterSitePage> createState() => _MasterSitePageState();
 }
 
-class _MasterUnitPageState extends State<MasterUnitPage> {
+class _MasterSitePageState extends State<MasterSitePage> {
   static const _green = Color(0xFF1F7A2E);
   static const _ink = Color(0xFF183C32);
   static const _gold = Color(0xFFE7AA19);
 
   final _searchController = TextEditingController();
   Timer? _debounce;
-  List<Map<String, dynamic>> _units = [];
+  List<Map<String, dynamic>> _sites = [];
   UserModel? _user;
   String _status = 'semua';
   String? _error;
@@ -44,23 +44,23 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
 
   bool _can(String action) =>
       _user?.role?.toLowerCase() == 'superadmin' ||
-      _user?.permissions['master_unit.${action.toLowerCase()}'] == true;
+      _user?.permissions['master_site.${action.toLowerCase()}'] == true;
 
-  bool _active(Map<String, dynamic> unit) {
-    final value = unit['status']?.toString().toLowerCase();
+  bool _active(Map<String, dynamic> site) {
+    final value = site['status']?.toString().toLowerCase();
     return value == 'aktif' || value == 'active' || value == '1';
   }
 
-  int _relationCount(Map<String, dynamic> unit, String key) {
-    final count = unit['${key}_count'];
+  int _relationCount(Map<String, dynamic> site, String key) {
+    final count = site['${key}_count'];
     if (count != null) return int.tryParse(count.toString()) ?? 0;
-    return (unit[key] as List?)?.length ?? 0;
+    return (site[key] as List?)?.length ?? 0;
   }
 
-  List<Map<String, dynamic>> get _visibleUnits {
-    if (_status == 'semua') return _units;
+  List<Map<String, dynamic>> get _visibleSites {
+    if (_status == 'semua') return _sites;
     final showActive = _status == 'aktif';
-    return _units.where((unit) => _active(unit) == showActive).toList();
+    return _sites.where((site) => _active(site) == showActive).toList();
   }
 
   Future<void> _load() async {
@@ -69,11 +69,11 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
       _error = null;
     });
     try {
-      final rows = await MasterDataService.listUnits(
+      final rows = await MasterDataService.listSites(
         search: _searchController.text,
       );
       if (!mounted) return;
-      setState(() => _units = rows);
+      setState(() => _sites = rows);
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = _message(error));
@@ -99,23 +99,23 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
     );
   }
 
-  Future<void> _openForm([Map<String, dynamic>? unit]) async {
+  Future<void> _openForm([Map<String, dynamic>? site]) async {
     final changed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _UnitFormSheet(unit: unit),
+      builder: (_) => _SiteFormSheet(site: site),
     );
     if (changed == true) _load();
   }
 
-  Future<void> _delete(Map<String, dynamic> unit) async {
+  Future<void> _delete(Map<String, dynamic> site) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Hapus satuan?'),
+        title: Text('Hapus site?'),
         content: Text(
-          '${unit['kode_satuan']} - ${unit['nama_satuan']} akan dihapus. Satuan yang masih dipakai item atau konversi tidak dapat dihapus.',
+          '${site['site_code']} - ${site['site_name']} akan dihapus. Site yang masih dipakai gudang atau item tidak dapat dihapus.',
         ),
         actions: [
           TextButton(
@@ -132,9 +132,9 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
     );
     if (confirmed != true || !mounted) return;
     try {
-      await MasterDataService.deleteUnit(unit['id'].toString());
+      await MasterDataService.deleteSite(site['id'].toString());
       if (!mounted) return;
-      _notice('Satuan berhasil dihapus.');
+      _notice('Site berhasil dihapus.');
       _load();
     } catch (error) {
       if (mounted) _notice(_message(error), error: true);
@@ -142,9 +142,9 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
   }
 
   Future<void> _openDetail(Map<String, dynamic> initial) async {
-    Map<String, dynamic> unit = initial;
+    Map<String, dynamic> site = initial;
     try {
-      unit = await MasterDataService.getUnit(initial['id'].toString());
+      site = await MasterDataService.getSite(initial['id'].toString());
     } catch (_) {
       // Data daftar sudah memuat relasi dan tetap dapat ditampilkan.
     }
@@ -153,17 +153,17 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _UnitDetailSheet(
-        unit: unit,
+      builder: (sheetContext) => _SiteDetailSheet(
+        site: site,
         canUpdate: _can('update'),
         canDelete: _can('delete'),
         onEdit: () {
           Navigator.pop(sheetContext);
-          _openForm(unit);
+          _openForm(site);
         },
         onDelete: () {
           Navigator.pop(sheetContext);
-          _delete(unit);
+          _delete(site);
         },
       ),
     );
@@ -171,16 +171,16 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
 
   @override
   Widget build(BuildContext context) {
-    final totalItems = _units.fold<int>(
+    final totalWarehouses = _sites.fold<int>(
       0,
-      (total, unit) => total + _relationCount(unit, 'items'),
+      (total, site) => total + _relationCount(site, 'warehouses'),
     );
-    final active = _units.where(_active).length;
+    final active = _sites.where(_active).length;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'Master Satuan',
+          'Master Site',
           style: TextStyle(fontWeight: FontWeight.w800, color: _ink),
         ),
         actions: [
@@ -197,7 +197,7 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
               backgroundColor: _green,
               foregroundColor: Colors.white,
               icon: Icon(Icons.add_rounded),
-              label: Text('Tambah Satuan'),
+              label: Text('Tambah Site'),
             )
           : null,
       body: Column(
@@ -209,7 +209,7 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
               onChanged: _search,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                hintText: 'Cari kode atau nama satuan...',
+                hintText: 'Cari kode atau nama site...',
                 prefixIcon: Icon(Icons.search_rounded),
                 suffixIcon: _searchController.text.isEmpty
                     ? null
@@ -235,9 +235,9 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
               children: [
                 Expanded(
                   child: _SummaryCard(
-                    value: '${_units.length}',
-                    label: 'Satuan',
-                    icon: Icons.straighten_rounded,
+                    value: '${_sites.length}',
+                    label: 'Site',
+                    icon: Icons.location_city_rounded,
                     color: _green,
                   ),
                 ),
@@ -253,9 +253,9 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
                 SizedBox(width: 8),
                 Expanded(
                   child: _SummaryCard(
-                    value: '$totalItems',
-                    label: 'Item',
-                    icon: Icons.inventory_2_rounded,
+                    value: '$totalWarehouses',
+                    label: 'Gudang',
+                    icon: Icons.warehouse_rounded,
                     color: _ink,
                   ),
                 ),
@@ -320,9 +320,9 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
         ),
       );
     }
-    final rows = _visibleUnits;
+    final rows = _visibleSites;
     if (rows.isEmpty) {
-      return Center(child: Text('Data satuan tidak ditemukan.'));
+      return Center(child: Text('Data site tidak ditemukan.'));
     }
     return RefreshIndicator(
       onRefresh: _load,
@@ -331,17 +331,14 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
         itemCount: rows.length,
         separatorBuilder: (_, _) => SizedBox(height: 10),
         itemBuilder: (_, index) {
-          final unit = rows[index];
-          final itemCount = _relationCount(unit, 'items');
-          final conversionCount =
-              _relationCount(unit, 'conversions_from') +
-              _relationCount(unit, 'conversions_to');
+          final site = rows[index];
+          final warehouseCount = _relationCount(site, 'warehouses');
           return Material(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(18),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
-              onTap: () => _openDetail(unit),
+              onTap: () => _openDetail(site),
               child: Padding(
                 padding: EdgeInsets.all(14),
                 child: Row(
@@ -354,15 +351,10 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
                         color: Color(0xFFE8F3E4),
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      child: Text(
-                        unit['kode_satuan']?.toString() ?? '-',
-                        maxLines: 1,
-                        overflow: TextOverflow.fade,
-                        style: TextStyle(
-                          color: _green,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      child: Icon(
+                        Icons.location_city_rounded,
+                        color: _green,
+                        size: 27,
                       ),
                     ),
                     SizedBox(width: 12),
@@ -371,7 +363,7 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            unit['nama_satuan']?.toString() ?? '-',
+                            site['site_name']?.toString() ?? '-',
                             style: TextStyle(
                               fontWeight: FontWeight.w800,
                               color: _ink,
@@ -380,7 +372,7 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
                           ),
                           SizedBox(height: 5),
                           Text(
-                            '$itemCount item  \u2022  $conversionCount konversi',
+                            '${site['site_code'] ?? '-'}  \u2022  $warehouseCount gudang',
                             style: TextStyle(
                               color: Color(0xFF66756D),
                               fontSize: 12,
@@ -392,15 +384,15 @@ class _MasterUnitPageState extends State<MasterUnitPage> {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                       decoration: BoxDecoration(
-                        color: _active(unit)
+                        color: _active(site)
                             ? Color(0xFFE4F4DF)
                             : Color(0xFFFFE5E1),
                         borderRadius: BorderRadius.circular(99),
                       ),
                       child: Text(
-                        _active(unit) ? 'Aktif' : 'Nonaktif',
+                        _active(site) ? 'Aktif' : 'Nonaktif',
                         style: TextStyle(
-                          color: _active(unit) ? _green : Color(0xFFB3261E),
+                          color: _active(site) ? _green : Color(0xFFB3261E),
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                         ),
@@ -467,15 +459,15 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _UnitFormSheet extends StatefulWidget {
-  final Map<String, dynamic>? unit;
-  const _UnitFormSheet({this.unit});
+class _SiteFormSheet extends StatefulWidget {
+  final Map<String, dynamic>? site;
+  const _SiteFormSheet({this.site});
 
   @override
-  State<_UnitFormSheet> createState() => _UnitFormSheetState();
+  State<_SiteFormSheet> createState() => _SiteFormSheetState();
 }
 
-class _UnitFormSheetState extends State<_UnitFormSheet> {
+class _SiteFormSheetState extends State<_SiteFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _code;
   late final TextEditingController _name;
@@ -486,12 +478,12 @@ class _UnitFormSheetState extends State<_UnitFormSheet> {
   void initState() {
     super.initState();
     _code = TextEditingController(
-      text: widget.unit?['kode_satuan']?.toString() ?? '',
+      text: widget.site?['site_code']?.toString() ?? '',
     );
     _name = TextEditingController(
-      text: widget.unit?['nama_satuan']?.toString() ?? '',
+      text: widget.site?['site_name']?.toString() ?? '',
     );
-    final status = widget.unit?['status']?.toString().toLowerCase();
+    final status = widget.site?['status']?.toString().toLowerCase();
     _status = status == 'nonaktif' || status == 'inactive' || status == '0'
         ? 'nonaktif'
         : 'aktif';
@@ -508,11 +500,11 @@ class _UnitFormSheetState extends State<_UnitFormSheet> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
-      await MasterDataService.saveUnit({
-        'kode_satuan': _code.text.trim().toUpperCase(),
-        'nama_satuan': _name.text.trim(),
+      await MasterDataService.saveSite({
+        'site_code': _code.text.trim().toUpperCase(),
+        'site_name': _name.text.trim(),
         'status': _status,
-      }, id: widget.unit?['id']?.toString());
+      }, id: widget.site?['id']?.toString());
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
@@ -558,7 +550,7 @@ class _UnitFormSheetState extends State<_UnitFormSheet> {
                 ),
                 SizedBox(height: 18),
                 Text(
-                  widget.unit == null ? 'Tambah Satuan' : 'Ubah Satuan',
+                  widget.site == null ? 'Tambah Site' : 'Ubah Site',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
@@ -567,7 +559,7 @@ class _UnitFormSheetState extends State<_UnitFormSheet> {
                 ),
                 SizedBox(height: 5),
                 Text(
-                  'Lengkapi kode, nama, dan status satuan.',
+                  'Lengkapi kode, nama, dan status site.',
                   style: TextStyle(color: Color(0xFF66756D)),
                 ),
                 SizedBox(height: 20),
@@ -575,22 +567,22 @@ class _UnitFormSheetState extends State<_UnitFormSheet> {
                   controller: _code,
                   textCapitalization: TextCapitalization.characters,
                   decoration: InputDecoration(
-                    labelText: 'Kode satuan *',
+                    labelText: 'Kode site *',
                     prefixIcon: Icon(Icons.qr_code_2_rounded),
                   ),
                   validator: (value) => value == null || value.trim().isEmpty
-                      ? 'Kode satuan wajib diisi'
+                      ? 'Kode site wajib diisi'
                       : null,
                 ),
                 SizedBox(height: 14),
                 TextFormField(
                   controller: _name,
                   decoration: InputDecoration(
-                    labelText: 'Nama satuan *',
-                    prefixIcon: Icon(Icons.straighten_rounded),
+                    labelText: 'Nama site *',
+                    prefixIcon: Icon(Icons.location_city_rounded),
                   ),
                   validator: (value) => value == null || value.trim().isEmpty
-                      ? 'Nama satuan wajib diisi'
+                      ? 'Nama site wajib diisi'
                       : null,
                 ),
                 SizedBox(height: 14),
@@ -652,36 +644,34 @@ class _UnitFormSheetState extends State<_UnitFormSheet> {
   }
 }
 
-class _UnitDetailSheet extends StatelessWidget {
-  final Map<String, dynamic> unit;
+class _SiteDetailSheet extends StatelessWidget {
+  final Map<String, dynamic> site;
   final bool canUpdate;
   final bool canDelete;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _UnitDetailSheet({
-    required this.unit,
+  const _SiteDetailSheet({
+    required this.site,
     required this.canUpdate,
     required this.canDelete,
     required this.onEdit,
     required this.onDelete,
   });
 
-  List<Map<String, dynamic>> _rows(String key) => (unit[key] as List? ?? [])
+  List<Map<String, dynamic>> _rows(String key) => (site[key] as List? ?? [])
       .whereType<Map>()
       .map((row) => row.cast<String, dynamic>())
       .toList();
 
   @override
   Widget build(BuildContext context) {
-    final items = _rows('items');
-    final from = _rows('conversions_from');
-    final to = _rows('conversions_to');
+    final warehouses = _rows('warehouses');
     final active = [
       'aktif',
       'active',
       '1',
-    ].contains(unit['status']?.toString().toLowerCase());
+    ].contains(site['status']?.toString().toLowerCase());
     return DraggableScrollableSheet(
       initialChildSize: .76,
       minChildSize: .45,
@@ -717,7 +707,7 @@ class _UnitDetailSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Icon(
-                    Icons.straighten_rounded,
+                    Icons.location_city_rounded,
                     color: Color(0xFF1F7A2E),
                     size: 30,
                   ),
@@ -728,7 +718,7 @@ class _UnitDetailSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        unit['nama_satuan']?.toString() ?? '-',
+                        site['site_name']?.toString() ?? '-',
                         style: TextStyle(
                           fontSize: 21,
                           fontWeight: FontWeight.w900,
@@ -736,7 +726,7 @@ class _UnitDetailSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        unit['kode_satuan']?.toString() ?? '-',
+                        site['site_code']?.toString() ?? '-',
                         style: TextStyle(
                           color: Color(0xFFA66F00),
                           fontWeight: FontWeight.w800,
@@ -759,25 +749,17 @@ class _UnitDetailSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: _CountTile(
-                    label: 'Dipakai item',
-                    value: items.length,
-                    icon: Icons.inventory_2_rounded,
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: _CountTile(
-                    label: 'Konversi',
-                    value: from.length + to.length,
-                    icon: Icons.swap_horiz_rounded,
+                    label: 'Jumlah gudang',
+                    value: warehouses.length,
+                    icon: Icons.warehouse_rounded,
                   ),
                 ),
               ],
             ),
-            if (items.isNotEmpty) ...[
+            if (warehouses.isNotEmpty) ...[
               SizedBox(height: 24),
               Text(
-                'ITEM DENGAN SATUAN INI',
+                'GUDANG DALAM SITE INI',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
@@ -786,49 +768,25 @@ class _UnitDetailSheet extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 8),
-              for (final item in items)
+              for (final warehouse in warehouses)
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
                     backgroundColor: Color(0xFFE8F3E4),
                     child: Icon(
-                      Icons.inventory_2_outlined,
+                      Icons.warehouse_outlined,
                       color: Color(0xFF1F7A2E),
                       size: 19,
                     ),
                   ),
                   title: Text(
-                    item['nama_item']?.toString() ?? '-',
+                    warehouse['warehouse_name']?.toString() ?? '-',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  subtitle: Text(item['kode_item']?.toString() ?? '-'),
-                ),
-            ],
-            if (from.isNotEmpty || to.isNotEmpty) ...[
-              SizedBox(height: 20),
-              Text(
-                'KONVERSI SATUAN',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: .7,
-                  color: Color(0xFF66756D),
-                ),
-              ),
-              SizedBox(height: 8),
-              for (final conversion in [...from, ...to])
-                ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    Icons.swap_horiz_rounded,
-                    color: Color(0xFFA66F00),
+                  subtitle: Text(
+                    '${warehouse['warehouse_code'] ?? '-'}  \u2022  ${warehouse['status'] ?? '-'}',
                   ),
-                  title: Text(
-                    'Nilai konversi: ${conversion['conversion_value'] ?? '-'}',
-                  ),
-                  subtitle: Text(conversion['status']?.toString() ?? '-'),
                 ),
             ],
             if (canUpdate || canDelete) ...[

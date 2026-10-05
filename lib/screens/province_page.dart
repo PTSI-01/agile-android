@@ -312,7 +312,7 @@ class _ProvincePageState extends State<ProvincePage> {
                           icon: const Icon(Icons.clear_rounded),
                         ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: const BorderSide(color: Color(0xFFE1E7DE)),

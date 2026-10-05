@@ -117,7 +117,9 @@ class _BuyerGroupPageState extends State<BuyerGroupPage> {
           'Buyer Group',
           style: TextStyle(fontWeight: FontWeight.w800, color: ink),
         ),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh_rounded))],
+        actions: [
+          IconButton(onPressed: _load, icon: const Icon(Icons.refresh_rounded)),
+        ],
       ),
       floatingActionButton: _can('create')
           ? FloatingActionButton.extended(
@@ -148,7 +150,7 @@ class _BuyerGroupPageState extends State<BuyerGroupPage> {
                         icon: const Icon(Icons.clear_rounded),
                       ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
@@ -180,7 +182,9 @@ class _BuyerGroupPageState extends State<BuyerGroupPage> {
         ),
       );
     }
-    if (_items.isEmpty) return const Center(child: Text('Belum ada buyer group'));
+    if (_items.isEmpty) {
+      return const Center(child: Text('Belum ada buyer group'));
+    }
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.separated(
@@ -202,8 +206,15 @@ class _BuyerGroupPageState extends State<BuyerGroupPage> {
                 item.name,
                 style: TextStyle(fontWeight: FontWeight.w700, color: ink),
               ),
-              subtitle: Text('${item.code} • ${item.isActive ? 'Aktif' : 'Nonaktif'}'),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BuyerGroupDetailPage(id: item.id))),
+              subtitle: Text(
+                '${item.code} \u2022 ${item.isActive ? 'Aktif' : 'Nonaktif'}',
+              ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BuyerGroupDetailPage(id: item.id),
+                ),
+              ),
               trailing: (_can('update') || _can('delete'))
                   ? PopupMenuButton<String>(
                       onSelected: (value) {
@@ -280,7 +291,9 @@ class _BuyerGroupFormState extends State<_BuyerGroupForm> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result['message']?.toString() ?? 'Gagal menyimpan data'),
+          content: Text(
+            result['message']?.toString() ?? 'Gagal menyimpan data',
+          ),
         ),
       );
     }
@@ -288,54 +301,54 @@ class _BuyerGroupFormState extends State<_BuyerGroupForm> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: Text(
-          widget.item == null ? 'Tambah Buyer Group' : 'Edit Buyer Group',
-        ),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _code,
-                textCapitalization: TextCapitalization.characters,
-                decoration: const InputDecoration(labelText: 'Kode group'),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Kode wajib diisi'
-                    : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _name,
-                decoration: const InputDecoration(labelText: 'Nama group'),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Nama wajib diisi'
-                    : null,
-              ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Status aktif'),
-                value: _active,
-                onChanged: (value) => setState(() => _active = value),
-              ),
-            ],
+    title: Text(
+      widget.item == null ? 'Tambah Buyer Group' : 'Edit Buyer Group',
+    ),
+    content: Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFormField(
+            controller: _code,
+            textCapitalization: TextCapitalization.characters,
+            decoration: const InputDecoration(labelText: 'Kode group'),
+            validator: (value) => value == null || value.trim().isEmpty
+                ? 'Kode wajib diisi'
+                : null,
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: _saving ? null : () => Navigator.pop(context),
-            child: const Text('Batal'),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _name,
+            decoration: const InputDecoration(labelText: 'Nama group'),
+            validator: (value) => value == null || value.trim().isEmpty
+                ? 'Nama wajib diisi'
+                : null,
           ),
-          FilledButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Simpan'),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Status aktif'),
+            value: _active,
+            onChanged: (value) => setState(() => _active = value),
           ),
         ],
-      );
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: _saving ? null : () => Navigator.pop(context),
+        child: const Text('Batal'),
+      ),
+      FilledButton(
+        onPressed: _saving ? null : _save,
+        child: _saving
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Text('Simpan'),
+      ),
+    ],
+  );
 }

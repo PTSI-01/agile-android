@@ -57,14 +57,15 @@ class BuyerGroupService {
       final rows = data is List
           ? data
           : data is Map<String, dynamic>
-              ? (data['data'] ?? data['items'] ?? [])
-              : [];
+          ? (data['data'] ?? data['items'] ?? [])
+          : [];
       final items = (rows as List)
           .whereType<Map<String, dynamic>>()
           .map(BuyerGroupModel.fromJson)
           .toList();
       final total = data is Map<String, dynamic>
-          ? int.tryParse((data['total'] ?? items.length).toString()) ?? items.length
+          ? int.tryParse((data['total'] ?? items.length).toString()) ??
+                items.length
           : items.length;
       return BuyerGroupListResult(
         success: true,
@@ -96,16 +97,22 @@ class BuyerGroupService {
   static Future<Map<String, dynamic>> update(
     String id,
     Map<String, dynamic> data,
-  ) =>
-      _send('PUT', '$_path/$id', data, 'Gagal memperbarui buyer group');
+  ) => _send('PUT', '$_path/$id', data, 'Gagal memperbarui buyer group');
 
   static Future<Map<String, dynamic>> delete(String id) =>
       _send('DELETE', '$_path/$id', null, 'Gagal menghapus buyer group');
 
   static Future<Map<String, dynamic>> detail(String id) async {
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/$_path/$id'), headers: await _headers()).timeout(const Duration(seconds: 15));
+    final response = await http
+        .get(
+          Uri.parse('${ApiConfig.baseUrl}/$_path/$id'),
+          headers: await _headers(),
+        )
+        .timeout(const Duration(seconds: 15));
     final body = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode >= 400 || body['success'] != true) throw Exception(body['message'] ?? 'Gagal memuat detail buyer group');
+    if (response.statusCode >= 400 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Gagal memuat detail buyer group');
+    }
     return (body['data'] as Map).cast<String, dynamic>();
   }
 
@@ -116,10 +123,14 @@ class BuyerGroupService {
     String fallback,
   ) async {
     try {
-      final request = http.Request(method, Uri.parse('${ApiConfig.baseUrl}/$path'))
-        ..headers.addAll(await _headers());
+      final request = http.Request(
+        method,
+        Uri.parse('${ApiConfig.baseUrl}/$path'),
+      )..headers.addAll(await _headers());
       if (data != null) request.body = jsonEncode(data);
-      final streamed = await request.send().timeout(const Duration(seconds: 20));
+      final streamed = await request.send().timeout(
+        const Duration(seconds: 20),
+      );
       final response = await http.Response.fromStream(streamed);
       final body = jsonDecode(response.body);
       if (body is Map<String, dynamic>) return body;

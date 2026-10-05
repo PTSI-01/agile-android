@@ -464,7 +464,7 @@ class _VillagePageState extends State<VillagePage> {
                           icon: const Icon(Icons.clear_rounded),
                         ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -626,7 +626,7 @@ class _VillagePageState extends State<VillagePage> {
                       '-',
                   city['name']?.toString() ?? '-',
                   province ?? '-',
-                ].join(' • '),
+                ].join(' \u2022 '),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),

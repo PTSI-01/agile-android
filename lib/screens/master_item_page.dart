@@ -1,10 +1,11 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/master_data_service.dart';
+import '../services/theme_service.dart';
 
 class MasterItemPage extends StatefulWidget {
   const MasterItemPage({super.key});
@@ -31,7 +32,7 @@ class _MasterItemPageState extends State<MasterItemPage> {
   }
 
   bool _can(String action) {
-    final permissions = _user?.permissions ?? const <String, bool>{};
+    final permissions = _user?.permissions ?? <String, bool>{};
     return permissions['master_item.$action'] == true ||
         permissions['item.$action'] == true ||
         permissions['master_data.item.$action'] == true ||
@@ -70,7 +71,7 @@ class _MasterItemPageState extends State<MasterItemPage> {
 
   void _onSearchChanged(String _) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), _load);
+    _debounce = Timer(Duration(milliseconds: 400), _load);
   }
 
   String _field(Map<String, dynamic> item, List<String> names) {
@@ -102,7 +103,7 @@ class _MasterItemPageState extends State<MasterItemPage> {
                 ? 'Item berhasil ditambahkan.'
                 : 'Item berhasil diperbarui.',
           ),
-          backgroundColor: const Color(0xFF1F7A2E),
+          backgroundColor: Color(0xFF1F7A2E),
         ),
       );
       await _load();
@@ -111,7 +112,7 @@ class _MasterItemPageState extends State<MasterItemPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: const Color(0xFFD14942),
+          backgroundColor: Color(0xFFD14942),
         ),
       );
     }
@@ -139,7 +140,7 @@ class _MasterItemPageState extends State<MasterItemPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: const Color(0xFFD14942),
+          backgroundColor: Color(0xFFD14942),
         ),
       );
     }
@@ -150,19 +151,17 @@ class _MasterItemPageState extends State<MasterItemPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus item?'),
+        title: Text('Hapus item?'),
         content: Text('Data "$name" akan dihapus permanen.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: Text('Batal'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFD14942),
-            ),
+            style: FilledButton.styleFrom(backgroundColor: Color(0xFFD14942)),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus'),
+            child: Text('Hapus'),
           ),
         ],
       ),
@@ -172,7 +171,7 @@ class _MasterItemPageState extends State<MasterItemPage> {
       await MasterDataService.deleteItem(item['id'].toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Item berhasil dihapus.'),
           backgroundColor: Color(0xFF1F7A2E),
         ),
@@ -183,7 +182,7 @@ class _MasterItemPageState extends State<MasterItemPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: const Color(0xFFD14942),
+          backgroundColor: Color(0xFFD14942),
         ),
       );
     }
@@ -198,21 +197,21 @@ class _MasterItemPageState extends State<MasterItemPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Master Data Item',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: ink,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        backgroundColor: const Color(0xFFF7F9F5),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         actions: [
           IconButton(
             tooltip: 'Segarkan',
             onPressed: _load,
-            icon: const Icon(Icons.refresh_rounded, color: ink),
+            icon: Icon(Icons.refresh_rounded, color: ink),
           ),
         ],
       ),
@@ -221,8 +220,8 @@ class _MasterItemPageState extends State<MasterItemPage> {
               onPressed: _openForm,
               backgroundColor: green,
               foregroundColor: Colors.white,
-              icon: const Icon(Icons.add_box_rounded),
-              label: const Text(
+              icon: Icon(Icons.add_box_rounded),
+              label: Text(
                 'Tambah Item',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -232,40 +231,35 @@ class _MasterItemPageState extends State<MasterItemPage> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Row(
                 children: [
                   _statItem(
                     'Total Item',
                     '${_items.length}',
-                    const Color(0xFF1E88E5),
-                    const Color(0xFFE3F2FD),
+                    Color(0xFF1E88E5),
+                    Color(0xFFE3F2FD),
                   ),
-                  const SizedBox(width: 10),
-                  _statItem(
-                    'Aktif',
-                    '$activeCount',
-                    green,
-                    const Color(0xFFE8F5E9),
-                  ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
+                  _statItem('Aktif', '$activeCount', green, Color(0xFFE8F5E9)),
+                  SizedBox(width: 10),
                   _statItem(
                     'Nonaktif',
                     '$inactiveCount',
-                    const Color(0xFFD84315),
-                    const Color(0xFFFBE9E7),
+                    Color(0xFFD84315),
+                    Color(0xFFFBE9E7),
                   ),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
                 decoration: InputDecoration(
                   hintText: 'Cari nama, kode, atau kategori item...',
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  prefixIcon: Icon(Icons.search_rounded),
                   suffixIcon: _searchController.text.isEmpty
                       ? null
                       : IconButton(
@@ -274,21 +268,21 @@ class _MasterItemPageState extends State<MasterItemPage> {
                             _searchController.clear();
                             _load();
                           },
-                          icon: const Icon(Icons.clear_rounded),
+                          icon: Icon(Icons.clear_rounded),
                         ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+                    borderSide: BorderSide(color: Color(0xFFE9EDE5)),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Expanded(child: _buildList(ink, green)),
           ],
         ),
@@ -299,11 +293,11 @@ class _MasterItemPageState extends State<MasterItemPage> {
   Widget _statItem(String label, String value, Color color, Color background) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Color(0xFFF8FAF6),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE9EDE5)),
+          border: Border.all(color: Color(0xFFE9EDE5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,20 +312,17 @@ class _MasterItemPageState extends State<MasterItemPage> {
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     label,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFF7D8983),
-                    ),
+                    style: TextStyle(fontSize: 10, color: Color(0xFF7D8983)),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text(
               value,
               style: TextStyle(
@@ -348,33 +339,27 @@ class _MasterItemPageState extends State<MasterItemPage> {
 
   Widget _buildList(Color ink, Color green) {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF1F7A2E)),
-      );
+      return Center(child: CircularProgressIndicator(color: Color(0xFF1F7A2E)));
     }
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.cloud_off_rounded,
-                size: 48,
-                color: Color(0xFFD14942),
-              ),
-              const SizedBox(height: 12),
+              Icon(Icons.cloud_off_rounded, size: 48, color: Color(0xFFD14942)),
+              SizedBox(height: 12),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFFD14942)),
+                style: TextStyle(color: Color(0xFFD14942)),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: _load,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Coba Lagi'),
+                icon: Icon(Icons.refresh_rounded),
+                label: Text('Coba Lagi'),
               ),
             ],
           ),
@@ -385,7 +370,7 @@ class _MasterItemPageState extends State<MasterItemPage> {
       return RefreshIndicator(
         onRefresh: _load,
         child: ListView(
-          children: const [
+          children: [
             SizedBox(height: 150),
             Icon(
               Icons.inventory_2_outlined,
@@ -402,9 +387,9 @@ class _MasterItemPageState extends State<MasterItemPage> {
       onRefresh: _load,
       color: green,
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 90),
+        padding: EdgeInsets.fromLTRB(20, 4, 20, 90),
         itemCount: _items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        separatorBuilder: (_, _) => SizedBox(height: 10),
         itemBuilder: (_, index) {
           final item = _items[index];
           final code = _field(item, ['kode_item', 'item_code', 'code']);
@@ -416,33 +401,33 @@ class _MasterItemPageState extends State<MasterItemPage> {
           ]);
           final active = _isActive(item);
           return Material(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(18),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
               onTap: () => _openDetail(item),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE9EDE5)),
+                  border: Border.all(color: Color(0xFFE9EDE5)),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: const Color(0xFFE3EBD9),
+                      backgroundColor: Color(0xFFE3EBD9),
                       child: Text(
                         name == '-' || name.isEmpty
                             ? 'I'
                             : name.characters.first.toUpperCase(),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: ink,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,20 +442,21 @@ class _MasterItemPageState extends State<MasterItemPage> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w800,
-                                    color: ink,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      (active ? green : const Color(0xFFD84315))
-                                          .withValues(alpha: 0.12),
+                                  color: (active ? green : Color(0xFFD84315))
+                                      .withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -478,15 +464,13 @@ class _MasterItemPageState extends State<MasterItemPage> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: active
-                                        ? green
-                                        : const Color(0xFFD84315),
+                                    color: active ? green : Color(0xFFD84315),
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 5),
+                          SizedBox(height: 5),
                           Text(
                             name,
                             maxLines: 2,
@@ -494,15 +478,15 @@ class _MasterItemPageState extends State<MasterItemPage> {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
-                              color: ink,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          SizedBox(height: 3),
                           Text(
                             category,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: Color(0xFF7D8983),
                             ),
@@ -518,12 +502,9 @@ class _MasterItemPageState extends State<MasterItemPage> {
                         },
                         itemBuilder: (_) => [
                           if (_can('update'))
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Text('Edit'),
-                            ),
+                            PopupMenuItem(value: 'edit', child: Text('Edit')),
                           if (_can('delete'))
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'delete',
                               child: Text('Hapus'),
                             ),
@@ -564,14 +545,13 @@ class _MasterItemDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const green = Color(0xFF1F7A2E);
-    const ink = Color(0xFF183C32);
     final active = [
       'aktif',
       'active',
       '1',
       'true',
     ].contains(_value(item['status']).toLowerCase());
-    final itemSites = (item['item_sites'] as List? ?? const [])
+    final itemSites = (item['item_sites'] as List? ?? [])
         .whereType<Map>()
         .map((value) => value.cast<String, dynamic>())
         .toList();
@@ -584,7 +564,7 @@ class _MasterItemDetailSheet extends StatelessWidget {
       minChildSize: .55,
       maxChildSize: .96,
       builder: (context, controller) => Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Color(0xFFF8FAF6),
           borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
         ),
@@ -593,48 +573,48 @@ class _MasterItemDetailSheet extends StatelessWidget {
             Container(
               width: 44,
               height: 5,
-              margin: const EdgeInsets.only(top: 10),
+              margin: EdgeInsets.only(top: 10),
               decoration: BoxDecoration(
                 color: Colors.black12,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 14, 12, 10),
+              padding: EdgeInsets.fromLTRB(18, 14, 12, 10),
               child: Row(
                 children: [
                   Container(
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE5F2E4),
+                      color: Color(0xFFE5F2E4),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: const Icon(Icons.inventory_2_rounded, color: green),
+                    child: Icon(Icons.inventory_2_rounded, color: green),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           _value(item['nama_item']),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
-                            color: ink,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         Text(
                           _value(item['kode_item']),
-                          style: const TextStyle(color: Colors.black54),
+                          style: TextStyle(color: Colors.black54),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: Icon(Icons.close_rounded),
                   ),
                 ],
               ),
@@ -642,7 +622,7 @@ class _MasterItemDetailSheet extends StatelessWidget {
             Expanded(
               child: ListView(
                 controller: controller,
-                padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+                padding: EdgeInsets.fromLTRB(18, 4, 18, 24),
                 children: [
                   Wrap(
                     spacing: 8,
@@ -654,11 +634,11 @@ class _MasterItemDetailSheet extends StatelessWidget {
                       ),
                       _badge(
                         _nested('category', 'category_name'),
-                        const Color(0xFFA66F00),
+                        Color(0xFFA66F00),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   _section('Informasi Item', Icons.info_outline_rounded, [
                     _row('Barcode', _value(item['barcode'])),
                     _row('Satuan', _nested('unit', 'nama_satuan')),
@@ -673,7 +653,7 @@ class _MasterItemDetailSheet extends StatelessWidget {
                       _row('Alasan Nonaktif', _value(item['inactive_reason'])),
                   ]),
                   if (detailValues.isNotEmpty) ...[
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     _section(
                       'Detail Berdasarkan Kategori',
                       Icons.tune_rounded,
@@ -687,19 +667,19 @@ class _MasterItemDetailSheet extends StatelessWidget {
                           .toList(),
                     ),
                   ],
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _section(
                     'Site dan Gudang',
                     Icons.warehouse_rounded,
                     itemSites.isEmpty
-                        ? [const Text('Belum ada site yang terhubung.')]
+                        ? [Text('Belum ada site yang terhubung.')]
                         : itemSites.map(_site).toList(),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _section('Pricelist', Icons.sell_outlined, [
                     _row(
                       'Jumlah pricelist',
-                      '${(item['price_lists'] as List? ?? const []).length} data',
+                      '${(item['price_lists'] as List? ?? []).length} data',
                     ),
                   ]),
                 ],
@@ -709,17 +689,17 @@ class _MasterItemDetailSheet extends StatelessWidget {
               SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
+                  padding: EdgeInsets.fromLTRB(18, 8, 18, 12),
                   child: SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
                       style: FilledButton.styleFrom(
                         backgroundColor: green,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: onEdit,
-                      icon: const Icon(Icons.edit_rounded),
-                      label: const Text('Ubah Item'),
+                      icon: Icon(Icons.edit_rounded),
+                      label: Text('Ubah Item'),
                     ),
                   ),
                 ),
@@ -735,7 +715,7 @@ class _MasterItemDetailSheet extends StatelessWidget {
     final siteLabel = site is Map
         ? '${_value(site['site_code'])} - ${_value(site['site_name'])}'
         : _value(itemSite['site_id']);
-    final relations = (itemSite['warehouses'] as List? ?? const [])
+    final relations = (itemSite['warehouses'] as List? ?? [])
         .whereType<Map>()
         .toList();
     final warehouseLabels = relations
@@ -750,12 +730,12 @@ class _MasterItemDetailSheet extends StatelessWidget {
         })
         .join(', ');
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(siteLabel, style: const TextStyle(fontWeight: FontWeight.w800)),
-          const SizedBox(height: 3),
+          Text(siteLabel, style: TextStyle(fontWeight: FontWeight.w800)),
+          SizedBox(height: 3),
           Text(warehouseLabels.isEmpty ? 'Belum ada gudang' : warehouseLabels),
         ],
       ),
@@ -764,52 +744,46 @@ class _MasterItemDetailSheet extends StatelessWidget {
 
   Widget _section(String title, IconData icon, List<Widget> children) =>
       Container(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: ThemeService.isDark ? Color(0xFF14271F) : Color(0xFFF8FAF6),
           borderRadius: BorderRadius.circular(17),
-          border: Border.all(color: const Color(0xFFE0E8DC)),
+          border: Border.all(color: Color(0xFFE0E8DC)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: 19, color: const Color(0xFF1F7A2E)),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
+                Icon(icon, size: 19, color: Color(0xFF1F7A2E)),
+                SizedBox(width: 8),
+                Text(title, style: TextStyle(fontWeight: FontWeight.w900)),
               ],
             ),
-            const Divider(height: 22),
+            Divider(height: 22),
             ...children,
           ],
         ),
       );
 
   Widget _row(String label, String value) => Padding(
-    padding: const EdgeInsets.only(bottom: 9),
+    padding: EdgeInsets.only(bottom: 9),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
           width: 118,
-          child: Text(label, style: const TextStyle(color: Colors.black54)),
+          child: Text(label, style: TextStyle(color: Colors.black54)),
         ),
         Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
+          child: Text(value, style: TextStyle(fontWeight: FontWeight.w700)),
         ),
       ],
     ),
   );
 
   Widget _badge(String label, Color color) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
       color: color.withValues(alpha: .12),
       borderRadius: BorderRadius.circular(20),
@@ -821,7 +795,7 @@ class _MasterItemDetailSheet extends StatelessWidget {
   );
 
   String _detailLabel(String key) =>
-      const {
+      {
         'origin_area': 'Area Asal',
         'destination_area': 'Area Tujuan',
         'vehicle_type': 'Tipe Kendaraan',
@@ -921,7 +895,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
         if (entry.value is Map) {
           final location = (entry.value as Map).cast<String, dynamic>();
           _locationControllers[entry.key.toString()] = {
-            for (final key in const ['province', 'city', 'district'])
+            for (final key in ['province', 'city', 'district'])
               key: TextEditingController(text: location[key]?.toString() ?? ''),
           };
         } else {
@@ -1022,7 +996,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
       _locationControllers.putIfAbsent(
         field,
         () => {
-          for (final key in const ['province', 'city', 'district'])
+          for (final key in ['province', 'city', 'district'])
             key: TextEditingController(),
         },
       );
@@ -1034,9 +1008,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedSiteIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pilih minimal satu site untuk item ini.'),
-        ),
+        SnackBar(content: Text('Pilih minimal satu site untuk item ini.')),
       );
       return;
     }
@@ -1044,7 +1016,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
       if ((_selectedWarehouseIds[siteId] ?? {}).isEmpty ||
           _defaultWarehouseIds[siteId] == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
               'Pilih warehouse dan default gudang untuk setiap site.',
             ),
@@ -1058,7 +1030,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
       if (field == 'origin_area' || field == 'destination_area') {
         final controllers = _locationController(field);
         detailValues[field] = {
-          for (final key in const ['province', 'city', 'district'])
+          for (final key in ['province', 'city', 'district'])
             key: controllers[key]!.text.trim(),
         };
       } else {
@@ -1095,7 +1067,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
   @override
   Widget build(BuildContext context) {
     if (_loadingReferences) {
-      return const AlertDialog(
+      return AlertDialog(
         content: SizedBox(
           height: 100,
           child: Center(child: CircularProgressIndicator()),
@@ -1104,12 +1076,12 @@ class _MasterItemFormState extends State<_MasterItemForm> {
     }
     if (_referencesError != null) {
       return AlertDialog(
-        title: const Text('Referensi item gagal dimuat'),
+        title: Text('Referensi item gagal dimuat'),
         content: Text(_referencesError!),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup'),
+            child: Text('Tutup'),
           ),
           FilledButton(
             onPressed: () => setState(() {
@@ -1117,7 +1089,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
               _referencesError = null;
               _loadReferences();
             }),
-            child: const Text('Coba Lagi'),
+            child: Text('Coba Lagi'),
           ),
         ],
       );
@@ -1135,26 +1107,26 @@ class _MasterItemFormState extends State<_MasterItemForm> {
               children: [
                 TextFormField(
                   controller: _codeController,
-                  decoration: const InputDecoration(labelText: 'Kode Item'),
+                  decoration: InputDecoration(labelText: 'Kode Item'),
                   validator: _required,
                 ),
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Nama Item'),
+                  decoration: InputDecoration(labelText: 'Nama Item'),
                   validator: _required,
                 ),
                 TextFormField(
                   controller: _barcodeController,
-                  decoration: const InputDecoration(labelText: 'Barcode'),
+                  decoration: InputDecoration(labelText: 'Barcode'),
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: _dropdownValue(
                     _categoryId,
                     _rows('categories'),
                   ),
-                  decoration: const InputDecoration(labelText: 'Kategori Item'),
+                  decoration: InputDecoration(labelText: 'Kategori Item'),
                   items: [
-                    const DropdownMenuItem(
+                    DropdownMenuItem(
                       value: null,
                       child: Text('Tanpa kategori'),
                     ),
@@ -1171,12 +1143,9 @@ class _MasterItemFormState extends State<_MasterItemForm> {
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: _dropdownValue(_unitId, _rows('units')),
-                  decoration: const InputDecoration(labelText: 'Satuan'),
+                  decoration: InputDecoration(labelText: 'Satuan'),
                   items: [
-                    const DropdownMenuItem(
-                      value: null,
-                      child: Text('Tanpa satuan'),
-                    ),
+                    DropdownMenuItem(value: null, child: Text('Tanpa satuan')),
                     ..._rows('units').map(
                       (row) => DropdownMenuItem(
                         value: row['id'].toString(),
@@ -1193,7 +1162,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
                     _purchasingGroupId,
                     _rows('purchasing_groups'),
                   ),
-                  decoration: const InputDecoration(labelText: 'Buyer Group'),
+                  decoration: InputDecoration(labelText: 'Buyer Group'),
                   validator: (value) =>
                       value == null ? 'Buyer Group wajib dipilih' : null,
                   items: _rows('purchasing_groups')
@@ -1211,8 +1180,8 @@ class _MasterItemFormState extends State<_MasterItemForm> {
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: _status,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items: const [
+                  decoration: InputDecoration(labelText: 'Status'),
+                  items: [
                     DropdownMenuItem(value: 'aktif', child: Text('Aktif')),
                     DropdownMenuItem(
                       value: 'nonaktif',
@@ -1226,7 +1195,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
                   TextFormField(
                     controller: _inactiveDateController,
                     readOnly: true,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Tanggal Nonaktif',
                       suffixIcon: Icon(Icons.calendar_month_rounded),
                     ),
@@ -1235,22 +1204,20 @@ class _MasterItemFormState extends State<_MasterItemForm> {
                   ),
                   TextFormField(
                     controller: _inactiveReasonController,
-                    decoration: const InputDecoration(
-                      labelText: 'Alasan Nonaktif',
-                    ),
+                    decoration: InputDecoration(labelText: 'Alasan Nonaktif'),
                     maxLines: 2,
                     validator: _required,
                   ),
                 ],
                 ..._buildDetailFields(),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   'Site, Warehouse, dan Default Gudang',
                   style: TextStyle(fontWeight: FontWeight.w800),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 ..._buildSiteFields(),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
               ],
             ),
           ),
@@ -1259,7 +1226,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Batal'),
+          child: Text('Batal'),
         ),
         FilledButton(
           onPressed: _submit,
@@ -1304,7 +1271,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
     return [
       for (final field in _enabledDetailFields)
         if (labels.containsKey(field)) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           if (field == 'origin_area' || field == 'destination_area')
             ..._buildLocationFields(field, labels[field]!)
           else
@@ -1312,7 +1279,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
               controller: _detailController(field),
               decoration: InputDecoration(labelText: labels[field]),
               keyboardType: ['capacity_kg', 'tonase_kg'].contains(field)
-                  ? const TextInputType.numberWithOptions(decimal: true)
+                  ? TextInputType.numberWithOptions(decimal: true)
                   : TextInputType.text,
               maxLines: field == 'detail_note' ? 2 : 1,
               validator: _required,
@@ -1324,8 +1291,8 @@ class _MasterItemFormState extends State<_MasterItemForm> {
   List<Widget> _buildLocationFields(String field, String label) {
     final controllers = _locationController(field);
     return [
-      Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
-      for (final entry in const [
+      Text(label, style: TextStyle(fontWeight: FontWeight.w700)),
+      for (final entry in [
         ('province', 'Provinsi'),
         ('city', 'Kabupaten/Kota'),
         ('district', 'Kecamatan'),
@@ -1341,7 +1308,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
   List<Widget> _buildSiteFields() {
     final sites = _rows('sites');
     if (sites.isEmpty) {
-      return const [Text('Belum ada site aktif untuk dipilih.')];
+      return [Text('Belum ada site aktif untuk dipilih.')];
     }
     return sites.map((site) {
       final siteId = site['id'].toString();
@@ -1353,9 +1320,9 @@ class _MasterItemFormState extends State<_MasterItemForm> {
       final selectedWarehouses = _selectedWarehouseIds[siteId] ?? <String>{};
       final defaultWarehouse = _defaultWarehouseIds[siteId];
       return Card(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: EdgeInsets.only(bottom: 8),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8),
           child: Column(
             children: [
               CheckboxListTile(
@@ -1377,7 +1344,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
                 for (final warehouse in warehouses)
                   CheckboxListTile(
                     dense: true,
-                    contentPadding: const EdgeInsets.only(left: 12),
+                    contentPadding: EdgeInsets.only(left: 12),
                     title: Text(
                       '${warehouse['warehouse_code']} - ${warehouse['warehouse_name']}',
                     ),
@@ -1400,9 +1367,7 @@ class _MasterItemFormState extends State<_MasterItemForm> {
                   initialValue: selectedWarehouses.contains(defaultWarehouse)
                       ? defaultWarehouse
                       : null,
-                  decoration: const InputDecoration(
-                    labelText: 'Default Gudang',
-                  ),
+                  decoration: InputDecoration(labelText: 'Default Gudang'),
                   items: warehouses
                       .where(
                         (row) =>

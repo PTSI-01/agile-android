@@ -17,8 +17,7 @@ class ApiConfig {
     final stored = prefs.getString(_keyBaseUrl);
     // The development machine received a new LAN address; migrate the old
     // default automatically while preserving any other custom server URL.
-    if (stored == null ||
-        stored.contains('agilejayaabadi.com')) {
+    if (stored == null || stored.contains('agilejayaabadi.com')) {
       _baseUrl = defaultBaseUrl;
       await prefs.setString(_keyBaseUrl, _baseUrl);
     } else {

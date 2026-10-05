@@ -134,7 +134,7 @@ class _PurchaseTargetPageState extends State<PurchaseTargetPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FAF4),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Target Pembelian Buyer',
@@ -165,8 +165,8 @@ class _PurchaseTargetPageState extends State<PurchaseTargetPage> {
   Widget _filters() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
         border: Border(bottom: BorderSide(color: Color(0xFFE5E9E1))),
       ),
       child: Column(
@@ -188,7 +188,7 @@ class _PurchaseTargetPageState extends State<PurchaseTargetPage> {
                       icon: const Icon(Icons.close_rounded),
                     ),
               filled: true,
-              fillColor: const Color(0xFFF6F8F3),
+              fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
@@ -266,7 +266,7 @@ class _PurchaseTargetPageState extends State<PurchaseTargetPage> {
         .toList();
     return Card(
       elevation: 0,
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: const BorderSide(color: Color(0xFFE0E8DC)),
@@ -291,7 +291,7 @@ class _PurchaseTargetPageState extends State<PurchaseTargetPage> {
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(
-            'Tahun ${row['tahun'] ?? '-'}  •  ${_formatNumber(annual)} kg',
+            'Tahun ${row['tahun'] ?? '-'}  \u2022  ${_formatNumber(annual)} kg',
           ),
         ),
         trailing: _can('update') || _can('delete')
@@ -379,7 +379,7 @@ class _PurchaseTargetPageState extends State<PurchaseTargetPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${detail['bulan_label'] ?? '-'} • ${_formatNumber(_toDouble(detail['tonase_target']))} kg / buyer',
+                  '${detail['bulan_label'] ?? '-'} \u2022 ${_formatNumber(_toDouble(detail['tonase_target']))} kg / buyer',
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
@@ -594,7 +594,7 @@ class _PurchaseTargetFormPageState extends State<PurchaseTargetFormPage> {
   Widget build(BuildContext context) {
     final remaining = _annualValue - _allocated;
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FAF4),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           _editing ? 'Ubah Target Pembelian' : 'Tambah Target Pembelian',
@@ -604,8 +604,8 @@ class _PurchaseTargetFormPageState extends State<PurchaseTargetFormPage> {
       bottomNavigationBar: SafeArea(
         child: Container(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
             border: Border(top: BorderSide(color: Color(0xFFE3E8DF))),
           ),
           child: FilledButton.icon(
@@ -961,7 +961,7 @@ class _PurchaseTargetFormPageState extends State<PurchaseTargetFormPage> {
   Widget _panel({required Widget child}) => Container(
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(17),
       border: Border.all(color: const Color(0xFFDEE7DA)),
       boxShadow: const [
@@ -980,7 +980,7 @@ class _PurchaseTargetFormPageState extends State<PurchaseTargetFormPage> {
     prefixIcon: Icon(icon, size: 20, color: _green),
     counterText: '',
     filled: true,
-    fillColor: const Color(0xFFF8FAF6),
+    fillColor: Theme.of(context).colorScheme.surface,
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(13)),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(13),
@@ -1033,8 +1033,8 @@ class _BuyerPickerState extends State<_BuyerPicker> {
       minChildSize: .55,
       maxChildSize: .94,
       builder: (context, controller) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -1077,7 +1077,7 @@ class _BuyerPickerState extends State<_BuyerPicker> {
                   hintText: 'Cari kode atau nama buyer...',
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
-                  fillColor: const Color(0xFFF4F7F1),
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,

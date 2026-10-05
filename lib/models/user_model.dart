@@ -38,7 +38,7 @@ class UserModel {
       passwordSetupRequired: json['password_setup_required'] is bool
           ? json['password_setup_required'] as bool
           : (json['password_setup_required'] == 1 ||
-              json['password_setup_required'] == '1'),
+                json['password_setup_required'] == '1'),
       permissions: (json['permissions'] as Map? ?? {}).map(
         (key, value) => MapEntry(key.toString(), value == true || value == 1),
       ),

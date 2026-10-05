@@ -404,7 +404,7 @@ class _DistrictPageState extends State<DistrictPage> {
                           icon: const Icon(Icons.clear_rounded),
                         ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -541,7 +541,7 @@ class _DistrictPageState extends State<DistrictPage> {
                   province ?? '-',
                   if (district['villages_count'] != null)
                     '${district['villages_count']} desa',
-                ].join(' • '),
+                ].join(' \u2022 '),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),

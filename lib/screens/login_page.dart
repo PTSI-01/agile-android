@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../config/api_config.dart';
 import '../main.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/theme_service.dart';
 
 /// Native adaptation of Laravel's resources/views/login.blade.php.
 class LoginPage extends StatefulWidget {
@@ -19,7 +19,6 @@ class _LoginPageState extends State<LoginPage> {
   final _password = TextEditingController();
   bool _hidePassword = true;
   bool _remember = false;
-  bool _dark = false;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -80,79 +79,21 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _showServerConfigDialog() {
-    final controller = TextEditingController(text: ApiConfig.baseUrl);
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text(
-          'Konfigurasi Server API',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Masukkan Base URL backend Laravel Agile:',
-              style: TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                hintText: 'http://10.0.2.2:8000/api',
-                labelText: 'Base URL',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Contoh:\n• Android Emulator: http://10.0.2.2:8000/api\n• HP Asli / WiFi: http://192.168.x.x:8000/api\n• Windows Desktop: http://127.0.0.1:8000/api',
-              style: TextStyle(fontSize: 11, color: Colors.grey),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await ApiConfig.resetBaseUrl();
-              if (ctx.mounted) Navigator.pop(ctx);
-              setState(() {});
-            },
-            child: const Text('Reset Default'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (controller.text.trim().isNotEmpty) {
-                await ApiConfig.setBaseUrl(controller.text.trim());
-                if (ctx.mounted) Navigator.pop(ctx);
-                setState(() {});
-              }
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     const forest = Color(0xFF1F7A2E);
-    final background = _dark
-        ? const Color(0xFF09130F)
-        : const Color(0xFFF7F9F8);
-    final surface = _dark ? const Color(0xFF102019) : Colors.white;
-    final text = _dark ? const Color(0xFFEAF3EE) : const Color(0xFF1C2321);
-    final soft = _dark ? const Color(0xFF9BB0A7) : const Color(0xFF5D6864);
-    final border = _dark ? const Color(0xFF2B4035) : const Color(0xFFDCE6DE);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final background = dark ? const Color(0xFF09130F) : const Color(0xFFF7F9F8);
+    final surface = dark ? const Color(0xFF102019) : Colors.white;
+    final text = dark ? const Color(0xFFEAF3EE) : const Color(0xFF1C2321);
+    final soft = dark ? const Color(0xFF9BB0A7) : const Color(0xFF5D6864);
+    final border = dark ? const Color(0xFF2B4035) : const Color(0xFFDCE6DE);
     final theme = ThemeData(
       useMaterial3: true,
-      brightness: _dark ? Brightness.dark : Brightness.light,
+      brightness: dark ? Brightness.dark : Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: forest,
-        brightness: _dark ? Brightness.dark : Brightness.light,
+        brightness: dark ? Brightness.dark : Brightness.light,
       ),
       scaffoldBackgroundColor: background,
       inputDecorationTheme: InputDecorationTheme(
@@ -202,31 +143,17 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             IconButton.filledTonal(
-                              tooltip: 'Pengaturan Server API',
-                              onPressed: _showServerConfigDialog,
-                              style: IconButton.styleFrom(
-                                backgroundColor: _dark
-                                    ? const Color(0xFF21372A)
-                                    : const Color(0xFFE8EFE9),
-                              ),
-                              icon: const Icon(
-                                Icons.settings_ethernet_rounded,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton.filledTonal(
-                              tooltip: _dark
+                              tooltip: dark
                                   ? 'Aktifkan mode terang'
                                   : 'Aktifkan mode gelap',
-                              onPressed: () => setState(() => _dark = !_dark),
+                              onPressed: ThemeService.toggle,
                               style: IconButton.styleFrom(
-                                backgroundColor: _dark
+                                backgroundColor: dark
                                     ? const Color(0xFF21372A)
                                     : const Color(0xFFE8EFE9),
                               ),
                               icon: Icon(
-                                _dark
+                                dark
                                     ? Icons.light_mode_outlined
                                     : Icons.dark_mode_outlined,
                                 size: 20,
@@ -248,13 +175,16 @@ class _LoginPageState extends State<LoginPage> {
                                     Column(
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(18),
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
                                           child: Image.asset(
                                             'assets/images/logo_agile.jpg',
                                             width: 96,
                                             height: 96,
                                             fit: BoxFit.contain,
-                                            semanticLabel: 'Logo Agile Jaya Abadi',
+                                            semanticLabel:
+                                                'Logo Agile Jaya Abadi',
                                           ),
                                         ),
                                         const SizedBox(height: 10),
@@ -305,8 +235,9 @@ class _LoginPageState extends State<LoginPage> {
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFD14942)
                                               .withValues(alpha: 0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                           border: Border.all(
                                             color: const Color(0xFFD14942)
                                                 .withValues(alpha: 0.3),
@@ -421,9 +352,8 @@ class _LoginPageState extends State<LoginPage> {
                                       onChanged: _isLoading
                                           ? null
                                           : (value) => setState(
-                                                () =>
-                                                    _remember = value ?? false,
-                                              ),
+                                              () => _remember = value ?? false,
+                                            ),
                                       contentPadding: EdgeInsets.zero,
                                       controlAffinity:
                                           ListTileControlAffinity.leading,
@@ -458,10 +388,11 @@ class _LoginPageState extends State<LoginPage> {
                                             ? const SizedBox(
                                                 width: 20,
                                                 height: 20,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2.5,
-                                                  color: Colors.white,
-                                                ),
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2.5,
+                                                      color: Colors.white,
+                                                    ),
                                               )
                                             : const Icon(
                                                 Icons.login_rounded,
@@ -487,7 +418,7 @@ class _LoginPageState extends State<LoginPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 22),
                           child: Text(
-                            '© 2026 Agile Jaya. All rights reserved.',
+                            '\u00A9 2026 Agile Jaya. All rights reserved.',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: soft, fontSize: 11),
                           ),
@@ -545,7 +476,6 @@ class _DashboardLoadingPageState extends State<DashboardLoadingPage> {
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: CircularProgressIndicator()));
 }

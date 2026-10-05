@@ -160,7 +160,7 @@ class _ItemCategoryPageState extends State<ItemCategoryPage> {
                         icon: const Icon(Icons.clear_rounded),
                       ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
@@ -217,7 +217,7 @@ class _ItemCategoryPageState extends State<ItemCategoryPage> {
                 style: TextStyle(fontWeight: FontWeight.w700, color: ink),
               ),
               subtitle: Text(
-                '${item.code} • ${item.isActive ? 'Aktif' : 'Nonaktif'}',
+                '${item.code} \u2022 ${item.isActive ? 'Aktif' : 'Nonaktif'}',
               ),
               onTap: () => _openDetail(item),
               trailing: (_can('update') || _can('delete'))

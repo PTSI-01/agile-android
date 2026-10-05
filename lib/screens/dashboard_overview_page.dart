@@ -7,8 +7,10 @@ import '../models/user_model.dart';
 import '../models/dashboard_model.dart';
 import 'buyer_page.dart';
 import 'master_data_page.dart';
+import 'inventory_location_pages.dart';
 import 'supplier/supplier_list_page.dart';
 import 'purchase_page.dart';
+import 'master_surveyor_page.dart';
 
 class DashboardOverviewPage extends StatelessWidget {
   final UserModel? user;
@@ -106,12 +108,11 @@ class DashboardOverviewPage extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final supportedShortcuts = dashboard == null
-        ? const <SubMenuItem>[]
+        ? <SubMenuItem>[]
         : MenuData.quickShortcuts
               .where((shortcut) => _hasMenuAccess(dashboard!.menus, shortcut))
               .toList();
     final quickShortcuts = supportedShortcuts.take(7).toList();
-    const ink = Color(0xFF183C32);
     const muted = Color(0xFF7D8983);
 
     final displayName = user?.name.split(' ').first ?? 'Pengguna';
@@ -120,7 +121,7 @@ class DashboardOverviewPage extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 100),
           children: [
             // 1. TOP BAR
             Row(
@@ -129,7 +130,7 @@ class DashboardOverviewPage extends StatelessWidget {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: ink,
+                    color: Theme.of(context).colorScheme.onSurface,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ClipRRect(
@@ -137,7 +138,7 @@ class DashboardOverviewPage extends StatelessWidget {
                     child: Image.asset(
                       'assets/images/logo_agile.jpg',
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
+                      errorBuilder: (context, error, stackTrace) => Icon(
                         Icons.bolt_rounded,
                         color: Color(0xFFD8EFAC),
                         size: 26,
@@ -145,17 +146,17 @@ class DashboardOverviewPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'AGILE JAYA ABADI',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.3,
-                        color: ink,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     Text(
@@ -169,48 +170,51 @@ class DashboardOverviewPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Spacer(),
+                Spacer(),
                 IconButton(
                   tooltip: 'Notifikasi',
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         content: Text('Tidak ada notifikasi baru.'),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
                   },
-                  icon: const Badge(
+                  icon: Badge(
                     label: Text('3'),
-                    child: Icon(Icons.notifications_none_rounded, color: ink),
+                    child: Icon(
+                      Icons.notifications_none_rounded,
+                      color: theme.colorScheme.onSurface,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 InkWell(
                   onTap: onOpenProfile,
                   borderRadius: BorderRadius.circular(20),
                   child: CircleAvatar(
                     radius: 19,
-                    backgroundColor: const Color(0xFFE7ECDD),
+                    backgroundColor: Color(0xFFE7ECDD),
                     child: Text(
                       user?.initials ?? 'AR',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: ink,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 22),
+            SizedBox(height: 22),
 
             // 2. HERO GREETING CARD
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [Color(0xFF14382E), Color(0xFF235A49)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -218,9 +222,9 @@ class DashboardOverviewPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF14382E).withValues(alpha: 0.25),
+                    color: Color(0xFF14382E).withValues(alpha: 0.25),
                     blurRadius: 16,
-                    offset: const Offset(0, 8),
+                    offset: Offset(0, 8),
                   ),
                 ],
               ),
@@ -230,26 +234,26 @@ class DashboardOverviewPage extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD8EFAC).withValues(alpha: 0.2),
+                          color: Color(0xFFD8EFAC).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.verified_rounded,
                               size: 13,
                               color: Color(0xFFD8EFAC),
                             ),
-                            const SizedBox(width: 5),
+                            SizedBox(width: 5),
                             Text(
                               roleName.toUpperCase(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFD8EFAC),
@@ -259,8 +263,8 @@ class DashboardOverviewPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const Spacer(),
-                      const Text(
+                      Spacer(),
+                      Text(
                         'Musim Panen 2026',
                         style: TextStyle(
                           color: Color(0xFFB5CBC0),
@@ -269,18 +273,18 @@ class DashboardOverviewPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   Text(
-                    'Halo, $displayName! 👋',
-                    style: const TextStyle(
+                    'Halo, $displayName! \u{1F44B}',
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
+                  SizedBox(height: 6),
+                  Text(
                     'Pantau seluruh proses pengadaan gabah, timbangan, uji QC lab, hingga pembayaran finance secara real-time.',
                     style: TextStyle(
                       color: Color(0xFFD5E3DC),
@@ -291,22 +295,22 @@ class DashboardOverviewPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // 3. QUICK ACCESS
-            const Text(
+            Text(
               'Akses Cepat',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: ink,
+                color: theme.colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             GridView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
                 mainAxisSpacing: 4,
                 crossAxisSpacing: 4,
@@ -320,7 +324,7 @@ class DashboardOverviewPage extends StatelessWidget {
                 return _shortcutButton(context, quickShortcuts[index]);
               },
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
           ],
         ),
       ),
@@ -368,7 +372,7 @@ class DashboardOverviewPage extends StatelessWidget {
           fit: BoxFit.contain,
           memCacheWidth: 94,
           memCacheHeight: 94,
-          fadeInDuration: const Duration(milliseconds: 180),
+          fadeInDuration: Duration(milliseconds: 180),
           errorWidget: (_, _, _) => Icon(sc.icon, color: accent, size: 30),
         ),
       );
@@ -407,7 +411,7 @@ class DashboardOverviewPage extends StatelessWidget {
                 BoxShadow(
                   color: accent.withValues(alpha: 0.24),
                   blurRadius: 7,
-                  offset: const Offset(0, 3),
+                  offset: Offset(0, 3),
                 ),
               ],
             ),
@@ -419,7 +423,7 @@ class DashboardOverviewPage extends StatelessWidget {
   }
 
   Widget _shortcutButton(BuildContext context, SubMenuItem sc) {
-    final accent = sc.badgeColor ?? const Color(0xFF1F7A2E);
+    final accent = sc.badgeColor ?? Color(0xFF1F7A2E);
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(20),
@@ -429,80 +433,70 @@ class DashboardOverviewPage extends StatelessWidget {
           if (sc.id == 'sc_supplier' || sc.route == '/master-data/supplier') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const SupplierListPage()),
+              MaterialPageRoute(builder: (_) => SupplierListPage()),
             );
           } else if (sc.id == 'sc_buyer' || sc.route == '/master-data/buyer') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const BuyerPage()),
+              MaterialPageRoute(builder: (_) => BuyerPage()),
             );
           } else if (sc.id == 'sc_item' || sc.route == '/master-data/item') {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) =>
-                    const MasterDataPage(type: 'item', title: 'Master Item'),
+                    MasterDataPage(type: 'item', title: 'Master Item'),
               ),
             );
           } else if (sc.id == 'sc_surveyor' ||
               sc.route == '/master-data/surveyor') {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const MasterDataPage(
-                  type: 'surveyor',
-                  title: 'Master Surveyor',
-                ),
-              ),
+              MaterialPageRoute(builder: (_) => MasterSurveyorPage()),
             );
           } else if (sc.id == 'sc_gudang' ||
               sc.route == '/master-data/warehouse') {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const MasterDataPage(
-                  type: 'warehouse',
-                  title: 'Master Gudang',
-                ),
-              ),
+              MaterialPageRoute(builder: (_) => MasterWarehousePage()),
             );
           } else if (sc.id == 'pb_transaksi' ||
               sc.route == '/pembelian/transaksi') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const PurchasePage()),
+              MaterialPageRoute(builder: (_) => PurchasePage()),
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Akses Cepat: ${sc.title}'),
                 behavior: SnackBarBehavior.floating,
-                backgroundColor: const Color(0xFF1F7A2E),
+                backgroundColor: Color(0xFF1F7A2E),
               ),
             );
           }
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _shortcutIcon(sc, accent),
-              const SizedBox(height: 5),
+              SizedBox(height: 5),
               Text(
                 sc.title,
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF183C32),
+                  color: Theme.of(context).colorScheme.onSurface,
                   height: 1.2,
                 ),
               ),
               if (sc.badge != null) ...[
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   sc.badge!,
                   maxLines: 1,
@@ -522,14 +516,13 @@ class DashboardOverviewPage extends StatelessWidget {
   }
 
   Widget _allModulesButton(BuildContext context) {
-    const ink = Color(0xFF183C32);
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () => _showAllModules(context),
-        child: const Padding(
+        child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -542,7 +535,11 @@ class DashboardOverviewPage extends StatelessWidget {
                     color: Color(0xFFE7EEDD),
                     borderRadius: BorderRadius.all(Radius.circular(15)),
                   ),
-                  child: Icon(Icons.grid_view_rounded, color: ink, size: 25),
+                  child: Icon(
+                    Icons.grid_view_rounded,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    size: 25,
+                  ),
                 ),
               ),
               SizedBox(height: 5),
@@ -552,7 +549,7 @@ class DashboardOverviewPage extends StatelessWidget {
                   fontSize: 9.5,
                   height: 1.2,
                   fontWeight: FontWeight.w700,
-                  color: ink,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
@@ -563,7 +560,7 @@ class DashboardOverviewPage extends StatelessWidget {
   }
 
   Future<void> _showAllModules(BuildContext context) async {
-    final modules = dashboard?.menus ?? const <DashboardMenuModel>[];
+    final modules = dashboard?.menus ?? <DashboardMenuModel>[];
     final pageController = PageController();
     var currentPage = 0;
     final pageCount = modules.isEmpty ? 1 : (modules.length / 24).ceil();
@@ -579,31 +576,29 @@ class DashboardOverviewPage extends StatelessWidget {
             return FractionallySizedBox(
               heightFactor: 0.84,
               child: Material(
-                color: const Color(0xFFF8FBF5),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(30),
-                ),
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Container(
                       width: 44,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFC6D2C7),
+                        color: Color(0xFFC6D2C7),
                         borderRadius: BorderRadius.circular(99),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 15, 12, 8),
+                      padding: EdgeInsets.fromLTRB(20, 15, 12, 8),
                       child: Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               'Modul E-Procurement',
                               style: TextStyle(
-                                color: Color(0xFF183C32),
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -612,15 +607,15 @@ class DashboardOverviewPage extends StatelessWidget {
                           IconButton(
                             tooltip: 'Tutup',
                             onPressed: () => Navigator.pop(sheetContext),
-                            icon: const Icon(Icons.close_rounded),
+                            icon: Icon(Icons.close_rounded),
                           ),
                         ],
                       ),
                     ),
-                    const Divider(height: 1, color: Color(0xFFE1E9E1)),
+                    Divider(height: 1, color: Color(0xFFE1E9E1)),
                     Expanded(
                       child: modules.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text(
                                 'Belum ada modul yang dapat diakses.',
                               ),
@@ -638,16 +633,11 @@ class DashboardOverviewPage extends StatelessWidget {
                                 );
                                 final pageModules = modules.sublist(start, end);
                                 return GridView.builder(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    12,
-                                    14,
-                                    12,
-                                    10,
-                                  ),
-                                  physics: const NeverScrollableScrollPhysics(),
+                                  padding: EdgeInsets.fromLTRB(12, 14, 12, 10),
+                                  physics: NeverScrollableScrollPhysics(),
                                   itemCount: pageModules.length,
                                   gridDelegate:
-                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                      SliverGridDelegateWithFixedCrossAxisCount(
                                         crossAxisCount: 4,
                                         crossAxisSpacing: 5,
                                         mainAxisSpacing: 5,
@@ -664,20 +654,20 @@ class DashboardOverviewPage extends StatelessWidget {
                     ),
                     if (pageCount > 1)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
+                        padding: EdgeInsets.only(bottom: 14),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: List.generate(pageCount, (index) {
                             final active = index == currentPage;
                             return AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
+                              duration: Duration(milliseconds: 200),
                               width: active ? 20 : 6,
                               height: 6,
-                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              margin: EdgeInsets.symmetric(horizontal: 3),
                               decoration: BoxDecoration(
                                 color: active
-                                    ? const Color(0xFF1F7A2E)
-                                    : const Color(0xFFCAD5CA),
+                                    ? Color(0xFF1F7A2E)
+                                    : Color(0xFFCAD5CA),
                                 borderRadius: BorderRadius.circular(99),
                               ),
                             );
@@ -721,7 +711,7 @@ class DashboardOverviewPage extends StatelessWidget {
           }
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+          padding: EdgeInsets.symmetric(horizontal: 2, vertical: 3),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -734,10 +724,8 @@ class DashboardOverviewPage extends StatelessWidget {
                     fit: BoxFit.contain,
                     memCacheWidth: 94,
                     memCacheHeight: 94,
-                    errorWidget: (_, _, _) => const Icon(
-                      Icons.grid_view_rounded,
-                      color: Color(0xFF1F7A2E),
-                    ),
+                    errorWidget: (_, _, _) =>
+                        Icon(Icons.grid_view_rounded, color: Color(0xFF1F7A2E)),
                   ),
                 )
               else
@@ -745,25 +733,25 @@ class DashboardOverviewPage extends StatelessWidget {
                   width: 41,
                   height: 41,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE6EFE0),
+                    color: Color(0xFFE6EFE0),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.grid_view_rounded,
                     color: Color(0xFF1F7A2E),
                     size: 22,
                   ),
                 ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
                 module.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 9,
                   height: 1.05,
-                  color: Color(0xFF183C32),
+                  color: Theme.of(sheetContext).colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                 ),
               ),

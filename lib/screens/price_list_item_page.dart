@@ -69,7 +69,7 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
 
   void _searchChanged(String _) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), _load);
+    _debounce = Timer(Duration(milliseconds: 400), _load);
   }
 
   String _relatedLabel(dynamic value, String codeField, String nameField) {
@@ -121,18 +121,18 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
           final replace = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Konfirmasi Pricelist Baru'),
-              content: const Text(
+              title: Text('Konfirmasi Pricelist Baru'),
+              content: Text(
                 'Sudah ada pricelist aktif untuk item dan supplier ini. Sistem akan menonaktifkan harga lama dan mengaktifkan yang baru. Lanjutkan?',
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Batal'),
+                  child: Text('Batal'),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Ya, lanjutkan'),
+                  child: Text('Ya, lanjutkan'),
                 ),
               ],
             ),
@@ -161,21 +161,19 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus pricelist item?'),
+        title: Text('Hapus pricelist item?'),
         content: Text(
           '${_relatedLabel(priceList['item'], 'kode_item', 'nama_item')} untuk ${_relatedLabel(priceList['supplier'], 'vendor_id', 'nama_vendor')} akan dihapus.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: Text('Batal'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFD14942),
-            ),
+            style: FilledButton.styleFrom(backgroundColor: Color(0xFFD14942)),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus'),
+            child: Text('Hapus'),
           ),
         ],
       ),
@@ -195,9 +193,7 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: error
-            ? const Color(0xFFD14942)
-            : const Color(0xFF1F7A2E),
+        backgroundColor: error ? Color(0xFFD14942) : Color(0xFF1F7A2E),
       ),
     );
   }
@@ -211,21 +207,21 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Price List Item',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: ink,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        backgroundColor: const Color(0xFFF7F9F5),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         actions: [
           IconButton(
             tooltip: 'Segarkan',
             onPressed: _load,
-            icon: const Icon(Icons.refresh_rounded, color: ink),
+            icon: Icon(Icons.refresh_rounded, color: ink),
           ),
         ],
       ),
@@ -234,8 +230,8 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
               onPressed: _openForm,
               backgroundColor: green,
               foregroundColor: Colors.white,
-              icon: const Icon(Icons.add_rounded),
-              label: const Text(
+              icon: Icon(Icons.add_rounded),
+              label: Text(
                 'Tambah Price List',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -245,25 +241,25 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Row(
                 children: [
-                  _stat('Total', '${_rows.length}', const Color(0xFF1E88E5)),
-                  const SizedBox(width: 10),
+                  _stat('Total', '${_rows.length}', Color(0xFF1E88E5)),
+                  SizedBox(width: 10),
                   _stat('Aktif', '$activeCount', green),
-                  const SizedBox(width: 10),
-                  _stat('Nonaktif', '$inactiveCount', const Color(0xFFD84315)),
+                  SizedBox(width: 10),
+                  _stat('Nonaktif', '$inactiveCount', Color(0xFFD84315)),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: TextField(
                 controller: _searchController,
                 onChanged: _searchChanged,
                 decoration: InputDecoration(
                   hintText: 'Cari item, kategori, atau supplier...',
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  prefixIcon: Icon(Icons.search_rounded),
                   suffixIcon: _searchController.text.isEmpty
                       ? null
                       : IconButton(
@@ -272,21 +268,21 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
                             _searchController.clear();
                             _load();
                           },
-                          icon: const Icon(Icons.clear_rounded),
+                          icon: Icon(Icons.clear_rounded),
                         ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+                    borderSide: BorderSide(color: Color(0xFFE9EDE5)),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Expanded(child: _buildList(ink, green)),
           ],
         ),
@@ -296,11 +292,11 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
 
   Widget _stat(String label, String value, Color color) => Expanded(
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE9EDE5)),
+        border: Border.all(color: Color(0xFFE9EDE5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,20 +308,17 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
                 height: 8,
                 decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               Expanded(
                 child: Text(
                   label,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF7D8983),
-                  ),
+                  style: TextStyle(fontSize: 10, color: Color(0xFF7D8983)),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             value,
             style: TextStyle(
@@ -341,29 +334,23 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
 
   Widget _buildList(Color ink, Color green) {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF1F7A2E)),
-      );
+      return Center(child: CircularProgressIndicator(color: Color(0xFF1F7A2E)));
     }
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.cloud_off_rounded,
-                size: 48,
-                color: Color(0xFFD14942),
-              ),
-              const SizedBox(height: 12),
+              Icon(Icons.cloud_off_rounded, size: 48, color: Color(0xFFD14942)),
+              SizedBox(height: 12),
               Text(_error!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: _load,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Coba Lagi'),
+                icon: Icon(Icons.refresh_rounded),
+                label: Text('Coba Lagi'),
               ),
             ],
           ),
@@ -374,7 +361,7 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
       return RefreshIndicator(
         onRefresh: _load,
         child: ListView(
-          children: const [
+          children: [
             SizedBox(height: 150),
             Icon(
               Icons.price_change_outlined,
@@ -391,34 +378,34 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
       onRefresh: _load,
       color: green,
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 90),
+        padding: EdgeInsets.fromLTRB(20, 4, 20, 90),
         itemCount: _rows.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        separatorBuilder: (_, _) => SizedBox(height: 10),
         itemBuilder: (_, index) {
           final row = _rows[index];
           final item = row['item'] as Map?;
           final supplier = row['supplier'] as Map?;
           final active = row['status'] == 'aktif';
           return Material(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(18),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
               onTap: _can('update') ? () => _openForm(row) : null,
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE9EDE5)),
+                  border: Border.all(color: Color(0xFFE9EDE5)),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: const Color(0xFFE3EBD9),
+                      backgroundColor: Color(0xFFE3EBD9),
                       child: Icon(Icons.price_change_rounded, color: ink),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,32 +421,34 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w800,
-                                    color: ink,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               _statusChip(active, green),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
-                            '${item?['kode_item'] ?? '-'}  •  ${supplier?['vendor_id'] ?? '-'} - ${supplier?['nama_vendor'] ?? '-'}',
+                            '${item?['kode_item'] ?? '-'}  \u2022  ${supplier?['vendor_id'] ?? '-'} - ${supplier?['nama_vendor'] ?? '-'}',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               color: Color(0xFF7D8983),
                             ),
                           ),
-                          const SizedBox(height: 7),
+                          SizedBox(height: 7),
                           Wrap(
                             spacing: 10,
                             runSpacing: 4,
                             children: [
                               Text(
                                 _priceLabel(row['price']),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w900,
                                   color: Color(0xFF1F7A2E),
@@ -467,7 +456,7 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
                               ),
                               Text(
                                 'Sampai ${row['active_until'] ?? '-'}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 10,
                                   color: Color(0xFF7D8983),
                                 ),
@@ -485,12 +474,9 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
                         },
                         itemBuilder: (_) => [
                           if (_can('update'))
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Text('Edit'),
-                            ),
+                            PopupMenuItem(value: 'edit', child: Text('Edit')),
                           if (_can('delete'))
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'delete',
                               child: Text('Hapus'),
                             ),
@@ -507,9 +493,9 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
   }
 
   Widget _statusChip(bool active, Color green) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
     decoration: BoxDecoration(
-      color: (active ? green : const Color(0xFFD84315)).withValues(alpha: 0.12),
+      color: (active ? green : Color(0xFFD84315)).withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(6),
     ),
     child: Text(
@@ -517,7 +503,7 @@ class _PriceListItemPageState extends State<PriceListItemPage> {
       style: TextStyle(
         fontSize: 10,
         fontWeight: FontWeight.bold,
-        color: active ? green : const Color(0xFFD84315),
+        color: active ? green : Color(0xFFD84315),
       ),
     ),
   );
@@ -610,52 +596,33 @@ class _PriceListFormState extends State<_PriceListForm> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<String>(
-                  initialValue: _validId(_itemId, widget.items),
-                  decoration: const InputDecoration(labelText: 'Item'),
-                  validator: (value) =>
-                      value == null ? 'Item wajib dipilih' : null,
-                  items: widget.items
-                      .map(
-                        (item) => DropdownMenuItem(
-                          value: item['id'].toString(),
-                          child: Text(
-                            '${item['kode_item']} - ${item['nama_item']}${item['category'] is Map ? ' / ${item['category']['category_name']}' : ''}${item['unit'] is Map ? ' (${item['unit']['kode_satuan']})' : ''}',
-                          ),
-                        ),
-                      )
-                      .toList(),
+                _SearchablePriceListField(
+                  label: 'Item',
+                  value: _validId(_itemId, widget.items),
+                  options: widget.items,
+                  labelBuilder: (item) =>
+                      '${item['kode_item']} - ${item['nama_item']}${item['category'] is Map ? ' / ${item['category']['category_name']}' : ''}${item['unit'] is Map ? ' (${item['unit']['kode_satuan']})' : ''}',
                   onChanged: (value) => setState(() => _itemId = value),
                 ),
-                DropdownButtonFormField<String>(
-                  initialValue: _validId(_supplierId, widget.suppliers),
-                  decoration: const InputDecoration(labelText: 'Supplier'),
-                  validator: (value) =>
-                      value == null ? 'Supplier wajib dipilih' : null,
-                  items: widget.suppliers
-                      .map(
-                        (supplier) => DropdownMenuItem(
-                          value: supplier['id'].toString(),
-                          child: Text(
-                            '${supplier['vendor_id']} - ${supplier['nama_vendor']}',
-                          ),
-                        ),
-                      )
-                      .toList(),
+                SizedBox(height: 12),
+                _SearchablePriceListField(
+                  label: 'Supplier',
+                  value: _validId(_supplierId, widget.suppliers),
+                  options: widget.suppliers,
+                  labelBuilder: (supplier) =>
+                      '${supplier['vendor_id']} - ${supplier['nama_vendor']}',
                   onChanged: (value) => setState(() => _supplierId = value),
                 ),
                 TextFormField(
                   controller: _priceController,
-                  decoration: const InputDecoration(labelText: 'Harga'),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  decoration: InputDecoration(labelText: 'Harga'),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   validator: _validatePrice,
                 ),
                 TextFormField(
                   controller: _activeUntilController,
                   readOnly: true,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Aktif Sampai',
                     suffixIcon: Icon(Icons.calendar_month_rounded),
                   ),
@@ -664,8 +631,8 @@ class _PriceListFormState extends State<_PriceListForm> {
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: _status,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items: const [
+                  decoration: InputDecoration(labelText: 'Status'),
+                  items: [
                     DropdownMenuItem(value: 'aktif', child: Text('Aktif')),
                     DropdownMenuItem(
                       value: 'nonaktif',
@@ -683,7 +650,7 @@ class _PriceListFormState extends State<_PriceListForm> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Batal'),
+          child: Text('Batal'),
         ),
         FilledButton(
           onPressed: _submit,
@@ -708,5 +675,180 @@ class _PriceListFormState extends State<_PriceListForm> {
     if (date == null) return;
     _activeUntilController.text =
         '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+}
+
+class _SearchablePriceListField extends StatelessWidget {
+  final String label;
+  final String? value;
+  final List<Map<String, dynamic>> options;
+  final String Function(Map<String, dynamic>) labelBuilder;
+  final ValueChanged<String?> onChanged;
+
+  const _SearchablePriceListField({
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.labelBuilder,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = options.cast<Map<String, dynamic>?>().firstWhere(
+      (row) => row?['id']?.toString() == value,
+      orElse: () => null,
+    );
+    return FormField<String>(
+      initialValue: value,
+      validator: (current) => current == null ? '$label wajib dipilih' : null,
+      builder: (field) => InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () async {
+          final choice = await showModalBottomSheet<Map<String, dynamic>>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => _PriceListOptionSheet(
+              title: 'Pilih $label',
+              options: options,
+              labelBuilder: labelBuilder,
+            ),
+          );
+          if (choice == null) return;
+          final id = choice['id']?.toString();
+          field.didChange(id);
+          onChanged(id);
+        },
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            errorText: field.errorText,
+            suffixIcon: Icon(Icons.search_rounded),
+          ),
+          isEmpty: false,
+          child: Text(
+            selected == null ? 'Cari & pilih $label' : labelBuilder(selected),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: selected == null ? Color(0xFF718078) : Color(0xFF183C32),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PriceListOptionSheet extends StatefulWidget {
+  final String title;
+  final List<Map<String, dynamic>> options;
+  final String Function(Map<String, dynamic>) labelBuilder;
+
+  const _PriceListOptionSheet({
+    required this.title,
+    required this.options,
+    required this.labelBuilder,
+  });
+
+  @override
+  State<_PriceListOptionSheet> createState() => _PriceListOptionSheetState();
+}
+
+class _PriceListOptionSheetState extends State<_PriceListOptionSheet> {
+  final _search = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = widget.options.where((option) {
+      return widget.labelBuilder(option).toLowerCase().contains(_query);
+    }).toList();
+    return DraggableScrollableSheet(
+      initialChildSize: .72,
+      minChildSize: .45,
+      maxChildSize: .92,
+      expand: false,
+      builder: (_, controller) => Material(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            SizedBox(height: 10),
+            Container(
+              width: 44,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Color(0xFFCBD6CC),
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(20, 18, 20, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  TextField(
+                    controller: _search,
+                    autofocus: true,
+                    onChanged: (value) =>
+                        setState(() => _query = value.trim().toLowerCase()),
+                    decoration: InputDecoration(
+                      hintText: 'Ketik kode atau nama...',
+                      prefixIcon: Icon(Icons.search_rounded),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: filtered.isEmpty
+                  ? Center(child: Text('Data tidak ditemukan.'))
+                  : ListView.separated(
+                      controller: controller,
+                      padding: EdgeInsets.fromLTRB(12, 0, 12, 24),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, _) => Divider(height: 1),
+                      itemBuilder: (_, index) {
+                        final option = filtered[index];
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Color(0xFFE4F1DF),
+                            child: Icon(
+                              Icons.checklist_rounded,
+                              color: Color(0xFF1F7A2E),
+                            ),
+                          ),
+                          title: Text(
+                            widget.labelBuilder(option),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () => Navigator.pop(context, option),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

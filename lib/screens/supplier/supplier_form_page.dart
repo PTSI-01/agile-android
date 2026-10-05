@@ -61,16 +61,19 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
     _emailController = TextEditingController(text: s?.email ?? '');
     _nomorKtpController = TextEditingController(text: s?.nomorKtp ?? '');
     _namaKtpController = TextEditingController(text: s?.namaKtp ?? '');
-    _jalanAlamatKtpController =
-        TextEditingController(text: s?.jalanAlamatKtp ?? s?.alamatLengkapKtp ?? '');
+    _jalanAlamatKtpController = TextEditingController(
+      text: s?.jalanAlamatKtp ?? s?.alamatLengkapKtp ?? '',
+    );
     _rtKtpController = TextEditingController(text: s?.rtKtp ?? '');
     _rwKtpController = TextEditingController(text: s?.rwKtp ?? '');
     _nomorNpwpController = TextEditingController(text: s?.nomorNpwp ?? '');
     _namaNpwpController = TextEditingController(text: s?.namaNpwp ?? '');
-    _nomorRekeningController =
-        TextEditingController(text: s?.nomorRekening ?? '');
-    _namaPenerimaBankController =
-        TextEditingController(text: s?.namaPenerimaBank ?? '');
+    _nomorRekeningController = TextEditingController(
+      text: s?.nomorRekening ?? '',
+    );
+    _namaPenerimaBankController = TextEditingController(
+      text: s?.namaPenerimaBank ?? '',
+    );
     _cabangBankController = TextEditingController(text: s?.cabangBank ?? '');
 
     _selectedGroupId = s?.supplierGroupId;
@@ -192,7 +195,7 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(res['message'] ?? 'Berhasil menyimpan supplier.'),
-          backgroundColor: const Color(0xFF1F7A2E),
+          backgroundColor: Color(0xFF1F7A2E),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -201,7 +204,7 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(res['message'] ?? 'Gagal menyimpan supplier.'),
-          backgroundColor: const Color(0xFFD14942),
+          backgroundColor: Color(0xFFD14942),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -210,37 +213,36 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    const ink = Color(0xFF183C32);
     const green = Color(0xFF1F7A2E);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           isEdit ? 'Edit Supplier' : 'Tambah Supplier Baru',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: ink,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         centerTitle: false,
-        backgroundColor: const Color(0xFFF7F9F5),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
       ),
       body: _isLoadingRef
-          ? const Center(child: CircularProgressIndicator(color: green))
+          ? Center(child: CircularProgressIndicator(color: green))
           : SafeArea(
               child: Form(
                 key: _formKey,
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                  padding: EdgeInsets.fromLTRB(20, 10, 20, 100),
                   children: [
                     // 1. INFORMASI VENDOR
                     _sectionHeader(
                       '1. Informasi Vendor & Kontak',
                       Icons.storefront_rounded,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     _cardWrapper([
                       _textField(
                         controller: _vendorIdController,
@@ -250,7 +252,7 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                             ? 'Kode Vendor wajib diisi.'
                             : null,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _textField(
                         controller: _namaVendorController,
                         label: 'Nama Vendor / Usaha *',
@@ -259,21 +261,21 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                             ? 'Nama Vendor wajib diisi.'
                             : null,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _textField(
                         controller: _nomorHpController,
                         label: 'Nomor Telepon / WhatsApp',
                         hint: '081234567890',
                         keyboardType: TextInputType.phone,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _textField(
                         controller: _emailController,
                         label: 'Alamat Email',
                         hint: 'supplier@email.com',
                         keyboardType: TextInputType.emailAddress,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _searchableDropdownField(
                         label: 'Grup Supplier',
                         value: _selectedGroupId,
@@ -289,7 +291,7 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                         onChanged: (val) =>
                             setState(() => _selectedGroupId = val),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _searchableDropdownField(
                         label: 'Buyer Terkait',
                         value: _selectedBuyerId,
@@ -306,55 +308,57 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                             setState(() => _selectedBuyerId = val),
                       ),
                     ]),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // 2. REKENING BANK
                     _sectionHeader(
                       '2. Rekening Bank Pembayaran',
                       Icons.account_balance_rounded,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     _cardWrapper([
                       _dropdownField<String>(
                         label: 'Nama Bank',
                         value: _selectedBankId,
                         items: (_references?.banks ?? [])
-                            .map((b) => DropdownMenuItem(
-                                  value: b.id?.toString(),
-                                  child: Text('${b.code} - ${b.name}'),
-                                ))
+                            .map(
+                              (b) => DropdownMenuItem(
+                                value: b.id?.toString(),
+                                child: Text('${b.code} - ${b.name}'),
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) =>
                             setState(() => _selectedBankId = val),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _textField(
                         controller: _nomorRekeningController,
                         label: 'Nomor Rekening',
                         hint: '1234567890',
                         keyboardType: TextInputType.number,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _textField(
                         controller: _namaPenerimaBankController,
                         label: 'Nama Pemilik Rekening',
                         hint: 'Sesuai buku tabungan',
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _textField(
                         controller: _cabangBankController,
                         label: 'Kantor Cabang Bank',
                         hint: 'Contoh: KCP Kediri',
                       ),
                     ]),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // 3. DATA KTP & WILAYAH
                     _sectionHeader(
                       '3. Data KTP & Wilayah',
                       Icons.badge_rounded,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     _cardWrapper([
                       _textField(
                         controller: _nomorKtpController,
@@ -362,21 +366,23 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                         hint: '16 digit NIK',
                         keyboardType: TextInputType.number,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _textField(
                         controller: _namaKtpController,
                         label: 'Nama Sesuai KTP',
                         hint: 'Nama lengkap di KTP',
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _dropdownField<String>(
                         label: 'Provinsi',
                         value: _selectedProvinsiCode,
                         items: (_references?.provinces ?? [])
-                            .map((p) => DropdownMenuItem(
-                                  value: p.code,
-                                  child: Text(p.name),
-                                ))
+                            .map(
+                              (p) => DropdownMenuItem(
+                                value: p.code,
+                                child: Text(p.name),
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) {
                           setState(() {
@@ -391,15 +397,17 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                           if (val != null) _loadKabupatens(val);
                         },
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _dropdownField<String>(
                         label: 'Kota / Kabupaten',
                         value: _selectedKabupatenCode,
                         items: _kabupatens
-                            .map((k) => DropdownMenuItem(
-                                  value: k.code,
-                                  child: Text(k.name),
-                                ))
+                            .map(
+                              (k) => DropdownMenuItem(
+                                value: k.code,
+                                child: Text(k.name),
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) {
                           setState(() {
@@ -412,15 +420,17 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                           if (val != null) _loadKecamatans(val);
                         },
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _dropdownField<String>(
                         label: 'Kecamatan',
                         value: _selectedKecamatanCode,
                         items: _kecamatans
-                            .map((k) => DropdownMenuItem(
-                                  value: k.code,
-                                  child: Text(k.name),
-                                ))
+                            .map(
+                              (k) => DropdownMenuItem(
+                                value: k.code,
+                                child: Text(k.name),
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) {
                           setState(() {
@@ -431,20 +441,22 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                           if (val != null) _loadDesas(val);
                         },
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _dropdownField<String>(
                         label: 'Desa / Kelurahan',
                         value: _selectedDesaCode,
                         items: _desas
-                            .map((d) => DropdownMenuItem(
-                                  value: d.code,
-                                  child: Text(d.name),
-                                ))
+                            .map(
+                              (d) => DropdownMenuItem(
+                                value: d.code,
+                                child: Text(d.name),
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) =>
                             setState(() => _selectedDesaCode = val),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       Row(
                         children: [
                           Expanded(
@@ -454,7 +466,7 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                               hint: '001',
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: _textField(
                               controller: _rwKtpController,
@@ -464,7 +476,7 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _textField(
                         controller: _jalanAlamatKtpController,
                         label: 'Alamat Jalan / Detail',
@@ -472,21 +484,21 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                         maxLines: 2,
                       ),
                     ]),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // 4. DATA NPWP
                     _sectionHeader(
                       '4. Data NPWP Pajak',
                       Icons.receipt_long_rounded,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     _cardWrapper([
                       _textField(
                         controller: _nomorNpwpController,
                         label: 'Nomor NPWP',
                         hint: 'Nomor Pokok Wajib Pajak',
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _textField(
                         controller: _namaNpwpController,
                         label: 'Nama Wajib Pajak NPWP',
@@ -498,9 +510,9 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
               ),
             ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        padding: EdgeInsets.fromLTRB(20, 12, 20, 24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
           border: Border(top: BorderSide(color: Color(0xFFE9EDE5))),
         ),
         child: SizedBox(
@@ -514,7 +526,7 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
               ),
             ),
             icon: _isSubmitting
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -522,12 +534,12 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
                       color: Colors.white,
                     ),
                   )
-                : const Icon(Icons.save_rounded, size: 20),
+                : Icon(Icons.save_rounded, size: 20),
             label: Text(
               _isSubmitting
                   ? 'Menyimpan...'
                   : (isEdit ? 'Simpan Perubahan' : 'Tambah Supplier'),
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
           ),
         ),
@@ -538,14 +550,14 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
   Widget _sectionHeader(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: const Color(0xFF1F7A2E)),
-        const SizedBox(width: 8),
+        Icon(icon, size: 20, color: Color(0xFF1F7A2E)),
+        SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF183C32),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],
@@ -554,11 +566,11 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
 
   Widget _cardWrapper(List<Widget> children) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE9EDE5)),
+        border: Border.all(color: Color(0xFFE9EDE5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -580,38 +592,35 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF183C32),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
           maxLines: maxLines,
           validator: validator,
-          style: const TextStyle(fontSize: 13),
+          style: TextStyle(fontSize: 13),
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
-            fillColor: const Color(0xFFF7F9F8),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 12,
-            ),
+            fillColor: Theme.of(context).colorScheme.surface,
+            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+              borderSide: BorderSide(color: Color(0xFFE9EDE5)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+              borderSide: BorderSide(color: Color(0xFFE9EDE5)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF1F7A2E)),
+              borderSide: BorderSide(color: Color(0xFF1F7A2E)),
             ),
           ),
         ),
@@ -638,13 +647,13 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF183C32),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         DropdownButtonFormField<T>(
           initialValue: safeValue,
           items: uniqueItems,
@@ -652,22 +661,19 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
           isExpanded: true,
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFFF7F9F8),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 12,
-            ),
+            fillColor: Theme.of(context).colorScheme.surface,
+            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+              borderSide: BorderSide(color: Color(0xFFE9EDE5)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+              borderSide: BorderSide(color: Color(0xFFE9EDE5)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF1F7A2E)),
+              borderSide: BorderSide(color: Color(0xFF1F7A2E)),
             ),
           ),
         ),
@@ -681,19 +687,21 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
     required List<_SearchOption> options,
     required void Function(String?) onChanged,
   }) {
-    final selected = options.where((option) => option.value == value).firstOrNull;
+    final selected = options
+        .where((option) => option.value == value)
+        .firstOrNull;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF183C32),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () async {
@@ -710,28 +718,26 @@ class _SupplierFormPageState extends State<SupplierFormPage> {
           child: InputDecorator(
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFFF7F9F8),
-              suffixIcon: const Icon(Icons.arrow_drop_down_rounded),
-              contentPadding: const EdgeInsets.symmetric(
+              fillColor: Theme.of(context).colorScheme.surface,
+              suffixIcon: Icon(Icons.arrow_drop_down_rounded),
+              contentPadding: EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 12,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+                borderSide: BorderSide(color: Color(0xFFE9EDE5)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+                borderSide: BorderSide(color: Color(0xFFE9EDE5)),
               ),
             ),
             child: Text(
               selected?.label ?? 'Pilih $label',
               style: TextStyle(
                 fontSize: 13,
-                color: selected == null
-                    ? const Color(0xFF7D8983)
-                    : const Color(0xFF183C32),
+                color: selected == null ? Color(0xFF7D8983) : Color(0xFF183C32),
               ),
             ),
           ),
@@ -746,7 +752,7 @@ class _SearchOption {
   final String label;
   final String searchText;
 
-  const _SearchOption({
+  _SearchOption({
     required this.value,
     required this.label,
     required this.searchText,
@@ -798,7 +804,7 @@ class _SearchableOptionDialogState extends State<_SearchableOptionDialog> {
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: 'Cari berdasarkan kode atau nama...',
-                prefixIcon: const Icon(Icons.search_rounded),
+                prefixIcon: Icon(Icons.search_rounded),
                 suffixIcon: _searchController.text.isEmpty
                     ? null
                     : IconButton(
@@ -806,25 +812,25 @@ class _SearchableOptionDialogState extends State<_SearchableOptionDialog> {
                           _searchController.clear();
                           setState(() {});
                         },
-                        icon: const Icon(Icons.clear_rounded),
+                        icon: Icon(Icons.clear_rounded),
                       ),
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Expanded(
               child: filtered.isEmpty
-                  ? const Center(child: Text('Data tidak ditemukan'))
+                  ? Center(child: Text('Data tidak ditemukan'))
                   : ListView.separated(
                       itemCount: filtered.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => Divider(height: 1),
                       itemBuilder: (context, index) {
                         final option = filtered[index];
                         return ListTile(
                           dense: true,
                           title: Text(option.label),
                           trailing: option.value == widget.selectedValue
-                              ? const Icon(
+                              ? Icon(
                                   Icons.check_rounded,
                                   color: Color(0xFF1F7A2E),
                                 )

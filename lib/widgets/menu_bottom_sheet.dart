@@ -115,14 +115,16 @@ class MenuBottomSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     onTap: () {
                       Navigator.pop(context);
-                      if (item.id == 'md_supplier' || item.route.contains('supplier')) {
+                      if (item.id == 'md_supplier' ||
+                          item.route.contains('supplier')) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => const SupplierListPage(),
                           ),
                         );
-                      } else if (item.id == 'pb_transaksi' || item.route == '/pembelian/transaksi') {
+                      } else if (item.id == 'pb_transaksi' ||
+                          item.route == '/pembelian/transaksi') {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -189,18 +191,20 @@ class MenuBottomSheet extends StatelessWidget {
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: (item.badgeColor ?? group.color)
-                                              .withValues(alpha: 0.15),
-                                          borderRadius:
-                                              BorderRadius.circular(6),
+                                          color:
+                                              (item.badgeColor ?? group.color)
+                                                  .withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Text(
                                           item.badge!,
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
-                                            color: item.badgeColor ??
-                                                group.color,
+                                            color:
+                                                item.badgeColor ?? group.color,
                                           ),
                                         ),
                                       ),

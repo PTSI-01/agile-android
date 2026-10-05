@@ -54,4 +54,3 @@ class MenuGroupItem {
     this.isFeatured = false,
   });
 }
-

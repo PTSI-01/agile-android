@@ -125,7 +125,10 @@ class SupplierModel {
     return SupplierModel(
       id: json['id']?.toString() ?? '',
       vendorId: json['vendor_id']?.toString() ?? '',
-      namaVendor: json['nama_vendor']?.toString() ?? json['nama_ktp']?.toString() ?? 'Supplier',
+      namaVendor:
+          json['nama_vendor']?.toString() ??
+          json['nama_ktp']?.toString() ??
+          'Supplier',
       nomorHp: json['nomor_hp']?.toString(),
       email: json['email']?.toString(),
       namaKtp: json['nama_ktp']?.toString(),
@@ -233,7 +236,8 @@ class SupplierGroupRef {
 
   SupplierGroupRef({required this.id, required this.code, required this.name});
 
-  factory SupplierGroupRef.fromJson(Map<String, dynamic> json) => SupplierGroupRef(
+  factory SupplierGroupRef.fromJson(Map<String, dynamic> json) =>
+      SupplierGroupRef(
         id: json['id'],
         code: json['group_code'] ?? '',
         name: json['group_name'] ?? '',
@@ -276,10 +280,10 @@ class SupplierGroupModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'group_code': code,
-        'group_name': name,
-        'status': status,
-      };
+    'group_code': code,
+    'group_name': name,
+    'status': status,
+  };
 }
 
 class BankRef {
@@ -290,10 +294,10 @@ class BankRef {
   BankRef({required this.id, required this.code, required this.name});
 
   factory BankRef.fromJson(Map<String, dynamic> json) => BankRef(
-        id: json['id'],
-        code: json['bank_code'] ?? '',
-        name: json['bank_name'] ?? '',
-      );
+    id: json['id'],
+    code: json['bank_code'] ?? '',
+    name: json['bank_name'] ?? '',
+  );
 }
 
 class BuyerRef {
@@ -302,10 +306,8 @@ class BuyerRef {
 
   BuyerRef({required this.id, required this.name});
 
-  factory BuyerRef.fromJson(Map<String, dynamic> json) => BuyerRef(
-        id: json['buyer_id'] ?? '',
-        name: json['full_name'] ?? '',
-      );
+  factory BuyerRef.fromJson(Map<String, dynamic> json) =>
+      BuyerRef(id: json['buyer_id'] ?? '', name: json['full_name'] ?? '');
 }
 
 class RegionRef {
@@ -316,8 +318,8 @@ class RegionRef {
   RegionRef({required this.id, required this.code, required this.name});
 
   factory RegionRef.fromJson(Map<String, dynamic> json) => RegionRef(
-        id: json['id'],
-        code: json['code'] ?? '',
-        name: json['name'] ?? '',
-      );
+    id: json['id'],
+    code: json['code'] ?? '',
+    name: json['name'] ?? '',
+  );
 }

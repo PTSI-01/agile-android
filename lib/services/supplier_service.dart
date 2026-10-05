@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
@@ -99,7 +100,8 @@ class SupplierService {
     } on SocketException catch (_) {
       return SupplierListResult(
         success: false,
-        message: 'Tidak dapat terhubung ke server Laravel (${ApiConfig.baseUrl}).',
+        message:
+            'Tidak dapat terhubung ke server Laravel (${ApiConfig.baseUrl}).',
       );
     } on TimeoutException catch (_) {
       return SupplierListResult(
@@ -143,7 +145,8 @@ class SupplierService {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       if (json['success'] == true && json['data'] != null) {
         return SupplierReferenceModel.fromJson(
-            json['data'] as Map<String, dynamic>);
+          json['data'] as Map<String, dynamic>,
+        );
       }
       return null;
     } catch (_) {
@@ -154,7 +157,9 @@ class SupplierService {
   /// Ambil daftar kabupaten berdasarkan kode provinsi
   static Future<List<RegionRef>> getKabupaten(String provinceCode) async {
     try {
-      final uri = Uri.parse('${ApiConfig.baseUrl}/wilayah/kabupaten/$provinceCode');
+      final uri = Uri.parse(
+        '${ApiConfig.baseUrl}/wilayah/kabupaten/$provinceCode',
+      );
       final response = await http
           .get(uri, headers: await _getHeaders())
           .timeout(const Duration(seconds: 10));
@@ -213,15 +218,12 @@ class SupplierService {
 
   /// Tambah Supplier baru
   static Future<Map<String, dynamic>> createSupplier(
-      Map<String, dynamic> data) async {
+    Map<String, dynamic> data,
+  ) async {
     try {
       final uri = Uri.parse('${ApiConfig.baseUrl}/suppliers');
       final response = await http
-          .post(
-            uri,
-            headers: await _getHeaders(),
-            body: jsonEncode(data),
-          )
+          .post(uri, headers: await _getHeaders(), body: jsonEncode(data))
           .timeout(const Duration(seconds: 20));
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
@@ -236,15 +238,13 @@ class SupplierService {
 
   /// Update data supplier
   static Future<Map<String, dynamic>> updateSupplier(
-      String id, Map<String, dynamic> data) async {
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final uri = Uri.parse('${ApiConfig.baseUrl}/suppliers/$id');
       final response = await http
-          .put(
-            uri,
-            headers: await _getHeaders(),
-            body: jsonEncode(data),
-          )
+          .put(uri, headers: await _getHeaders(), body: jsonEncode(data))
           .timeout(const Duration(seconds: 20));
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
@@ -278,13 +278,16 @@ class SupplierService {
   /// Hapus supplier secara permanen setelah konfirmasi backend.
   static Future<Map<String, dynamic>> forceDelete(String id) async {
     try {
-      final request = http.Request(
-        'DELETE',
-        Uri.parse('${ApiConfig.baseUrl}/suppliers/$id/force-delete'),
-      )
-        ..headers.addAll(await _getHeaders())
-        ..body = jsonEncode({'confirm': true});
-      final streamed = await request.send().timeout(const Duration(seconds: 20));
+      final request =
+          http.Request(
+              'DELETE',
+              Uri.parse('${ApiConfig.baseUrl}/suppliers/$id/force-delete'),
+            )
+            ..headers.addAll(await _getHeaders())
+            ..body = jsonEncode({'confirm': true});
+      final streamed = await request.send().timeout(
+        const Duration(seconds: 20),
+      );
       final response = await http.Response.fromStream(streamed);
       final json = jsonDecode(response.body);
       if (json is Map<String, dynamic>) return json;
@@ -302,4 +305,3 @@ class SupplierService {
     }
   }
 }
-

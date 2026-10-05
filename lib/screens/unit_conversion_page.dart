@@ -31,7 +31,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
   }
 
   bool _can(String action) {
-    final permissions = _user?.permissions ?? const <String, bool>{};
+    final permissions = _user?.permissions ?? <String, bool>{};
     return permissions['master_unit_conversion.$action'] == true ||
         _user?.role == 'superadmin';
   }
@@ -68,7 +68,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
 
   void _onSearchChanged(String _) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), _load);
+    _debounce = Timer(Duration(milliseconds: 400), _load);
   }
 
   String _unitLabel(dynamic raw) {
@@ -110,7 +110,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                 ? 'Konversi satuan berhasil ditambahkan.'
                 : 'Konversi satuan berhasil diperbarui.',
           ),
-          backgroundColor: const Color(0xFF1F7A2E),
+          backgroundColor: Color(0xFF1F7A2E),
         ),
       );
       await _load();
@@ -119,7 +119,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: const Color(0xFFD14942),
+          backgroundColor: Color(0xFFD14942),
         ),
       );
     }
@@ -129,21 +129,19 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus konversi satuan?'),
+        title: Text('Hapus konversi satuan?'),
         content: Text(
           '${_unitLabel(conversion['from_unit'])} ke ${_unitLabel(conversion['to_unit'])} akan dihapus.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: Text('Batal'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFD14942),
-            ),
+            style: FilledButton.styleFrom(backgroundColor: Color(0xFFD14942)),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus'),
+            child: Text('Hapus'),
           ),
         ],
       ),
@@ -153,7 +151,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
       await MasterDataService.deleteUnitConversion(conversion['id'].toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Konversi satuan berhasil dihapus.'),
           backgroundColor: Color(0xFF1F7A2E),
         ),
@@ -164,7 +162,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: const Color(0xFFD14942),
+          backgroundColor: Color(0xFFD14942),
         ),
       );
     }
@@ -179,21 +177,21 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Konversi Satuan',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: ink,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        backgroundColor: const Color(0xFFF7F9F5),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         actions: [
           IconButton(
             tooltip: 'Segarkan',
             onPressed: _load,
-            icon: const Icon(Icons.refresh_rounded, color: ink),
+            icon: Icon(Icons.refresh_rounded, color: ink),
           ),
         ],
       ),
@@ -202,8 +200,8 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
               onPressed: _openForm,
               backgroundColor: green,
               foregroundColor: Colors.white,
-              icon: const Icon(Icons.add_rounded),
-              label: const Text(
+              icon: Icon(Icons.add_rounded),
+              label: Text(
                 'Tambah Konversi',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -213,33 +211,29 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Row(
                 children: [
                   _statItem(
                     'Total Konversi',
                     '${_conversions.length}',
-                    const Color(0xFF1E88E5),
+                    Color(0xFF1E88E5),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   _statItem('Aktif', '$activeCount', green),
-                  const SizedBox(width: 10),
-                  _statItem(
-                    'Nonaktif',
-                    '$inactiveCount',
-                    const Color(0xFFD84315),
-                  ),
+                  SizedBox(width: 10),
+                  _statItem('Nonaktif', '$inactiveCount', Color(0xFFD84315)),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
                 decoration: InputDecoration(
                   hintText: 'Cari kode atau nama satuan...',
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  prefixIcon: Icon(Icons.search_rounded),
                   suffixIcon: _searchController.text.isEmpty
                       ? null
                       : IconButton(
@@ -248,21 +242,21 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                             _searchController.clear();
                             _load();
                           },
-                          icon: const Icon(Icons.clear_rounded),
+                          icon: Icon(Icons.clear_rounded),
                         ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+                    borderSide: BorderSide(color: Color(0xFFE9EDE5)),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Expanded(child: _buildList(ink, green)),
           ],
         ),
@@ -273,11 +267,11 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
   Widget _statItem(String label, String value, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE9EDE5)),
+          border: Border.all(color: Color(0xFFE9EDE5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,20 +286,17 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     label,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFF7D8983),
-                    ),
+                    style: TextStyle(fontSize: 10, color: Color(0xFF7D8983)),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text(
               value,
               style: TextStyle(
@@ -322,29 +313,23 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
 
   Widget _buildList(Color ink, Color green) {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF1F7A2E)),
-      );
+      return Center(child: CircularProgressIndicator(color: Color(0xFF1F7A2E)));
     }
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.cloud_off_rounded,
-                size: 48,
-                color: Color(0xFFD14942),
-              ),
-              const SizedBox(height: 12),
+              Icon(Icons.cloud_off_rounded, size: 48, color: Color(0xFFD14942)),
+              SizedBox(height: 12),
               Text(_error!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: _load,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Coba Lagi'),
+                icon: Icon(Icons.refresh_rounded),
+                label: Text('Coba Lagi'),
               ),
             ],
           ),
@@ -355,7 +340,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
       return RefreshIndicator(
         onRefresh: _load,
         child: ListView(
-          children: const [
+          children: [
             SizedBox(height: 150),
             Icon(Icons.swap_horiz_rounded, size: 52, color: Color(0xFF9AA49F)),
             SizedBox(height: 12),
@@ -368,34 +353,34 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
       onRefresh: _load,
       color: green,
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 90),
+        padding: EdgeInsets.fromLTRB(20, 4, 20, 90),
         itemCount: _conversions.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        separatorBuilder: (_, _) => SizedBox(height: 10),
         itemBuilder: (_, index) {
           final row = _conversions[index];
           final fromUnit = _unitLabel(row['from_unit']);
           final toUnit = _unitLabel(row['to_unit']);
           final active = _isActive(row);
           return Material(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(18),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
               onTap: _can('update') ? () => _openForm(row) : null,
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE9EDE5)),
+                  border: Border.all(color: Color(0xFFE9EDE5)),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: const Color(0xFFE3EBD9),
+                      backgroundColor: Color(0xFFE3EBD9),
                       child: Icon(Icons.swap_horiz_rounded, color: ink),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,26 +389,27 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  '$fromUnit  →  $toUnit',
+                                  '$fromUnit  \u2192  $toUnit',
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w800,
-                                    color: ink,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      (active ? green : const Color(0xFFD84315))
-                                          .withValues(alpha: 0.12),
+                                  color: (active ? green : Color(0xFFD84315))
+                                      .withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -431,18 +417,16 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: active
-                                        ? green
-                                        : const Color(0xFFD84315),
+                                    color: active ? green : Color(0xFFD84315),
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           Text(
                             'Nilai konversi: ${row['conversion_value'] ?? '-'}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: Color(0xFF7D8983),
                             ),
@@ -458,12 +442,9 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                         },
                         itemBuilder: (_) => [
                           if (_can('update'))
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Text('Edit'),
-                            ),
+                            PopupMenuItem(value: 'edit', child: Text('Edit')),
                           if (_can('delete'))
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'delete',
                               child: Text('Hapus'),
                             ),
@@ -532,7 +513,7 @@ class _UnitConversionFormState extends State<_UnitConversionForm> {
     if (!_formKey.currentState!.validate()) return;
     if (_fromUnitId == _toUnitId) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Satuan asal dan tujuan harus berbeda.')),
+        SnackBar(content: Text('Satuan asal dan tujuan harus berbeda.')),
       );
       return;
     }
@@ -558,7 +539,7 @@ class _UnitConversionFormState extends State<_UnitConversionForm> {
               children: [
                 DropdownButtonFormField<String>(
                   initialValue: _fromUnitId,
-                  decoration: const InputDecoration(labelText: 'Dari Satuan'),
+                  decoration: InputDecoration(labelText: 'Dari Satuan'),
                   validator: (value) =>
                       value == null ? 'Pilih satuan asal' : null,
                   items: widget.units
@@ -573,7 +554,7 @@ class _UnitConversionFormState extends State<_UnitConversionForm> {
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: _toUnitId,
-                  decoration: const InputDecoration(labelText: 'Ke Satuan'),
+                  decoration: InputDecoration(labelText: 'Ke Satuan'),
                   validator: (value) =>
                       value == null ? 'Pilih satuan tujuan' : null,
                   items: widget.units
@@ -588,18 +569,14 @@ class _UnitConversionFormState extends State<_UnitConversionForm> {
                 ),
                 TextFormField(
                   controller: _valueController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nilai Konversi',
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  decoration: InputDecoration(labelText: 'Nilai Konversi'),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   validator: _validateValue,
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: _status,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items: const [
+                  decoration: InputDecoration(labelText: 'Status'),
+                  items: [
                     DropdownMenuItem(value: 'aktif', child: Text('Aktif')),
                     DropdownMenuItem(
                       value: 'nonaktif',
@@ -617,7 +594,7 @@ class _UnitConversionFormState extends State<_UnitConversionForm> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Batal'),
+          child: Text('Batal'),
         ),
         FilledButton(
           onPressed: _submit,

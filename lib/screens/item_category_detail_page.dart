@@ -191,7 +191,7 @@ class _ItemCategoryDetailPageState extends State<ItemCategoryDetailPage> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '$code • ${isActive ? 'Aktif' : 'Nonaktif'}',
+                                    '$code \u2022 ${isActive ? 'Aktif' : 'Nonaktif'}',
                                     style: const TextStyle(
                                       color: Color(0xFFD5E3DC),
                                     ),
@@ -241,7 +241,7 @@ class _ItemCategoryDetailPageState extends State<ItemCategoryDetailPage> {
                                   icon: const Icon(Icons.clear_rounded),
                                 ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: Theme.of(context).colorScheme.surface,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: const BorderSide(
@@ -314,7 +314,7 @@ class _ItemCategoryDetailPageState extends State<ItemCategoryDetailPage> {
                                 ),
                               ),
                               subtitle: Text(
-                                '${item['kode_item'] ?? '-'}\nSatuan: $unitName • Gudang: $warehouseName',
+                                '${item['kode_item'] ?? '-'}\nSatuan: $unitName \u2022 Gudang: $warehouseName',
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),

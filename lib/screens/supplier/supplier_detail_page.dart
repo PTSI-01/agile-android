@@ -33,7 +33,9 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
     });
   }
 
-  bool _can(String action) => _user?.permissions['supplier.${action.toLowerCase()}'] ?? (_user?.role == 'superadmin');
+  bool _can(String action) =>
+      _user?.permissions['supplier.${action.toLowerCase()}'] ??
+      (_user?.role == 'superadmin');
 
   @override
   void dispose() {
@@ -56,9 +58,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
     if (_supplier == null) return;
     final updated = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) => SupplierFormPage(supplier: _supplier),
-      ),
+      MaterialPageRoute(builder: (_) => SupplierFormPage(supplier: _supplier)),
     );
     if (updated == true) {
       _hasChanged = true;
@@ -81,13 +81,13 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
+            child: Text('Batal'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: isCurrentlyActive
-                  ? const Color(0xFFD14942)
-                  : const Color(0xFF1F7A2E),
+                  ? Color(0xFFD14942)
+                  : Color(0xFF1F7A2E),
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(isCurrentlyActive ? 'Nonaktifkan' : 'Aktifkan'),
@@ -117,21 +117,19 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus supplier permanen?'),
+        title: Text('Hapus supplier permanen?'),
         content: Text(
           'Data ${supplier.namaVendor} akan dihapus permanen dan tidak dapat dipulihkan.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
+            child: Text('Batal'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFD14942),
-            ),
+            style: FilledButton.styleFrom(backgroundColor: Color(0xFFD14942)),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus Permanen'),
+            child: Text('Hapus Permanen'),
           ),
         ],
       ),
@@ -144,9 +142,10 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result['message']?.toString() ?? 'Supplier berhasil dihapus permanen.',
+            result['message']?.toString() ??
+                'Supplier berhasil dihapus permanen.',
           ),
-          backgroundColor: const Color(0xFF1F7A2E),
+          backgroundColor: Color(0xFF1F7A2E),
         ),
       );
       Navigator.pop(context, true);
@@ -154,9 +153,10 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result['message']?.toString() ?? 'Gagal menghapus supplier permanen.',
+            result['message']?.toString() ??
+                'Gagal menghapus supplier permanen.',
           ),
-          backgroundColor: const Color(0xFFD14942),
+          backgroundColor: Color(0xFFD14942),
         ),
       );
     }
@@ -177,279 +177,284 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
+          title: Text(
             'Detail Supplier',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: ink,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           centerTitle: false,
-          backgroundColor: const Color(0xFFF7F9F5),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           actions: [
             if (_supplier != null) ...[
-              if (_can('update')) IconButton(
-                tooltip: 'Edit Data',
-                icon: const Icon(Icons.edit_outlined, color: ink),
-                onPressed: _openEdit,
-              ),
-              if (_can('delete')) PopupMenuButton<String>(
-                onSelected: (val) {
-                  if (val == 'toggle_status') _toggleStatus();
-                  if (val == 'force_delete') _forceDelete();
-                },
-                itemBuilder: (ctx) => [
-                  PopupMenuItem(
-                    value: 'toggle_status',
-                    child: Row(
-                      children: [
-                        Icon(
-                          _supplier!.isActive
-                              ? Icons.block_rounded
-                              : Icons.check_circle_outline_rounded,
-                          size: 18,
-                          color: _supplier!.isActive
-                              ? const Color(0xFFD14942)
-                              : green,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _supplier!.isActive
-                              ? 'Nonaktifkan Supplier'
-                              : 'Aktifkan Supplier',
-                        ),
-                      ],
+              if (_can('update'))
+                IconButton(
+                  tooltip: 'Edit Data',
+                  icon: Icon(Icons.edit_outlined, color: ink),
+                  onPressed: _openEdit,
+                ),
+              if (_can('delete'))
+                PopupMenuButton<String>(
+                  onSelected: (val) {
+                    if (val == 'toggle_status') _toggleStatus();
+                    if (val == 'force_delete') _forceDelete();
+                  },
+                  itemBuilder: (ctx) => [
+                    PopupMenuItem(
+                      value: 'toggle_status',
+                      child: Row(
+                        children: [
+                          Icon(
+                            _supplier!.isActive
+                                ? Icons.block_rounded
+                                : Icons.check_circle_outline_rounded,
+                            size: 18,
+                            color: _supplier!.isActive
+                                ? Color(0xFFD14942)
+                                : green,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            _supplier!.isActive
+                                ? 'Nonaktifkan Supplier'
+                                : 'Aktifkan Supplier',
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'force_delete',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.delete_forever_rounded,
-                          size: 18,
-                          color: Color(0xFFD14942),
-                        ),
-                        SizedBox(width: 8),
-                        Text('Hapus Permanen'),
-                      ],
+                    PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'force_delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_forever_rounded,
+                            size: 18,
+                            color: Color(0xFFD14942),
+                          ),
+                          SizedBox(width: 8),
+                          Text('Hapus Permanen'),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ],
         ),
         body: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: green))
+            ? Center(child: CircularProgressIndicator(color: green))
             : _supplier == null
-                ? const Center(child: Text('Data supplier tidak ditemukan.'))
-                : SafeArea(
-                    child: Column(
-                      children: [
-                        // 1. HEADER PROFILE CARD
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 8,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: const Color(0xFFE9EDE5),
+            ? Center(child: Text('Data supplier tidak ditemukan.'))
+            : SafeArea(
+                child: Column(
+                  children: [
+                    // 1. HEADER PROFILE CARD
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 8,
+                      ),
+                      child: Container(
+                        padding: EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Color(0xFFE9EDE5)),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 28,
+                              backgroundColor: Color(0xFFE3EBD9),
+                              child: Text(
+                                _supplier!.initials,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface,
+                                ),
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 28,
-                                  backgroundColor: const Color(0xFFE3EBD9),
-                                  child: Text(
-                                    _supplier!.initials,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: ink,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                            SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
                                     children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: ink.withValues(alpha: 0.08),
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                            ),
-                                            child: Text(
-                                              _supplier!.vendorId,
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w800,
-                                                color: ink,
-                                              ),
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Container(
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 3,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: (_supplier!.isActive
-                                                      ? green
-                                                      : const Color(0xFFD84315))
-                                                  .withValues(alpha: 0.12),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              _supplier!.isActive
-                                                  ? 'Aktif'
-                                                  : 'Non-Aktif',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                                color: _supplier!.isActive
-                                                    ? green
-                                                    : const Color(0xFFD84315),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        _supplier!.namaVendor,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w800,
-                                          color: ink,
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
                                         ),
-                                      ),
-                                      if (_supplier!.supplierGroupName !=
-                                          null) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          'Grup: ${_supplier!.supplierGroupName}',
-                                          style: const TextStyle(
+                                        decoration: BoxDecoration(
+                                          color: ink.withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(
+                                            5,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _supplier!.vendorId,
+                                          style: TextStyle(
                                             fontSize: 11,
-                                            color: muted,
+                                            fontWeight: FontWeight.w800,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                      Spacer(),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              (_supplier!.isActive
+                                                      ? green
+                                                      : Color(0xFFD84315))
+                                                  .withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _supplier!.isActive
+                                              ? 'Aktif'
+                                              : 'Non-Aktif',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: _supplier!.isActive
+                                                ? green
+                                                : Color(0xFFD84315),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                ),
-                              ],
+                                  SizedBox(height: 6),
+                                  Text(
+                                    _supplier!.namaVendor,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                  ),
+                                  if (_supplier!.supplierGroupName != null) ...[
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Grup: ${_supplier!.supplierGroupName}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: muted,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
-
-
-                        // 2. TABS
-                        TabBar(
-                          controller: _tabController,
-                          labelColor: green,
-                          unselectedLabelColor: muted,
-                          indicatorColor: green,
-                          labelStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                          isScrollable: true,
-                          tabAlignment: TabAlignment.start,
-                          tabs: const [
-                            Tab(text: 'Informasi Vendor'),
-                            Tab(text: 'Alamat & KTP'),
-                            Tab(text: 'Rekening Bank'),
-                            Tab(text: 'Data NPWP'),
                           ],
                         ),
+                      ),
+                    ),
 
-                        // 3. TAB VIEWS
-                        Expanded(
-                          child: TabBarView(
-                            controller: _tabController,
-                            children: [
-                              _buildInfoTab(),
-                              _buildAddressTab(),
-                              _buildBankTab(),
-                              _buildNpwpTab(),
-                            ],
-                          ),
-                        ),
+                    // 2. TABS
+                    TabBar(
+                      controller: _tabController,
+                      labelColor: green,
+                      unselectedLabelColor: muted,
+                      indicatorColor: green,
+                      labelStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      tabs: [
+                        Tab(text: 'Informasi Vendor'),
+                        Tab(text: 'Alamat & KTP'),
+                        Tab(text: 'Rekening Bank'),
+                        Tab(text: 'Data NPWP'),
                       ],
                     ),
-                  ),
+
+                    // 3. TAB VIEWS
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildInfoTab(),
+                          _buildAddressTab(),
+                          _buildBankTab(),
+                          _buildNpwpTab(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
         bottomNavigationBar: _supplier != null
             ? Container(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                padding: EdgeInsets.fromLTRB(20, 10, 20, 24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
                   border: Border(top: BorderSide(color: Color(0xFFE9EDE5))),
                 ),
                 child: Row(
                   children: [
                     if (_can('update'))
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _openEdit,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: ink,
-                          side: const BorderSide(color: Color(0xFFE9EDE5)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _openEdit,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: ink,
+                            side: BorderSide(color: Color(0xFFE9EDE5)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 14),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          icon: Icon(Icons.edit_note_rounded, size: 20),
+                          label: Text('Edit Supplier'),
                         ),
-                        icon: const Icon(Icons.edit_note_rounded, size: 20),
-                        label: const Text('Edit Supplier'),
                       ),
-                    ),
-                    if (_can('update') && _can('delete')) const SizedBox(width: 12),
+                    if (_can('update') && _can('delete')) SizedBox(width: 12),
                     if (_can('delete'))
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _toggleStatus,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _supplier!.isActive
-                              ? const Color(0xFFD14942)
-                              : green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _toggleStatus,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _supplier!.isActive
+                                ? Color(0xFFD14942)
+                                : green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 14),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        icon: Icon(
-                          _supplier!.isActive
-                              ? Icons.block_rounded
-                              : Icons.check_circle_outline_rounded,
-                          size: 20,
-                        ),
-                        label: Text(
-                          _supplier!.isActive ? 'Nonaktifkan' : 'Aktifkan',
+                          icon: Icon(
+                            _supplier!.isActive
+                                ? Icons.block_rounded
+                                : Icons.check_circle_outline_rounded,
+                            size: 20,
+                          ),
+                          label: Text(
+                            _supplier!.isActive ? 'Nonaktifkan' : 'Aktifkan',
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               )
@@ -460,7 +465,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
 
   Widget _buildInfoTab() {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       children: [
         _infoCard([
           _item('Kode Vendor', _supplier!.vendorId),
@@ -476,7 +481,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
 
   Widget _buildAddressTab() {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       children: [
         _infoCard([
           _item('Nomor NIK / KTP', _supplier!.nomorKtp ?? '-'),
@@ -485,7 +490,10 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
             'Alamat Jalan KTP',
             _supplier!.jalanAlamatKtp ?? _supplier!.alamatLengkapKtp ?? '-',
           ),
-          _item('RT / RW', 'RT ${_supplier!.rtKtp ?? '-'} / RW ${_supplier!.rwKtp ?? '-'}'),
+          _item(
+            'RT / RW',
+            'RT ${_supplier!.rtKtp ?? '-'} / RW ${_supplier!.rwKtp ?? '-'}',
+          ),
           _item('Provinsi', _supplier!.ktpProvinceName ?? '-'),
           _item('Kota / Kabupaten', _supplier!.ktpCityName ?? '-'),
         ]),
@@ -495,7 +503,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
 
   Widget _buildBankTab() {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       children: [
         _infoCard([
           _item('Nama Bank', _supplier!.namaBank ?? '-'),
@@ -509,7 +517,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
 
   Widget _buildNpwpTab() {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       children: [
         _infoCard([
           _item('Nomor Pokok Wajib Pajak (NPWP)', _supplier!.nomorNpwp ?? '-'),
@@ -521,11 +529,11 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
 
   Widget _infoCard(List<Widget> children) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE9EDE5)),
+        border: Border.all(color: Color(0xFFE9EDE5)),
       ),
       child: Column(children: children),
     );
@@ -533,7 +541,7 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
 
   Widget _item(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -542,23 +550,23 @@ class _SupplierDetailPageState extends State<SupplierDetailPage>
             flex: 4,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color: Color(0xFF7D8983),
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             flex: 6,
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF183C32),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),

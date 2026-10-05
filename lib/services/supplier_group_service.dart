@@ -57,18 +57,20 @@ class SupplierGroupService {
       final rows = data is List
           ? data
           : data is Map<String, dynamic>
-              ? (data['data'] ?? data['items'] ?? [])
-              : [];
+          ? (data['data'] ?? data['items'] ?? [])
+          : [];
       final items = (rows as List)
           .whereType<Map<String, dynamic>>()
           .map(SupplierGroupModel.fromJson)
           .toList();
       final total = data is Map<String, dynamic>
-          ? int.tryParse((data['total'] ?? items.length).toString()) ?? items.length
+          ? int.tryParse((data['total'] ?? items.length).toString()) ??
+                items.length
           : items.length;
       return SupplierGroupListResult(
         success: true,
-        message: body['message']?.toString() ?? 'Berhasil memuat supplier group',
+        message:
+            body['message']?.toString() ?? 'Berhasil memuat supplier group',
         items: items,
         total: total,
       );
@@ -111,7 +113,8 @@ class SupplierGroupService {
       if (response.statusCode >= 400 || decoded['success'] != true) {
         return {
           'success': false,
-          'message': decoded['message']?.toString() ??
+          'message':
+              decoded['message']?.toString() ??
               'Gagal memuat detail supplier group',
         };
       }
@@ -122,10 +125,7 @@ class SupplierGroupService {
         'message': 'Tidak dapat terhubung ke server Laravel.',
       };
     } on TimeoutException {
-      return {
-        'success': false,
-        'message': 'Koneksi ke server timeout.',
-      };
+      return {'success': false, 'message': 'Koneksi ke server timeout.'};
     } catch (error) {
       return {
         'success': false,
@@ -137,8 +137,7 @@ class SupplierGroupService {
   static Future<Map<String, dynamic>> update(
     String id,
     Map<String, dynamic> data,
-  ) =>
-      _send('PUT', '$_path/$id', data, 'Gagal memperbarui supplier group');
+  ) => _send('PUT', '$_path/$id', data, 'Gagal memperbarui supplier group');
 
   static Future<Map<String, dynamic>> delete(String id) =>
       _send('DELETE', '$_path/$id', null, 'Gagal menghapus supplier group');
@@ -150,10 +149,14 @@ class SupplierGroupService {
     String fallback,
   ) async {
     try {
-      final request = http.Request(method, Uri.parse('${ApiConfig.baseUrl}/$path'))
-        ..headers.addAll(await _headers());
+      final request = http.Request(
+        method,
+        Uri.parse('${ApiConfig.baseUrl}/$path'),
+      )..headers.addAll(await _headers());
       if (data != null) request.body = jsonEncode(data);
-      final streamed = await request.send().timeout(const Duration(seconds: 20));
+      final streamed = await request.send().timeout(
+        const Duration(seconds: 20),
+      );
       final response = await http.Response.fromStream(streamed);
       final body = jsonDecode(response.body);
       if (body is Map<String, dynamic>) return body;

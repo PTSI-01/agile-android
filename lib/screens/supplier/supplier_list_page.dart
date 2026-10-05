@@ -101,7 +101,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
 
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+    _debounceTimer = Timer(Duration(milliseconds: 400), () {
       _fetchSuppliers(page: 1);
     });
   }
@@ -123,29 +123,27 @@ class _SupplierListPageState extends State<SupplierListPage> {
   Future<void> _showStatusFilterSheet() async {
     final selected = await showModalBottomSheet<_SupplierStatusFilterChoice>(
       context: context,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Filter Status Supplier',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF183C32),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               for (final option
-                  in const <
-                    (_SupplierStatusFilterChoice, int?, String, IconData)
-                  >[
+                  in <(_SupplierStatusFilterChoice, int?, String, IconData)>[
                     (
                       _SupplierStatusFilterChoice.all,
                       null,
@@ -166,13 +164,10 @@ class _SupplierListPageState extends State<SupplierListPage> {
                     ),
                   ])
                 ListTile(
-                  leading: Icon(option.$4, color: const Color(0xFF1F7A2E)),
+                  leading: Icon(option.$4, color: Color(0xFF1F7A2E)),
                   title: Text(option.$3),
                   trailing: _statusFilter == option.$2
-                      ? const Icon(
-                          Icons.check_rounded,
-                          color: Color(0xFF1F7A2E),
-                        )
+                      ? Icon(Icons.check_rounded, color: Color(0xFF1F7A2E))
                       : null,
                   onTap: () => Navigator.pop(ctx, option.$1),
                 ),
@@ -197,7 +192,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
     final selected = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => StatefulBuilder(
@@ -210,19 +205,19 @@ class _SupplierListPageState extends State<SupplierListPage> {
             child: SizedBox(
               height: MediaQuery.sizeOf(ctx).height * 0.68,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Filter Grup Supplier',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF183C32),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     TextField(
                       autofocus: true,
                       onChanged: (value) => refresh(
@@ -230,24 +225,24 @@ class _SupplierListPageState extends State<SupplierListPage> {
                       ),
                       decoration: InputDecoration(
                         hintText: 'Cari kode atau nama grup...',
-                        prefixIcon: const Icon(Icons.search_rounded),
+                        prefixIcon: Icon(Icons.search_rounded),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Expanded(
                       child: ListView(
                         children: [
                           ListTile(
-                            leading: const Icon(
+                            leading: Icon(
                               Icons.all_inclusive_rounded,
                               color: Color(0xFF1F7A2E),
                             ),
-                            title: const Text('Semua Grup'),
+                            title: Text('Semua Grup'),
                             trailing: _groupIdFilter == null
-                                ? const Icon(
+                                ? Icon(
                                     Icons.check_rounded,
                                     color: Color(0xFF1F7A2E),
                                   )
@@ -255,7 +250,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
                             onTap: () => Navigator.pop(ctx, '__all__'),
                           ),
                           if (filteredGroups.isEmpty)
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.symmetric(vertical: 32),
                               child: Center(
                                 child: Text('Grup supplier tidak ditemukan'),
@@ -264,14 +259,14 @@ class _SupplierListPageState extends State<SupplierListPage> {
                           else
                             ...filteredGroups.map(
                               (group) => ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.group_work_outlined,
                                   color: Color(0xFF1F7A2E),
                                 ),
                                 title: Text(group.name),
                                 subtitle: Text(group.code),
                                 trailing: _groupIdFilter == group.id.toString()
-                                    ? const Icon(
+                                    ? Icon(
                                         Icons.check_rounded,
                                         color: Color(0xFF1F7A2E),
                                       )
@@ -300,7 +295,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
   void _openAddSupplier() async {
     final created = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => const SupplierFormPage()),
+      MaterialPageRoute(builder: (_) => SupplierFormPage()),
     );
     if (created == true) {
       _fetchSuppliers(page: 1);
@@ -326,21 +321,21 @@ class _SupplierListPageState extends State<SupplierListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Master Data Supplier',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: ink,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         centerTitle: false,
-        backgroundColor: const Color(0xFFF7F9F5),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         actions: [
           IconButton(
             tooltip: 'Segarkan',
-            icon: const Icon(Icons.refresh_rounded, color: ink),
+            icon: Icon(Icons.refresh_rounded, color: ink),
             onPressed: () => _fetchSuppliers(page: 1),
           ),
         ],
@@ -351,8 +346,8 @@ class _SupplierListPageState extends State<SupplierListPage> {
               backgroundColor: green,
               foregroundColor: Colors.white,
               elevation: 3,
-              icon: const Icon(Icons.person_add_alt_1_rounded),
-              label: const Text(
+              icon: Icon(Icons.person_add_alt_1_rounded),
+              label: Text(
                 'Tambah Supplier',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -363,28 +358,23 @@ class _SupplierListPageState extends State<SupplierListPage> {
           children: [
             // 1. STATS BANNER
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Row(
                 children: [
                   _statItem(
                     'Total Pemasok',
                     '$_total',
-                    const Color(0xFF1E88E5),
-                    const Color(0xFFE3F2FD),
+                    Color(0xFF1E88E5),
+                    Color(0xFFE3F2FD),
                   ),
-                  const SizedBox(width: 10),
-                  _statItem(
-                    'Aktif',
-                    '$_totalActive',
-                    green,
-                    const Color(0xFFE8F5E9),
-                  ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
+                  _statItem('Aktif', '$_totalActive', green, Color(0xFFE8F5E9)),
+                  SizedBox(width: 10),
                   _statItem(
                     'Non-Aktif',
                     '$_totalInactive',
-                    const Color(0xFFD84315),
-                    const Color(0xFFFBE9E7),
+                    Color(0xFFD84315),
+                    Color(0xFFFBE9E7),
                   ),
                 ],
               ),
@@ -392,16 +382,16 @@ class _SupplierListPageState extends State<SupplierListPage> {
 
             // 2. SEARCH BAR
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
                 decoration: InputDecoration(
                   hintText: 'Cari supplier, kode, KTP, atau telepon...',
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  prefixIcon: Icon(Icons.search_rounded),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear_rounded),
+                          icon: Icon(Icons.clear_rounded),
                           onPressed: () {
                             _searchController.clear();
                             _fetchSuppliers(page: 1);
@@ -409,31 +399,31 @@ class _SupplierListPageState extends State<SupplierListPage> {
                         )
                       : null,
                   filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
+                  fillColor: Theme.of(context).colorScheme.surface,
+                  contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+                    borderSide: BorderSide(color: Color(0xFFE9EDE5)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFFE9EDE5)),
+                    borderSide: BorderSide(color: Color(0xFFE9EDE5)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: green, width: 1.5),
+                    borderSide: BorderSide(color: green, width: 1.5),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
 
             // 3. FILTER BUTTONS
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
                   Expanded(
@@ -444,7 +434,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
                       onTap: _showStatusFilterSheet,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Expanded(
                     child: _filterDropdownButton(
                       icon: Icons.group_work_outlined,
@@ -456,42 +446,42 @@ class _SupplierListPageState extends State<SupplierListPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // 4. SUPPLIER LIST
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: green))
+                  ? Center(child: CircularProgressIndicator(color: green))
                   : _errorMessage != null
                   ? Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: EdgeInsets.all(24),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.cloud_off_rounded,
                               size: 48,
                               color: Color(0xFFD14942),
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Text(
                               _errorMessage!,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFFD14942),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             FilledButton.icon(
                               onPressed: () => _fetchSuppliers(page: 1),
                               style: FilledButton.styleFrom(
                                 backgroundColor: green,
                               ),
-                              icon: const Icon(Icons.refresh_rounded, size: 18),
-                              label: const Text('Coba Lagi'),
+                              icon: Icon(Icons.refresh_rounded, size: 18),
+                              label: Text('Coba Lagi'),
                             ),
                           ],
                         ),
@@ -507,16 +497,16 @@ class _SupplierListPageState extends State<SupplierListPage> {
                             size: 56,
                             color: Colors.grey.shade400,
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
+                          SizedBox(height: 12),
+                          Text(
                             'Belum ada data supplier',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          const Text(
+                          SizedBox(height: 4),
+                          Text(
                             'Gunakan tombol di bawah untuk menambah supplier baru.',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
@@ -527,17 +517,14 @@ class _SupplierListPageState extends State<SupplierListPage> {
                       onRefresh: () => _fetchSuppliers(page: 1),
                       color: green,
                       child: ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 90),
+                        padding: EdgeInsets.fromLTRB(20, 4, 20, 90),
                         itemCount: _suppliers.length + 1,
                         separatorBuilder: (context, index) =>
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           if (index == _suppliers.length) {
                             return Padding(
-                              padding: const EdgeInsets.only(
-                                top: 8,
-                                bottom: 12,
-                              ),
+                              padding: EdgeInsets.only(top: 8, bottom: 12),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -548,13 +535,11 @@ class _SupplierListPageState extends State<SupplierListPage> {
                                             page: _currentPage - 1,
                                           )
                                         : null,
-                                    icon: const Icon(
-                                      Icons.chevron_left_rounded,
-                                    ),
+                                    icon: Icon(Icons.chevron_left_rounded),
                                   ),
                                   Text(
                                     'Halaman $_currentPage dari $_lastPage',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -565,9 +550,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
                                             page: _currentPage + 1,
                                           )
                                         : null,
-                                    icon: const Icon(
-                                      Icons.chevron_right_rounded,
-                                    ),
+                                    icon: Icon(Icons.chevron_right_rounded),
                                   ),
                                 ],
                               ),
@@ -588,11 +571,11 @@ class _SupplierListPageState extends State<SupplierListPage> {
   Widget _statItem(String label, String value, Color color, Color bg) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE9EDE5)),
+          border: Border.all(color: Color(0xFFE9EDE5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -607,26 +590,23 @@ class _SupplierListPageState extends State<SupplierListPage> {
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     label,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFF7D8983),
-                    ),
+                    style: TextStyle(fontSize: 10, color: Color(0xFF7D8983)),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF183C32),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -647,20 +627,16 @@ class _SupplierListPageState extends State<SupplierListPage> {
       borderRadius: BorderRadius.circular(14),
       child: Container(
         height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFFE8F3E6) : Colors.white,
+          color: active ? Color(0xFFE8F3E6) : Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: active ? green : const Color(0xFFE1E7DE)),
+          border: Border.all(color: active ? green : Color(0xFFE1E7DE)),
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 17,
-              color: active ? green : const Color(0xFF7D8983),
-            ),
-            const SizedBox(width: 7),
+            Icon(icon, size: 17, color: active ? green : Color(0xFF7D8983)),
+            SizedBox(width: 7),
             Expanded(
               child: Text(
                 label,
@@ -669,11 +645,11 @@ class _SupplierListPageState extends State<SupplierListPage> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-                  color: active ? green : const Color(0xFF183C32),
+                  color: active ? green : Color(0xFF183C32),
                 ),
               ),
             ),
-            const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 18),
           ],
         ),
       ),
@@ -686,16 +662,16 @@ class _SupplierListPageState extends State<SupplierListPage> {
     const muted = Color(0xFF7D8983);
 
     return Material(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () => _openDetail(supplier),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE9EDE5)),
+            border: Border.all(color: Color(0xFFE9EDE5)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -705,17 +681,17 @@ class _SupplierListPageState extends State<SupplierListPage> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundColor: const Color(0xFFE3EBD9),
+                    backgroundColor: Color(0xFFE3EBD9),
                     child: Text(
                       supplier.initials,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: ink,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,7 +699,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(
+                              padding: EdgeInsets.symmetric(
                                 horizontal: 6,
                                 vertical: 2,
                               ),
@@ -733,16 +709,18 @@ class _SupplierListPageState extends State<SupplierListPage> {
                               ),
                               child: Text(
                                 supplier.vendorId,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
-                                  color: ink,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface,
                                 ),
                               ),
                             ),
-                            const Spacer(),
+                            Spacer(),
                             Container(
-                              padding: const EdgeInsets.symmetric(
+                              padding: EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 2.5,
                               ),
@@ -750,7 +728,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
                                 color:
                                     (supplier.isActive
                                             ? green
-                                            : const Color(0xFFD84315))
+                                            : Color(0xFFD84315))
                                         .withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
@@ -761,19 +739,19 @@ class _SupplierListPageState extends State<SupplierListPage> {
                                   fontWeight: FontWeight.bold,
                                   color: supplier.isActive
                                       ? green
-                                      : const Color(0xFFD84315),
+                                      : Color(0xFFD84315),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           supplier.namaVendor,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
-                            color: ink,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -781,33 +759,30 @@ class _SupplierListPageState extends State<SupplierListPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              const Divider(height: 1, color: Color(0xFFF0F3ED)),
-              const SizedBox(height: 10),
+              SizedBox(height: 12),
+              Divider(height: 1, color: Color(0xFFF0F3ED)),
+              SizedBox(height: 10),
 
               // Info Items
               Row(
                 children: [
-                  const Icon(Icons.phone_outlined, size: 14, color: muted),
-                  const SizedBox(width: 6),
+                  Icon(Icons.phone_outlined, size: 14, color: muted),
+                  SizedBox(width: 6),
                   Text(
                     supplier.nomorHp ?? '-',
-                    style: const TextStyle(fontSize: 12, color: ink),
+                    style: TextStyle(fontSize: 12, color: ink),
                   ),
-                  const Spacer(),
+                  Spacer(),
                   if (supplier.supplierGroupName != null) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
+                        color: Color(0xFF1E88E5).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         supplier.supplierGroupName!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF1E88E5),
@@ -819,18 +794,18 @@ class _SupplierListPageState extends State<SupplierListPage> {
               ),
               if (supplier.namaBank != null &&
                   supplier.nomorRekening != null) ...[
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.account_balance_outlined,
                       size: 14,
                       color: muted,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Text(
-                      '${supplier.namaBank} • ${supplier.nomorRekening}',
-                      style: const TextStyle(fontSize: 12, color: muted),
+                      '${supplier.namaBank} \u2022 ${supplier.nomorRekening}',
+                      style: TextStyle(fontSize: 12, color: muted),
                     ),
                   ],
                 ),

@@ -57,7 +57,8 @@ class _SupplierGroupDetailPageState extends State<SupplierGroupDetailPage> {
     if (result['success'] != true || result['data'] is! Map) {
       setState(() {
         _loading = false;
-        _error = result['message']?.toString() ??
+        _error =
+            result['message']?.toString() ??
             'Gagal memuat detail supplier group.';
       });
       return;
@@ -67,9 +68,9 @@ class _SupplierGroupDetailPageState extends State<SupplierGroupDetailPage> {
     final rawSuppliers = group['suppliers'];
     final suppliers = rawSuppliers is List
         ? rawSuppliers
-            .whereType<Map>()
-            .map((item) => Map<String, dynamic>.from(item))
-            .toList()
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList()
         : <Map<String, dynamic>>[];
     setState(() {
       _group = group;
@@ -124,9 +125,9 @@ class _SupplierGroupDetailPageState extends State<SupplierGroupDetailPage> {
   Widget build(BuildContext context) {
     final name = (_group?['group_name'] ?? widget.group.name).toString();
     final code = (_group?['group_code'] ?? widget.group.code).toString();
-    final status = (_group?['status'] ??
-            (widget.group.isActive ? 'active' : 'inactive'))
-        .toString();
+    final status =
+        (_group?['status'] ?? (widget.group.isActive ? 'active' : 'inactive'))
+            .toString();
 
     return Scaffold(
       appBar: AppBar(
@@ -141,197 +142,196 @@ class _SupplierGroupDetailPageState extends State<SupplierGroupDetailPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: _green))
           : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(_error!, textAlign: TextAlign.center),
-                        const SizedBox(height: 12),
-                        FilledButton.icon(
-                          onPressed: _load,
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Coba Lagi'),
-                        ),
-                      ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_error!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: _load,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Coba Lagi'),
                     ),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: CustomScrollView(
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                          child: Container(
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF173F32), Color(0xFF286246)],
+                  ],
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF173F32), Color(0xFF286246)],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: _gold.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(15),
                               ),
-                              borderRadius: BorderRadius.circular(20),
+                              child: const Icon(
+                                Icons.groups_2_rounded,
+                                color: Color(0xFFFFD75E),
+                              ),
                             ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: _gold.withValues(alpha: 0.18),
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: const Icon(
-                                    Icons.groups_2_rounded,
-                                    color: Color(0xFFFFD75E),
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '$code • ${status == 'active' ? 'Aktif' : 'Nonaktif'}',
-                                        style: const TextStyle(
-                                          color: Color(0xFFD5E3DC),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    '${_suppliers.length} supplier',
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    name,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(
-                              hintText: 'Cari kode, nama supplier, atau buyer...',
-                              prefixIcon: const Icon(Icons.search_rounded),
-                              suffixIcon: _searchController.text.isEmpty
-                                  ? null
-                                  : IconButton(
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        setState(() {});
-                                      },
-                                      icon: const Icon(Icons.clear_rounded),
-                                    ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFE1E8DF),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_filteredSuppliers.isEmpty)
-                        const SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: Text('Belum ada supplier dalam group ini.'),
-                          ),
-                        )
-                      else
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-                          sliver: SliverList.separated(
-                            itemCount: _filteredSuppliers.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 8),
-                            itemBuilder: (context, index) {
-                              final supplier = _filteredSuppliers[index];
-                              final active =
-                                  supplier['status_user']?.toString() == '1';
-                              final buyerName = _nestedName(
-                                supplier,
-                                const ['master_buyer', 'masterBuyer'],
-                                const ['full_name', 'name'],
-                              );
-                              final bankName = _nestedName(
-                                supplier,
-                                const ['master_bank', 'masterBank'],
-                                const ['bank_name', 'name'],
-                              );
-                              return Card(
-                                margin: EdgeInsets.zero,
-                                child: ListTile(
-                                  onTap: _canViewSupplier
-                                      ? () => _openSupplier(supplier)
-                                      : null,
-                                  leading: CircleAvatar(
-                                    backgroundColor: active
-                                        ? const Color(0xFFE5F2E7)
-                                        : const Color(0xFFF0F1EF),
-                                    child: Icon(
-                                      Icons.storefront_rounded,
-                                      color: active ? _green : Colors.black45,
-                                    ),
-                                  ),
-                                  title: Text(
-                                    '${supplier['nama_vendor'] ?? '-'}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: _ink,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.w800,
                                     ),
                                   ),
-                                  subtitle: Text(
-                                    '${supplier['vendor_id'] ?? '-'}\nBuyer: $buyerName • Bank: $bankName',
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '$code \u2022 ${status == 'active' ? 'Aktif' : 'Nonaktif'}',
+                                    style: const TextStyle(
+                                      color: Color(0xFFD5E3DC),
+                                    ),
                                   ),
-                                  isThreeLine: true,
-                                  trailing: _canViewSupplier
-                                      ? const Icon(Icons.chevron_right_rounded)
-                                      : null,
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${_suppliers.length} supplier',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
                                 ),
-                              );
-                            },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: 'Cari kode, nama supplier, atau buyer...',
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          suffixIcon: _searchController.text.isEmpty
+                              ? null
+                              : IconButton(
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {});
+                                  },
+                                  icon: const Icon(Icons.clear_rounded),
+                                ),
+                          filled: true,
+                          fillColor: Theme.of(context).colorScheme.surface,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE1E8DF),
+                            ),
                           ),
                         ),
-                    ],
+                      ),
+                    ),
                   ),
-                ),
+                  if (_filteredSuppliers.isEmpty)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Text('Belum ada supplier dalam group ini.'),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                      sliver: SliverList.separated(
+                        itemCount: _filteredSuppliers.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final supplier = _filteredSuppliers[index];
+                          final active =
+                              supplier['status_user']?.toString() == '1';
+                          final buyerName = _nestedName(
+                            supplier,
+                            const ['master_buyer', 'masterBuyer'],
+                            const ['full_name', 'name'],
+                          );
+                          final bankName = _nestedName(
+                            supplier,
+                            const ['master_bank', 'masterBank'],
+                            const ['bank_name', 'name'],
+                          );
+                          return Card(
+                            margin: EdgeInsets.zero,
+                            child: ListTile(
+                              onTap: _canViewSupplier
+                                  ? () => _openSupplier(supplier)
+                                  : null,
+                              leading: CircleAvatar(
+                                backgroundColor: active
+                                    ? const Color(0xFFE5F2E7)
+                                    : const Color(0xFFF0F1EF),
+                                child: Icon(
+                                  Icons.storefront_rounded,
+                                  color: active ? _green : Colors.black45,
+                                ),
+                              ),
+                              title: Text(
+                                '${supplier['nama_vendor'] ?? '-'}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: _ink,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              subtitle: Text(
+                                '${supplier['vendor_id'] ?? '-'}\nBuyer: $buyerName \u2022 Bank: $bankName',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              isThreeLine: true,
+                              trailing: _canViewSupplier
+                                  ? const Icon(Icons.chevron_right_rounded)
+                                  : null,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }

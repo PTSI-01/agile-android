@@ -14,7 +14,7 @@ class _PurchasePageState extends State<PurchasePage> {
   static const green = Color(0xFF1F7A2E);
   static const muted = Color(0xFF7D8983);
   static const gold = Color(0xFFA66F00);
-  static const Map<String, List<String>> _statusFilters = {
+  static final Map<String, List<String>> _statusFilters = {
     'Semua': <String>[],
     'Proses Kirim': <String>['0'],
     'Proses Lab Incoming': <String>['1'],
@@ -86,7 +86,7 @@ class _PurchasePageState extends State<PurchasePage> {
   String search = '';
 
   // Filter States
-  DateTime fromDate = DateTime.now().subtract(const Duration(days: 3));
+  DateTime fromDate = DateTime.now().subtract(Duration(days: 3));
   DateTime toDate = DateTime.now();
   String selectedStatusFilter = 'Semua';
   String selectedSupplierFilter = 'Semua';
@@ -133,7 +133,7 @@ class _PurchasePageState extends State<PurchasePage> {
             '${r['status_transaksi'] ?? r['status'] ?? r['status_po'] ?? ''}'
                 .trim();
         final acceptedStatuses =
-            _statusFilters[selectedStatusFilter] ?? const <String>[];
+            _statusFilters[selectedStatusFilter] ?? <String>[];
         if (!acceptedStatuses.contains(status)) return false;
       }
 
@@ -186,29 +186,29 @@ class _PurchasePageState extends State<PurchasePage> {
   void _showDateFilterSheet() {
     showModalBottomSheet<void>(
       context: context,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Filter Tanggal Transaksi',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: ink,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.today_rounded, color: green),
-              title: const Text('Hari Ini'),
+              leading: Icon(Icons.today_rounded, color: green),
+              title: Text('Hari Ini'),
               trailing: datePresetLabel == 'Hari Ini'
-                  ? const Icon(Icons.check, color: green)
+                  ? Icon(Icons.check, color: green)
                   : null,
               onTap: () {
                 setState(() {
@@ -220,14 +220,14 @@ class _PurchasePageState extends State<PurchasePage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.date_range_rounded, color: green),
-              title: const Text('3 Hari Terakhir (Default)'),
+              leading: Icon(Icons.date_range_rounded, color: green),
+              title: Text('3 Hari Terakhir (Default)'),
               trailing: datePresetLabel == '3 Hari Terakhir'
-                  ? const Icon(Icons.check, color: green)
+                  ? Icon(Icons.check, color: green)
                   : null,
               onTap: () {
                 setState(() {
-                  fromDate = DateTime.now().subtract(const Duration(days: 3));
+                  fromDate = DateTime.now().subtract(Duration(days: 3));
                   toDate = DateTime.now();
                   datePresetLabel = '3 Hari Terakhir';
                 });
@@ -235,14 +235,14 @@ class _PurchasePageState extends State<PurchasePage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.calendar_month_rounded, color: green),
-              title: const Text('7 Hari Terakhir'),
+              leading: Icon(Icons.calendar_month_rounded, color: green),
+              title: Text('7 Hari Terakhir'),
               trailing: datePresetLabel == '7 Hari Terakhir'
-                  ? const Icon(Icons.check, color: green)
+                  ? Icon(Icons.check, color: green)
                   : null,
               onTap: () {
                 setState(() {
-                  fromDate = DateTime.now().subtract(const Duration(days: 7));
+                  fromDate = DateTime.now().subtract(Duration(days: 7));
                   toDate = DateTime.now();
                   datePresetLabel = '7 Hari Terakhir';
                 });
@@ -250,14 +250,14 @@ class _PurchasePageState extends State<PurchasePage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.calendar_month_outlined, color: green),
-              title: const Text('Bulan Ini (30 Hari)'),
+              leading: Icon(Icons.calendar_month_outlined, color: green),
+              title: Text('Bulan Ini (30 Hari)'),
               trailing: datePresetLabel == '30 Hari Terakhir'
-                  ? const Icon(Icons.check, color: green)
+                  ? Icon(Icons.check, color: green)
                   : null,
               onTap: () {
                 setState(() {
-                  fromDate = DateTime.now().subtract(const Duration(days: 30));
+                  fromDate = DateTime.now().subtract(Duration(days: 30));
                   toDate = DateTime.now();
                   datePresetLabel = '30 Hari Terakhir';
                 });
@@ -265,14 +265,14 @@ class _PurchasePageState extends State<PurchasePage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.edit_calendar_rounded, color: green),
-              title: const Text('Pilih Rentang Tanggal Custom...'),
+              leading: Icon(Icons.edit_calendar_rounded, color: green),
+              title: Text('Pilih Rentang Tanggal Custom...'),
               onTap: () async {
                 Navigator.pop(ctx);
                 final picked = await showDateRangePicker(
                   context: context,
                   firstDate: DateTime(2020),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  lastDate: DateTime.now().add(Duration(days: 365)),
                   initialDateRange: DateTimeRange(start: fromDate, end: toDate),
                 );
                 if (picked != null) {
@@ -295,26 +295,26 @@ class _PurchasePageState extends State<PurchasePage> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => SafeArea(
         child: SizedBox(
           height: MediaQuery.sizeOf(ctx).height * 0.68,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Filter Status PO',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: ink,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Expanded(
                   child: ListView(
                     children: _statusFilters.keys
@@ -323,7 +323,7 @@ class _PurchasePageState extends State<PurchasePage> {
                             dense: true,
                             title: Text(statusLabel),
                             trailing: selectedStatusFilter == statusLabel
-                                ? const Icon(Icons.check, color: green)
+                                ? Icon(Icons.check, color: green)
                                 : null,
                             onTap: () {
                               setState(
@@ -348,7 +348,7 @@ class _PurchasePageState extends State<PurchasePage> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
@@ -373,33 +373,33 @@ class _PurchasePageState extends State<PurchasePage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Filter Supplier',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: ink,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: controller,
                     onChanged: (_) => refresh(() {}),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       prefixIcon: Icon(Icons.search),
                       hintText: 'Cari supplier...',
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   SizedBox(
                     height: 300,
                     child: ListView(
                       children: [
                         ListTile(
-                          title: const Text('Semua Supplier'),
+                          title: Text('Semua Supplier'),
                           trailing: selectedSupplierFilter == 'Semua'
-                              ? const Icon(Icons.check, color: green)
+                              ? Icon(Icons.check, color: green)
                               : null,
                           onTap: () {
                             setState(() => selectedSupplierFilter = 'Semua');
@@ -413,7 +413,7 @@ class _PurchasePageState extends State<PurchasePage> {
                           return ListTile(
                             title: Text('$id - $name'),
                             trailing: isSelected
-                                ? const Icon(Icons.check, color: green)
+                                ? Icon(Icons.check, color: green)
                                 : null,
                             onTap: () {
                               setState(() => selectedSupplierFilter = id);
@@ -442,12 +442,12 @@ class _PurchasePageState extends State<PurchasePage> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFFE5EFDF) : Colors.white,
+          color: isActive ? Color(0xFFE5EFDF) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isActive ? green : const Color(0xFFD0D7CB),
+            color: isActive ? green : Color(0xFFD0D7CB),
             width: 1.2,
           ),
         ),
@@ -462,11 +462,11 @@ class _PurchasePageState extends State<PurchasePage> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
-                  color: isActive ? ink : const Color(0xFF33423A),
+                  color: isActive ? ink : Color(0xFF33423A),
                 ),
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: 2),
             Icon(
               Icons.keyboard_arrow_down_rounded,
               size: 16,
@@ -484,21 +484,19 @@ class _PurchasePageState extends State<PurchasePage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus PO'),
+        title: Text('Hapus PO'),
         content: Text(
           'Apakah Anda yakin ingin menghapus PO ${row['kode_transaksi'] ?? id}?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
+            child: Text('Batal'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFD14942),
-            ),
+            style: FilledButton.styleFrom(backgroundColor: Color(0xFFD14942)),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus'),
+            child: Text('Hapus'),
           ),
         ],
       ),
@@ -508,9 +506,8 @@ class _PurchasePageState extends State<PurchasePage> {
       try {
         await PurchaseService.remove(id);
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('PO berhasil dihapus')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('PO berhasil dihapus')));
         }
         _load();
       } catch (e) {
@@ -526,7 +523,7 @@ class _PurchasePageState extends State<PurchasePage> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
@@ -558,28 +555,28 @@ class _PurchasePageState extends State<PurchasePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: Text(
                       'PO: ${row['kode_transaksi'] ?? '-'}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: ink,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
-              const Divider(),
-              const SizedBox(height: 8),
+              Divider(),
+              SizedBox(height: 8),
               _detailRow('Kode PO', '${row['kode_transaksi'] ?? '-'}'),
               _detailRow(
                 'Supplier',
@@ -602,24 +599,24 @@ class _PurchasePageState extends State<PurchasePage> {
                 'Rp ${_fmt(total, decimal: true)}',
                 isBold: true,
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFD14942),
-                        side: const BorderSide(color: Color(0xFFD14942)),
+                        foregroundColor: Color(0xFFD14942),
+                        side: BorderSide(color: Color(0xFFD14942)),
                       ),
                       onPressed: () {
                         Navigator.pop(ctx);
                         _delete(row);
                       },
-                      icon: const Icon(Icons.delete_outline_rounded),
-                      label: const Text('Hapus'),
+                      icon: Icon(Icons.delete_outline_rounded),
+                      label: Text('Hapus'),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: FilledButton.icon(
                       style: FilledButton.styleFrom(backgroundColor: green),
@@ -627,8 +624,8 @@ class _PurchasePageState extends State<PurchasePage> {
                         Navigator.pop(ctx);
                         _form(row);
                       },
-                      icon: const Icon(Icons.edit_rounded),
-                      label: const Text('Edit / Ubah'),
+                      icon: Icon(Icons.edit_rounded),
+                      label: Text('Edit / Ubah'),
                     ),
                   ),
                 ],
@@ -642,14 +639,11 @@ class _PurchasePageState extends State<PurchasePage> {
 
   Widget _detailRow(String label, String value, {bool isBold = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.black54, fontSize: 13),
-          ),
+          Text(label, style: TextStyle(color: Colors.black54, fontSize: 13)),
           Flexible(
             child: Text(
               value,
@@ -679,7 +673,7 @@ class _PurchasePageState extends State<PurchasePage> {
             return text.contains(q);
           }).toList();
           return AlertDialog(
-            title: const Text('Pilih Supplier'),
+            title: Text('Pilih Supplier'),
             content: SizedBox(
               width: 400,
               height: 420,
@@ -689,16 +683,16 @@ class _PurchasePageState extends State<PurchasePage> {
                     controller: controller,
                     autofocus: true,
                     onChanged: (_) => refresh(() {}),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       prefixIcon: Icon(Icons.search),
                       hintText: 'Cari kode atau nama supplier',
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Expanded(
                     child: list.isEmpty
-                        ? const Center(child: Text('Supplier tidak ditemukan'))
+                        ? Center(child: Text('Supplier tidak ditemukan'))
                         : ListView.builder(
                             itemCount: list.length,
                             itemBuilder: (_, i) {
@@ -709,7 +703,7 @@ class _PurchasePageState extends State<PurchasePage> {
                               return ListTile(
                                 title: Text(label),
                                 trailing: id == current
-                                    ? const Icon(Icons.check)
+                                    ? Icon(Icons.check)
                                     : null,
                                 onTap: () => Navigator.pop(ctx, id),
                               );
@@ -938,10 +932,12 @@ class _PurchasePageState extends State<PurchasePage> {
         tonaseStr = extractStr(firstDetail, 'tonase_supplier', ['tonase']);
         hargaStr = extractStr(firstDetail, 'harga_supplier', ['harga']);
       }
-      if (tonaseStr.isEmpty)
+      if (tonaseStr.isEmpty) {
         tonaseStr = extractStr(row, 'tonase_supplier', ['tonase']);
-      if (hargaStr.isEmpty)
+      }
+      if (hargaStr.isEmpty) {
         hargaStr = extractStr(row, 'harga_supplier', ['harga']);
+      }
     } else if (selectedCategory == '2') {
       tonaseStr = extractStr(row, 'tonase_supplier', ['tonase']);
       hargaStr = '';
@@ -1138,7 +1134,7 @@ class _PurchasePageState extends State<PurchasePage> {
 
           final stepHeader = Row(
             children: [
-              for (final item in const [
+              for (final item in [
                 (1, 'Data Supplier'),
                 (2, 'Wilayah'),
                 (3, 'Logistik & Harga'),
@@ -1150,7 +1146,7 @@ class _PurchasePageState extends State<PurchasePage> {
                         radius: 15,
                         backgroundColor: step == item.$1
                             ? green
-                            : const Color(0xFFE0E6DF),
+                            : Color(0xFFE0E6DF),
                         child: Text(
                           '${item.$1}',
                           style: TextStyle(
@@ -1160,13 +1156,13 @@ class _PurchasePageState extends State<PurchasePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      SizedBox(height: 3),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
                           item.$2,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 9),
+                          style: TextStyle(fontSize: 9),
                         ),
                       ),
                     ],
@@ -1176,10 +1172,7 @@ class _PurchasePageState extends State<PurchasePage> {
           );
 
           return AlertDialog(
-            insetPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 24,
-            ),
+            insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             title: Text(
               row == null
                   ? 'Tambah PO'
@@ -1191,7 +1184,7 @@ class _PurchasePageState extends State<PurchasePage> {
               child: Column(
                 children: [
                   stepHeader,
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scroll,
@@ -1203,11 +1196,11 @@ class _PurchasePageState extends State<PurchasePage> {
                             initialValue: ['1', '2'].contains(selectedCategory)
                                 ? selectedCategory
                                 : null,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Kategori pembelian *',
                               border: OutlineInputBorder(),
                             ),
-                            items: const [
+                            items: [
                               DropdownMenuItem(
                                 value: '1',
                                 child: Text('Harga Dibawah'),
@@ -1228,7 +1221,7 @@ class _PurchasePageState extends State<PurchasePage> {
                               }
                             }),
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                           DropdownButtonFormField<String>(
                             key: ValueKey(
                               'site_${selectedSite}_${siteOptions.length}',
@@ -1237,7 +1230,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                 siteOptions.any((x) => x.value == selectedSite)
                                 ? selectedSite
                                 : null,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Lokasi site *',
                               border: OutlineInputBorder(),
                             ),
@@ -1264,7 +1257,7 @@ class _PurchasePageState extends State<PurchasePage> {
                               }
                             },
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                           InkWell(
                             onTap: () async {
                               final v = await _chooseSupplier(selectedSupplier);
@@ -1275,7 +1268,7 @@ class _PurchasePageState extends State<PurchasePage> {
                               }
                             },
                             child: InputDecorator(
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Supplier *',
                                 suffixIcon: Icon(Icons.search),
                                 border: OutlineInputBorder(),
@@ -1284,7 +1277,7 @@ class _PurchasePageState extends State<PurchasePage> {
                             ),
                           ),
                           if (selectedCategory.isNotEmpty) ...[
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             DropdownButtonFormField<String>(
                               key: ValueKey(
                                 'item_${selectedItem}_${itemOptions.length}',
@@ -1295,7 +1288,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                   )
                                   ? selectedItem
                                   : null,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Item *',
                                 border: OutlineInputBorder(),
                               ),
@@ -1304,45 +1297,45 @@ class _PurchasePageState extends State<PurchasePage> {
                                 selectedItem = v ?? '';
                               }),
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             TextField(
                               controller: t,
                               keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Tonase supplier *',
                                 border: OutlineInputBorder(),
                               ),
                             ),
                             if (selectedCategory == '1') ...[
-                              const SizedBox(height: 10),
+                              SizedBox(height: 10),
                               TextField(
                                 controller: price,
                                 keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Harga supplier *',
                                   border: OutlineInputBorder(),
                                 ),
                               ),
                             ],
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             TextField(
                               controller: n,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Nopol truk *',
                                 border: OutlineInputBorder(),
                               ),
                             ),
                           ],
                           if (step >= 2) ...[
-                            const Divider(height: 24),
-                            const Align(
+                            Divider(height: 24),
+                            Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 'Wilayah Pengambilan',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             DropdownButtonFormField<String>(
                               key: ValueKey(
                                 'prov_${selectedProvince}_${provinces.length}',
@@ -1355,7 +1348,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                   )
                                   ? selectedProvince
                                   : null,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Provinsi *',
                                 border: OutlineInputBorder(),
                               ),
@@ -1392,7 +1385,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                 }
                               },
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             DropdownButtonFormField<String>(
                               key: ValueKey(
                                 'city_${selectedCity}_${cities.length}',
@@ -1403,7 +1396,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                   )
                                   ? selectedCity
                                   : null,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Kabupaten/Kota *',
                                 border: OutlineInputBorder(),
                               ),
@@ -1438,7 +1431,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                 }
                               },
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             DropdownButtonFormField<String>(
                               key: ValueKey(
                                 'dist_${selectedDistrict}_${districts.length}',
@@ -1451,7 +1444,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                   )
                                   ? selectedDistrict
                                   : null,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Kecamatan *',
                                 border: OutlineInputBorder(),
                               ),
@@ -1477,7 +1470,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                   });
                                   if (data.isEmpty && ctx.mounted) {
                                     ScaffoldMessenger.of(ctx).showSnackBar(
-                                      const SnackBar(
+                                      SnackBar(
                                         content: Text(
                                           'Desa untuk kecamatan ini tidak ditemukan',
                                         ),
@@ -1493,7 +1486,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                 }
                               },
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             DropdownButtonFormField<String>(
                               key: ValueKey(
                                 'vill_${selectedVillage}_${villages.length}',
@@ -1505,7 +1498,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                   )
                                   ? selectedVillage
                                   : null,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Desa/Kelurahan *',
                                 border: OutlineInputBorder(),
                               ),
@@ -1523,26 +1516,26 @@ class _PurchasePageState extends State<PurchasePage> {
                             ),
                           ],
                           if (step >= 3) ...[
-                            const Divider(height: 24),
-                            const Align(
+                            Divider(height: 24),
+                            Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 'Logistik & Harga',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             DropdownButtonFormField<String>(
                               key: ValueKey('ship_$selectedShipping'),
                               initialValue:
                                   ['SEWA', 'AMBIL'].contains(selectedShipping)
                                   ? selectedShipping
                                   : 'AMBIL',
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Jenis pengiriman *',
                                 border: OutlineInputBorder(),
                               ),
-                              items: const [
+                              items: [
                                 DropdownMenuItem(
                                   value: 'SEWA',
                                   child: Text('Sewa Truk'),
@@ -1565,7 +1558,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                     }),
                             ),
                             if (selectedShipping == 'SEWA') ...[
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               DropdownButtonFormField<String>(
                                 key: ValueKey(
                                   'price_${selectedPriceList}_${priceLists.length}',
@@ -1576,7 +1569,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                     )
                                     ? selectedPriceList
                                     : null,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Item sewa *',
                                   border: OutlineInputBorder(),
                                 ),
@@ -1603,31 +1596,31 @@ class _PurchasePageState extends State<PurchasePage> {
                                   });
                                 },
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               TextField(
                                 controller: sewaPrice,
                                 keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText:
                                       'Harga sewa truk (otomatis, bisa diubah)',
                                   prefixText: 'Rp ',
                                   border: OutlineInputBorder(),
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               TextField(
                                 controller: kuli,
                                 keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Biaya kuli',
                                   border: OutlineInputBorder(),
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               TextField(
                                 controller: intern,
                                 keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Biaya truk intern',
                                   border: OutlineInputBorder(),
                                 ),
@@ -1644,7 +1637,7 @@ class _PurchasePageState extends State<PurchasePage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Batal'),
+                child: Text('Batal'),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: green),
@@ -1654,7 +1647,7 @@ class _PurchasePageState extends State<PurchasePage> {
                       selectedSite.isEmpty ||
                       selectedItem.isEmpty) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         content: Text(
                           'Lengkapi kategori, site, supplier, dan item',
                         ),
@@ -1669,7 +1662,7 @@ class _PurchasePageState extends State<PurchasePage> {
                     WidgetsBinding.instance.addPostFrameCallback(
                       (_) => scroll.animateTo(
                         scroll.position.maxScrollExtent,
-                        duration: const Duration(milliseconds: 350),
+                        duration: Duration(milliseconds: 350),
                         curve: Curves.easeOut,
                       ),
                     );
@@ -1681,7 +1674,7 @@ class _PurchasePageState extends State<PurchasePage> {
                         selectedDistrict.isEmpty ||
                         selectedVillage.isEmpty) {
                       ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
                             'Lengkapi wilayah pengambilan terlebih dahulu',
                           ),
@@ -1695,7 +1688,7 @@ class _PurchasePageState extends State<PurchasePage> {
                     WidgetsBinding.instance.addPostFrameCallback(
                       (_) => scroll.animateTo(
                         scroll.position.maxScrollExtent,
-                        duration: const Duration(milliseconds: 350),
+                        duration: Duration(milliseconds: 350),
                         curve: Curves.easeOut,
                       ),
                     );
@@ -1751,9 +1744,7 @@ class _PurchasePageState extends State<PurchasePage> {
                                 ),
                                 Text(
                                   'Total harga beli gabah: Rp ${_fmt(totalGabah)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ],
@@ -1763,12 +1754,12 @@ class _PurchasePageState extends State<PurchasePage> {
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(previewCtx, false),
-                          child: const Text('Kembali'),
+                          child: Text('Kembali'),
                         ),
                         FilledButton(
                           style: FilledButton.styleFrom(backgroundColor: green),
                           onPressed: () => Navigator.pop(previewCtx, true),
-                          child: const Text('Simpan'),
+                          child: Text('Simpan'),
                         ),
                       ],
                     ),
@@ -1858,15 +1849,15 @@ class _PurchasePageState extends State<PurchasePage> {
     final kodePo = '${r['kode_transaksi'] ?? '-'}';
 
     final tonaseAndHargaText = (!isTitip && hargaPerKg > 0)
-        ? '${_fmt(tonaseKg)} Kg • @Rp ${_fmt(hargaPerKg)}/Kg'
+        ? '${_fmt(tonaseKg)} Kg \u2022 @Rp ${_fmt(hargaPerKg)}/Kg'
         : '${_fmt(tonaseKg)} Kg';
 
     return Material(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       child: InkWell(
         onTap: () => _showDetail(r),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1874,9 +1865,7 @@ class _PurchasePageState extends State<PurchasePage> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: isTitip
-                      ? const Color(0xFFFFF3C4)
-                      : const Color(0xFFE5F2E7),
+                  color: isTitip ? Color(0xFFFFF3C4) : Color(0xFFE5F2E7),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
@@ -1887,32 +1876,32 @@ class _PurchasePageState extends State<PurchasePage> {
                   size: 22,
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       kodePo,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: ink,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       supplierName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: ink,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       tonaseAndHargaText,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF33423A),
@@ -1921,19 +1910,14 @@ class _PurchasePageState extends State<PurchasePage> {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: isTitip
-                          ? const Color(0xFFFFF3C4)
-                          : const Color(0xFFE5F2E7),
+                      color: isTitip ? Color(0xFFFFF3C4) : Color(0xFFE5F2E7),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -1945,31 +1929,27 @@ class _PurchasePageState extends State<PurchasePage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   if (totalHarga > 0)
                     Text(
                       'Rp ${_fmt(totalHarga)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: ink,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   PopupMenuButton<String>(
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(
-                      Icons.more_vert_rounded,
-                      size: 18,
-                      color: muted,
-                    ),
+                    constraints: BoxConstraints(),
+                    icon: Icon(Icons.more_vert_rounded, size: 18, color: muted),
                     onSelected: (value) {
                       if (value == 'detail') _showDetail(r);
                       if (value == 'edit') _form(r);
                       if (value == 'delete') _delete(r);
                     },
-                    itemBuilder: (_) => const [
+                    itemBuilder: (_) => [
                       PopupMenuItem(
                         value: 'detail',
                         child: Row(
@@ -2021,17 +2001,17 @@ class _PurchasePageState extends State<PurchasePage> {
     final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Riwayat Transaksi',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: ink,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        backgroundColor: const Color(0xFFF7F9F5),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: false,
       ),
@@ -2039,32 +2019,32 @@ class _PurchasePageState extends State<PurchasePage> {
         children: [
           // 1. TOP FILTER BAR
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            color: const Color(0xFFF7F9F5),
+            padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
+            color: Theme.of(context).scaffoldBackgroundColor,
             child: Column(
               children: [
                 TextField(
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search, color: muted),
+                    prefixIcon: Icon(Icons.search, color: muted),
                     hintText: 'Cari kode PO atau supplier...',
-                    hintStyle: const TextStyle(fontSize: 13, color: muted),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    hintStyle: TextStyle(fontSize: 13, color: muted),
+                    contentPadding: EdgeInsets.symmetric(vertical: 10),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Theme.of(context).colorScheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: Color(0xFFE5E9E0)),
+                      borderSide: BorderSide(color: Color(0xFFE5E9E0)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: Color(0xFFE5E9E0)),
+                      borderSide: BorderSide(color: Color(0xFFE5E9E0)),
                     ),
                   ),
                   onChanged: (v) {
                     setState(() => search = v);
                   },
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
@@ -2076,7 +2056,7 @@ class _PurchasePageState extends State<PurchasePage> {
                         onTap: _showDateFilterSheet,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Expanded(
                       child: _filterChip(
                         label: selectedStatusFilter == 'Semua'
@@ -2086,7 +2066,7 @@ class _PurchasePageState extends State<PurchasePage> {
                         onTap: _showStatusFilterSheet,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Expanded(
                       child: _filterChip(
                         label: selectedSupplierFilter == 'Semua'
@@ -2105,9 +2085,9 @@ class _PurchasePageState extends State<PurchasePage> {
           // 2. TRANSACTION LIST GROUPED BY DATE
           Expanded(
             child: loading
-                ? const Center(child: CircularProgressIndicator(color: green))
+                ? Center(child: CircularProgressIndicator(color: green))
                 : sortedDates.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'Tidak ada transaksi PO ditemukan.',
                       style: TextStyle(color: muted),
@@ -2117,7 +2097,7 @@ class _PurchasePageState extends State<PurchasePage> {
                     color: green,
                     onRefresh: _load,
                     child: ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 90),
+                      padding: EdgeInsets.only(bottom: 90),
                       itemCount: sortedDates.length,
                       itemBuilder: (context, index) {
                         final dateKey = sortedDates[index];
@@ -2128,20 +2108,22 @@ class _PurchasePageState extends State<PurchasePage> {
                           children: [
                             // DATE HEADER
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                               child: Text(
                                 _formatIndonesianDate(dateKey),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
-                                  color: ink,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface,
                                 ),
                               ),
                             ),
 
                             // ITEMS FOR THIS DATE
                             Container(
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 color: Colors.white,
                                 border: Border(
                                   top: BorderSide(color: Color(0xFFECEFE8)),
@@ -2150,14 +2132,13 @@ class _PurchasePageState extends State<PurchasePage> {
                               ),
                               child: ListView.separated(
                                 shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
+                                physics: NeverScrollableScrollPhysics(),
                                 itemCount: itemsForDate.length,
-                                separatorBuilder: (context, itemIdx) =>
-                                    const Divider(
-                                      height: 1,
-                                      indent: 72,
-                                      color: Color(0xFFF0F3ED),
-                                    ),
+                                separatorBuilder: (context, itemIdx) => Divider(
+                                  height: 1,
+                                  indent: 72,
+                                  color: Color(0xFFF0F3ED),
+                                ),
                                 itemBuilder: (context, itemIdx) {
                                   return _poCard(itemsForDate[itemIdx]);
                                 },
@@ -2175,11 +2156,8 @@ class _PurchasePageState extends State<PurchasePage> {
         backgroundColor: green,
         foregroundColor: Colors.white,
         onPressed: () => _form(),
-        label: const Text(
-          'Tambah PO',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        icon: const Icon(Icons.add_rounded),
+        label: Text('Tambah PO', style: TextStyle(fontWeight: FontWeight.bold)),
+        icon: Icon(Icons.add_rounded),
       ),
     );
   }
