@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/purchase_service.dart';
 
 class PurchasePage extends StatefulWidget {
-  const PurchasePage({super.key});
+  final String? initialPurchaseId;
+  const PurchasePage({super.key, this.initialPurchaseId});
 
   @override
   State<PurchasePage> createState() => _PurchasePageState();
@@ -113,7 +114,25 @@ class _PurchasePageState extends State<PurchasePage> {
             .showSnackBar(SnackBar(content: Text('$e')));
       }
     }
-    if (mounted) setState(() => loading = false);
+    if (mounted) {
+      setState(() => loading = false);
+      final target = widget.initialPurchaseId;
+      if (target != null) {
+        Map<String, dynamic>? row;
+        for (final item in rows) {
+          if (item['id']?.toString() == target) {
+            row = item;
+            break;
+          }
+        }
+        if (row != null) {
+          final targetRow = row;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _showDetail(targetRow);
+          });
+        }
+      }
+    }
   }
 
   List<Map<String, dynamic>> get _filteredRows {

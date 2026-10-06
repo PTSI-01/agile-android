@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -16,7 +18,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ApiConfig.init();
   await ThemeService.init();
-  await PushNotificationService.initialize();
+  // FCM must not block the first screen when Google Play Services is slow or
+  // temporarily unavailable. Token registration retries independently.
+  unawaited(PushNotificationService.initialize());
   final loggedIn = await AuthService.isLoggedIn();
   UserModel? user = loggedIn ? await AuthService.getCurrentUser() : null;
   final dashboard = loggedIn ? await AuthService.getDashboard() : null;
@@ -39,6 +43,8 @@ class MyApp extends StatelessWidget {
     valueListenable: ThemeService.mode,
     builder: (context, themeMode, _) => MaterialApp(
       title: 'Agile E-Procurement',
+      navigatorKey: PushNotificationService.navigatorKey,
+      scaffoldMessengerKey: PushNotificationService.scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: _theme(Brightness.light),

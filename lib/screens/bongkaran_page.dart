@@ -658,6 +658,8 @@ class _BongkaranFormState extends State<_BongkaranForm> {
         ? _map(widget.reception!['buyer'])
         : _map(widget.bongkaran?['buyer']);
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
       title: Text(_isEdit ? 'Edit Data Bongkaran' : 'Input Data Bongkaran'),
       content: SizedBox(
         width: 540,
@@ -669,14 +671,16 @@ class _BongkaranFormState extends State<_BongkaranForm> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _summary(reception, buyer),
+                _sectionTitle('Dokumen Bongkaran', Icons.assignment_outlined),
                 TextFormField(
                   controller: _dtmController,
-                  decoration: InputDecoration(labelText: 'No. DTM'),
+                  decoration: _decoration('No. DTM', Icons.confirmation_number_outlined),
                   validator: _required,
                 ),
+                const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _validValue(_surveyorId, _list('surveyors')),
-                  decoration: InputDecoration(labelText: 'Surveyor'),
+                  decoration: _decoration('Surveyor', Icons.person_search_outlined),
                   validator: (value) => value == null ? 'Pilih surveyor' : null,
                   items: _list('surveyors')
                       .map(
@@ -688,9 +692,11 @@ class _BongkaranFormState extends State<_BongkaranForm> {
                       .toList(),
                   onChanged: (value) => setState(() => _surveyorId = value),
                 ),
+                const SizedBox(height: 18),
+                _sectionTitle('Lokasi Bongkar', Icons.location_on_outlined),
                 DropdownButtonFormField<String>(
                   initialValue: _validValue(_siteId, _sites),
-                  decoration: InputDecoration(labelText: 'Lokasi Site'),
+                  decoration: _decoration('Lokasi Site', Icons.business_outlined),
                   validator: (value) => value == null ? 'Pilih site' : null,
                   items: _sites
                       .map(
@@ -708,9 +714,10 @@ class _BongkaranFormState extends State<_BongkaranForm> {
                     _binId = null;
                   }),
                 ),
+                const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _validValue(_warehouseId, _warehouses),
-                  decoration: InputDecoration(labelText: 'Lokasi Gudang'),
+                  decoration: _decoration('Lokasi Gudang', Icons.warehouse_outlined),
                   validator: (value) => value == null ? 'Pilih gudang' : null,
                   items: _warehouses
                       .map(
@@ -727,9 +734,10 @@ class _BongkaranFormState extends State<_BongkaranForm> {
                     _binId = null;
                   }),
                 ),
+                const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _validValue(_binId, _bins),
-                  decoration: InputDecoration(labelText: 'Lokasi Bin'),
+                  decoration: _decoration('Lokasi Bin', Icons.inventory_2_outlined),
                   validator: (value) => value == null ? 'Pilih bin' : null,
                   items: _bins
                       .map(
@@ -743,9 +751,11 @@ class _BongkaranFormState extends State<_BongkaranForm> {
                       .toList(),
                   onChanged: (value) => setState(() => _binId = value),
                 ),
+                const SizedBox(height: 18),
+                _sectionTitle('Waktu dan Hasil Bongkar', Icons.scale_outlined),
                 DropdownButtonFormField<String>(
                   initialValue: _unloadTime,
-                  decoration: InputDecoration(labelText: 'Waktu Bongkar'),
+                   decoration: _decoration('Waktu Bongkar', Icons.schedule_outlined),
                   validator: (value) =>
                       value == null ? 'Pilih waktu bongkar' : null,
                   items:
@@ -763,21 +773,25 @@ class _BongkaranFormState extends State<_BongkaranForm> {
                           .toList(),
                   onChanged: (value) => setState(() => _unloadTime = value),
                 ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: _carriedController,
-                  decoration: InputDecoration(labelText: 'Z yang Dibawa'),
+                  decoration: _decoration('Z yang Dibawa', Icons.arrow_downward_rounded, suffix: 'Kg'),
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   validator: _validateNumber,
                 ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: _rejectedController,
-                  decoration: InputDecoration(labelText: 'Z yang Ditolak'),
+                  decoration: _decoration('Z yang Ditolak', Icons.remove_circle_outline, suffix: 'Kg'),
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   validator: _validateNumber,
                 ),
+                const SizedBox(height: 18),
+                _sectionTitle('Catatan', Icons.notes_outlined),
                 TextFormField(
                   controller: _noteController,
-                  decoration: InputDecoration(labelText: 'Keterangan'),
+                  decoration: _decoration('Keterangan (opsional)', Icons.notes_outlined),
                   maxLines: 3,
                 ),
               ],
@@ -800,6 +814,39 @@ class _BongkaranFormState extends State<_BongkaranForm> {
 
   String? _validValue(String? value, List<Map<String, dynamic>> rows) =>
       rows.any((row) => row['id']?.toString() == value) ? value : null;
+
+  InputDecoration _decoration(String label, IconData icon, {String? suffix}) =>
+      InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: 20),
+        suffixText: suffix,
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: const Color(0xFFD8E2D7)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: const Color(0xFFD8E2D7)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF1F7A2E), width: 1.5),
+        ),
+      );
+
+  Widget _sectionTitle(String title, IconData icon) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Row(
+      children: [
+        Icon(icon, size: 19, color: const Color(0xFF1F7A2E)),
+        const SizedBox(width: 8),
+        Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+      ],
+    ),
+  );
 
   Widget _summary(Map<String, dynamic> reception, Map<String, dynamic> buyer) {
     return Container(

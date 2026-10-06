@@ -401,7 +401,19 @@ class DashboardOverviewPage extends StatelessWidget {
                                 item['message']?.toString() ?? '-',
                               ].join(' · '),
                             ),
-                            onTap: () => Navigator.pop(sheetContext),
+                             onTap: () {
+                               Navigator.pop(sheetContext);
+                               if (!isBongkaran) {
+                                 Navigator.push(
+                                   context,
+                                   MaterialPageRoute(
+                                     builder: (_) => PurchasePage(
+                                       initialPurchaseId: item['id']?.toString(),
+                                     ),
+                                   ),
+                                 );
+                               }
+                             },
                           );
                         },
                       ),

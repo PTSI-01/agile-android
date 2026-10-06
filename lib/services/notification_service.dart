@@ -10,7 +10,7 @@ class NotificationService {
     final token = await AuthService.getToken();
     if (token == null || token.isEmpty) return const [];
     final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/notifications'),
+      Uri.parse('${ApiConfig.baseUrl}/v1/notifications'),
       headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     ).timeout(const Duration(seconds: 15));
     if (response.statusCode < 200 || response.statusCode >= 300) {
