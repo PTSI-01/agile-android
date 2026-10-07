@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/menu_item_model.dart';
 import '../screens/supplier/supplier_list_page.dart';
 import '../screens/purchase_page.dart';
+import '../screens/purchase_approval_page.dart';
 
 class MenuBottomSheet extends StatelessWidget {
   final MenuGroupItem group;
@@ -129,6 +130,14 @@ class MenuBottomSheet extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const PurchasePage(),
+                          ),
+                        );
+                      } else if (item.id == 'pb_manager_approval' ||
+                          item.route.contains('manager-approval')) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PurchaseApprovalPage(),
                           ),
                         );
                       } else {

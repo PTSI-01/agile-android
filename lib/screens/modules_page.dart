@@ -17,6 +17,8 @@ import 'price_list_item_page.dart';
 import 'item_category_page.dart';
 import 'purchase_page.dart';
 import 'purchase_target_page.dart';
+import 'purchase_approval_page.dart';
+import 'lab_module_page.dart';
 import 'province_page.dart';
 import 'city_page.dart';
 import 'district_page.dart';
@@ -107,6 +109,8 @@ class ModulesPageState extends State<ModulesPage> {
       'https://img.icons8.com/3d-fluency/94/verified-account.png';
   static const _finalDataVerificationIconUrl =
       'https://img.icons8.com/3d-fluency/94/approval.png';
+  static const _purchaseApprovalIconUrl =
+      'https://img.icons8.com/3d-fluency/94/thumb-up--v1.png';
   static const _reportIconUrl =
       'https://img.icons8.com/3d-fluency/94/chart.png';
   static const _changeLogIconUrl =
@@ -195,6 +199,11 @@ class ModulesPageState extends State<ModulesPage> {
     final value = '${x.code} ${x.title} ${x.url ?? ''}'.toLowerCase();
     final identity = '${x.code} ${x.title}'.toLowerCase();
     if (_isMasterWilayah(x)) return _masterWilayahIconUrl;
+    if (value.contains('approval sourcing manager') ||
+        value.contains('manager-approval') ||
+        value.contains('approval pembelian')) {
+      return _purchaseApprovalIconUrl;
+    }
     if (value.contains('change log') ||
         value.contains('changelog') ||
         value.contains('change_log') ||
@@ -505,6 +514,30 @@ class ModulesPageState extends State<ModulesPage> {
       p = const PurchaseTargetPage();
     } else if (u == '/bongkaran' || identity.contains('bongkaran')) {
       p = const BongkaranPage();
+    } else if (u.contains('manager-approval') ||
+        identity.contains('approval sourcing manager') ||
+        identity.contains('approval pembelian')) {
+      p = const PurchaseApprovalPage();
+    } else if (identity.contains('verifikasi data') ||
+        identity.contains('verifikasi final data') ||
+        u.contains('approval-final') ||
+        u.contains('approval_final')) {
+      p = const FinancePage();
+    } else if (identity.contains('approve lab incoming') ||
+        identity.contains('lab incoming') ||
+        u.contains('/qc/incoming') ||
+        u.contains('/approve/lab_incoming')) {
+      p = const LabModulePage(title: 'Approve Lab Incoming', resource: 'lab-incoming');
+    } else if (identity.contains('approve lab aktual') ||
+        identity.contains('lab aktual') ||
+        u.contains('/qc/aktual') ||
+        u.contains('/approve/lab_aktual')) {
+      p = const LabModulePage(title: 'Approve Lab Aktual', resource: 'lab-aktual');
+    } else if (identity.contains('parameter lab') ||
+        identity.contains('parameter qc') ||
+        u.contains('/qc/parameter') ||
+        u.contains('/parameter_lab')) {
+      p = const LabModulePage(title: 'Parameter Lab', parameters: true);
     } else if (u.contains('finance') ||
         identity.contains('finance') ||
         identity.contains('approval transaksi finance') ||
