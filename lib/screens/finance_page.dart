@@ -16,6 +16,7 @@ class _FinancePageState extends State<FinancePage> {
   bool _loading = true;
   String? _error;
   List<Map<String, dynamic>> _rows = [];
+  int _statusTab = 0;
   UserModel? _user;
 
   @override
@@ -164,6 +165,19 @@ class _FinancePageState extends State<FinancePage> {
               ),
             ),
             SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment(value: 0, label: Text('Belum Validasi')),
+                  ButtonSegment(value: 1, label: Text('Menunggu Verifikasi')),
+                  ButtonSegment(value: 2, label: Text('Selesai')),
+                ],
+                selected: {_statusTab},
+                onSelectionChanged: (v) => setState(() => _statusTab = v.first),
+              ),
+            ),
+            SizedBox(height: 8),
             Expanded(
               child: _loading
                   ? Center(child: CircularProgressIndicator())
@@ -203,9 +217,25 @@ class _FinancePageState extends State<FinancePage> {
 
   List<Map<String, dynamic>> get _filteredRows {
     final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) return _rows;
     return _rows.where((row) {
       final buyer = row['buyer'];
+      final transactionStatus =
+          int.tryParse(
+            (row['status_transaksi'] ??
+                    (buyer is Map ? buyer['status_transaksi'] : null) ??
+                    '0')
+                .toString(),
+          ) ??
+          0;
+      final financeStatus =
+          int.tryParse((row['status_finance'] ?? '0').toString()) ?? 0;
+      final matchesStatus = _statusTab == 0
+          ? transactionStatus == 8
+          : (_statusTab == 1
+                ? transactionStatus == 9
+                : transactionStatus >= 10 || financeStatus >= 1);
+      if (!matchesStatus) return false;
+      if (query.isEmpty) return true;
       final searchTarget = [
         row['legal_number'],
         row['buyer_code'],

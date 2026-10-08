@@ -19,6 +19,7 @@ import 'purchase_page.dart';
 import 'purchase_target_page.dart';
 import 'purchase_approval_page.dart';
 import 'lab_module_page.dart';
+import 'weighing_page.dart';
 import 'province_page.dart';
 import 'city_page.dart';
 import 'district_page.dart';
@@ -89,8 +90,7 @@ class ModulesPageState extends State<ModulesPage> {
       'https://img.icons8.com/3d-fluency/94/forklift.png';
   static const _labIconUrl =
       'https://img.icons8.com/3d-fluency/94/microscope.png';
-  static const _gabahIconUrl =
-      'https://img.icons8.com/3d-fluency/94/wheat.png';
+  static const _gabahIconUrl = 'https://img.icons8.com/3d-fluency/94/wheat.png';
   static const _labIncomingIconUrl =
       'https://img.icons8.com/3d-fluency/94/water.png';
   static const _labAktualIconUrl =
@@ -210,7 +210,8 @@ class ModulesPageState extends State<ModulesPage> {
         value.contains('change-log')) {
       return _changeLogIconUrl;
     }
-    final isReportContext = value.contains('report') ||
+    final isReportContext =
+        value.contains('report') ||
         value.contains('laporan') ||
         value.contains('report_') ||
         value.contains('report-');
@@ -506,6 +507,14 @@ class ModulesPageState extends State<ModulesPage> {
       p = const SupplierGroupPage();
     } else if (u.contains('supplier')) {
       p = const SupplierListPage();
+    } else if (identity.contains('timbangan masuk') ||
+        identity.contains('timbangan_masuk') ||
+        u.contains('timbangan-masuk')) {
+      p = const WeighingPage(stage: 'masuk');
+    } else if (identity.contains('timbangan keluar') ||
+        identity.contains('timbangan_keluar') ||
+        u.contains('timbangan-keluar')) {
+      p = const WeighingPage(stage: 'keluar');
     } else if (identity.contains('master-target') ||
         identity.contains('target pembelian') ||
         identity.contains('target_pembelian') ||
@@ -524,15 +533,22 @@ class ModulesPageState extends State<ModulesPage> {
         u.contains('approval_final')) {
       p = const FinancePage();
     } else if (identity.contains('approve lab incoming') ||
-        identity.contains('lab incoming') ||
-        u.contains('/qc/incoming') ||
         u.contains('/approve/lab_incoming')) {
-      p = const LabModulePage(title: 'Approve Lab Incoming', resource: 'lab-incoming');
+      p = const LabModulePage(
+        title: 'Approve Lab Incoming',
+        resource: 'lab-incoming',
+      );
+    } else if (identity.contains('lab incoming') ||
+        u.contains('/qc/incoming')) {
+      p = const LabModulePage(title: 'Lab Incoming', resource: 'lab-incoming');
     } else if (identity.contains('approve lab aktual') ||
-        identity.contains('lab aktual') ||
-        u.contains('/qc/aktual') ||
         u.contains('/approve/lab_aktual')) {
-      p = const LabModulePage(title: 'Approve Lab Aktual', resource: 'lab-aktual');
+      p = const LabModulePage(
+        title: 'Approve Lab Aktual',
+        resource: 'lab-aktual',
+      );
+    } else if (identity.contains('lab aktual') || u.contains('/qc/aktual')) {
+      p = const LabModulePage(title: 'Lab Aktual', resource: 'lab-aktual');
     } else if (identity.contains('parameter lab') ||
         identity.contains('parameter qc') ||
         u.contains('/qc/parameter') ||

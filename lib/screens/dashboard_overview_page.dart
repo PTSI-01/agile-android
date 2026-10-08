@@ -184,10 +184,7 @@ class DashboardOverviewPage extends StatelessWidget {
                         color: theme.colorScheme.onSurface,
                       );
                       return count > 0
-                          ? Badge(
-                              label: Text('$count'),
-                              child: icon,
-                            )
+                          ? Badge(label: Text('$count'), child: icon)
                           : icon;
                     },
                   ),
@@ -278,7 +275,7 @@ class DashboardOverviewPage extends StatelessWidget {
                   ),
                   SizedBox(height: 14),
                   Text(
-                    'Halo, $displayName! \u{1F44B}',
+                    'Selamat datang, $displayName',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -288,7 +285,7 @@ class DashboardOverviewPage extends StatelessWidget {
                   ),
                   SizedBox(height: 6),
                   Text(
-                    'Pantau seluruh proses pengadaan gabah, timbangan, uji QC lab, hingga pembayaran finance secara real-time.',
+                    'Bersama E-Procurement AJA wujudkan rantai pemasok yang lebih efisien.',
                     style: TextStyle(
                       color: Color(0xFFD5E3DC),
                       fontSize: 12,
@@ -297,6 +294,92 @@ class DashboardOverviewPage extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            SizedBox(height: 24),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Transaksi Terbaru',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: onOpenModules,
+                  child: const Text('Lihat Semua'),
+                ),
+              ],
+            ),
+            ...((dashboard?.metrics['latest_transactions'] as List? ?? const [])
+                .take(10)
+                .map((raw) {
+                  final item = Map<String, dynamic>.from(raw as Map);
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.receipt_long),
+                    ),
+                    title: Text(item['kode_transaksi']?.toString() ?? '-'),
+                    subtitle: Text(
+                      '${item['nama_supplier'] ?? '-'} · Qty ${item['tonase_final_aol'] ?? '-'}',
+                    ),
+                    trailing: Text('Rp ${item['harga_final'] ?? '-'}'),
+                  );
+                })
+                .toList()),
+            const SizedBox(height: 16),
+            Text(
+              'Ringkasan Hari Ini',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            SizedBox(height: 10),
+            GridView.count(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 1.75,
+              children: [
+                _metricCard(
+                  context,
+                  'Pembelian',
+                  '${dashboard?.metrics['po_count'] ?? 0}',
+                  Icons.shopping_cart_rounded,
+                  const Color(0xFFE3F3E4),
+                ),
+                _metricCard(
+                  context,
+                  'Timbangan',
+                  '${dashboard?.metrics['final_tonnage'] ?? 0} Kg',
+                  Icons.scale_rounded,
+                  const Color(0xFFFFF0D0),
+                ),
+                _metricCard(
+                  context,
+                  'Lab',
+                  'Rp ${dashboard?.metrics['lab_average_price'] ?? 0}',
+                  Icons.science_rounded,
+                  const Color(0xFFE0EEFF),
+                ),
+                _metricCard(
+                  context,
+                  'Finance',
+                  dashboard?.metrics['profit_label']?.toString() ??
+                      'Belum ada data',
+                  Icons.account_balance_wallet_rounded,
+                  const Color(0xFFF0E5FF),
+                ),
+              ],
             ),
             SizedBox(height: 24),
 
@@ -333,6 +416,58 @@ class DashboardOverviewPage extends StatelessWidget {
       ),
     );
   }
+
+  Widget _metricCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color bg,
+  ) => Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: const Color(0xFFE9EDE5)),
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: const Color(0xFF1F5B42), size: 21),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF7D8983)),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 
   Future<void> _showNotifications(BuildContext context) async {
     showModalBottomSheet<void>(
@@ -401,19 +536,19 @@ class DashboardOverviewPage extends StatelessWidget {
                                 item['message']?.toString() ?? '-',
                               ].join(' · '),
                             ),
-                             onTap: () {
-                               Navigator.pop(sheetContext);
-                               if (!isBongkaran) {
-                                 Navigator.push(
-                                   context,
-                                   MaterialPageRoute(
-                                     builder: (_) => PurchasePage(
-                                       initialPurchaseId: item['id']?.toString(),
-                                     ),
-                                   ),
-                                 );
-                               }
-                             },
+                            onTap: () {
+                              Navigator.pop(sheetContext);
+                              if (!isBongkaran) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => PurchasePage(
+                                      initialPurchaseId: item['id']?.toString(),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                           );
                         },
                       ),
@@ -843,8 +978,7 @@ class DashboardOverviewPage extends StatelessWidget {
         : value.contains('verifikasi final data') ||
               value.contains('verifikasi_final_data')
         ? 'https://img.icons8.com/3d-fluency/94/approval.png'
-        : value.contains('verifikasi data') ||
-              value.contains('verifikasi_data')
+        : value.contains('verifikasi data') || value.contains('verifikasi_data')
         ? 'https://img.icons8.com/3d-fluency/94/verified-account.png'
         : value.contains('timbangan masuk') ||
               value.contains('timbangan keluar') ||
