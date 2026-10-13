@@ -1714,10 +1714,28 @@ class _PurchasePageState extends State<PurchasePage> {
                     return;
                   }
 
-                  final tonase =
+                  // Read the controllers again here. TextField edits do not
+                  // rebuild the StatefulBuilder, so values captured during
+                  // the previous build can still contain the pricelist price.
+                  final previewTonase =
                       double.tryParse(t.text.replaceAll(',', '.')) ?? 0;
-                  final harga =
+                  final previewHarga =
                       double.tryParse(price.text.replaceAll(',', '.')) ?? 0;
+                  final previewSewa =
+                      double.tryParse(sewaPrice.text.replaceAll(',', '.')) ?? 0;
+                  final previewKuli =
+                      double.tryParse(kuli.text.replaceAll(',', '.')) ?? 0;
+                  final previewIntern =
+                      double.tryParse(intern.text.replaceAll(',', '.')) ?? 0;
+                  final previewIncTransport = previewTonase > 0
+                      ? (((previewTonase * previewHarga) +
+                                    previewSewa +
+                                    previewKuli) /
+                                previewTonase)
+                            .roundToDouble()
+                      : 0.0;
+                  final previewTotalGabah =
+                      (previewIncTransport * previewTonase) + previewIntern;
 
                   final confirm = await showDialog<bool>(
                     context: ctx,
@@ -1740,7 +1758,7 @@ class _PurchasePageState extends State<PurchasePage> {
                               Text('Supplier: $supplierLabel'),
                               Text('Site: $siteLabel'),
                               Text(
-                                'Tonase: ${_fmt(tonaseValue, decimal: true)} Ton',
+                                'Tonase: ${_fmt(previewTonase, decimal: true)} Ton',
                               ),
                               Text(
                                 'Wilayah: ${regionLabel(provinces, selectedProvince)} / ${regionLabel(cities, selectedCity)} / ${regionLabel(districts, selectedDistrict)} / ${regionLabel(villages, selectedVillage)}',
@@ -1749,20 +1767,18 @@ class _PurchasePageState extends State<PurchasePage> {
                                 'Pengiriman: ${selectedShipping == 'SEWA' ? 'Sewa Truk' : 'Ambil Sendiri'}',
                               ),
                               if (selectedShipping == 'SEWA') ...[
+                                Text('Harga sewa: Rp ${_fmt(previewSewa)}'),
+                                Text('Biaya kuli: Rp ${_fmt(previewKuli)}'),
                                 Text(
-                                  'Harga sewa: Rp ${_fmt(sewaValue, decimal: true)}',
-                                ),
-                                Text('Biaya kuli: Rp ${_fmt(kuliValue)}'),
-                                Text(
-                                  'Biaya truk intern: Rp ${_fmt(internValue)}',
+                                  'Biaya truk intern: Rp ${_fmt(previewIntern)}',
                                 ),
                               ],
                               if (selectedCategory == '1') ...[
                                 Text(
-                                  'Harga inc transport: Rp ${_fmt(incTransport)}',
+                                  'Harga inc transport: Rp ${_fmt(previewIncTransport)}',
                                 ),
                                 Text(
-                                  'Total harga beli gabah: Rp ${_fmt(totalGabah)}',
+                                  'Total harga beli gabah: Rp ${_fmt(previewTotalGabah)}',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                               ],
@@ -1795,8 +1811,10 @@ class _PurchasePageState extends State<PurchasePage> {
                       'site_id': selectedSite,
                       'kategori_transaksi': selectedCategory,
                       'item_id': selectedCategory == '2' ? selectedItem : null,
-                      'tonase_supplier': tonase,
-                      'harga_supplier': selectedCategory == '2' ? null : harga,
+                      'tonase_supplier': previewTonase,
+                      'harga_supplier': selectedCategory == '2'
+                          ? null
+                          : previewHarga,
                       'nopol_truk': n.text,
                       'provinsi_id': selectedProvince,
                       'kabupaten_id': selectedCity,
@@ -1809,26 +1827,26 @@ class _PurchasePageState extends State<PurchasePage> {
                           ? selectedPriceList
                           : null,
                       'harga_sewa_truk': selectedShipping == 'SEWA'
-                          ? sewaValue
+                          ? previewSewa
                           : null,
                       'harga_inc_transport': selectedCategory == '1'
-                          ? incTransport
+                          ? previewIncTransport
                           : null,
                       'harga_beli_gabah': selectedCategory == '1'
-                          ? totalGabah
+                          ? previewTotalGabah
                           : null,
                       'biaya_kuli': selectedShipping == 'SEWA'
-                          ? kuliValue
+                          ? previewKuli
                           : null,
                       'biaya_truk_intern': selectedShipping == 'SEWA'
-                          ? internValue
+                          ? previewIntern
                           : null,
                       'details': selectedCategory == '1'
                           ? [
                               {
                                 'item_id': selectedItem,
-                                'tonase_supplier': tonase,
-                                'harga_supplier': harga,
+                                'tonase_supplier': previewTonase,
+                                'harga_supplier': previewHarga,
                               },
                             ]
                           : [],

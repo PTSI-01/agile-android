@@ -41,11 +41,17 @@ class _WeighingPageState extends State<WeighingPage> {
 
   DateTime? _rowDate(Map<String, dynamic> row) {
     for (final key in [
-      'tanggal_transaksi',
+      'tanggal_timbang_keluar',
+      'tanggal_timbang_masuk',
       'tanggal_timbang',
       'tanggal_keluar',
-      'tanggal',
+      'tanggal_masuk',
       'created_at',
+      'updated_at',
+      'tanggal_transaksi',
+      'tanggal_po',
+      'tanggal_penerimaan',
+      'tanggal',
     ]) {
       final value = row[key]?.toString();
       if (value == null || value.length < 10) continue;
@@ -90,11 +96,16 @@ class _WeighingPageState extends State<WeighingPage> {
   }
 
   Future<void> pickDate(bool start) async {
+    final firstDate = !start && from != null ? from! : DateTime(2020);
+    final lastDate = start && to != null ? to! : DateTime(2100);
+    var initialDate = (start ? from : to) ?? DateTime.now();
+    if (initialDate.isBefore(firstDate)) initialDate = firstDate;
+    if (initialDate.isAfter(lastDate)) initialDate = lastDate;
     final d = await showDatePicker(
       context: context,
-      initialDate: (start ? from : to) ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (d == null) return;
     setState(() {
@@ -174,7 +185,18 @@ class _WeighingPageState extends State<WeighingPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isOut ? 'Timbangan Keluar' : 'Timbangan Masuk'),
-        actions: [IconButton(onPressed: load, icon: const Icon(Icons.refresh))],
+        actions: [
+          if (history && (from != null || to != null))
+            IconButton(
+              tooltip: 'Hapus filter tanggal',
+              onPressed: () => setState(() {
+                from = null;
+                to = null;
+              }),
+              icon: const Icon(Icons.filter_alt_off),
+            ),
+          IconButton(onPressed: load, icon: const Icon(Icons.refresh)),
+        ],
       ),
       body: Column(
         children: [
@@ -224,7 +246,9 @@ class _WeighingPageState extends State<WeighingPage> {
                 ? Center(
                     child: Text(
                       history
-                          ? 'Belum ada riwayat timbangan.'
+                          ? from != null || to != null
+                                ? 'Tidak ada riwayat pada rentang tanggal yang dipilih.'
+                                : 'Belum ada riwayat timbangan.'
                           : 'Belum ada PO untuk ditimbang.',
                     ),
                   )

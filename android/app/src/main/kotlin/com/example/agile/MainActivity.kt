@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Bundle
+import android.app.Notification
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity() {
@@ -23,6 +24,8 @@ class MainActivity : FlutterActivity() {
         ).apply {
             setSound(sound, attributes)
             enableVibration(true)
+            setShowBadge(true)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
         manager.createNotificationChannel(channel)
     }

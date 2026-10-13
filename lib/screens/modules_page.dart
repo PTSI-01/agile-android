@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../models/dashboard_model.dart';
@@ -26,6 +25,7 @@ import 'district_page.dart';
 import 'village_page.dart';
 import 'bongkaran_page.dart';
 import 'finance_page.dart';
+import 'dashboard_analytics_page.dart';
 
 class ModulesPage extends StatefulWidget {
   final DashboardData? dashboard;
@@ -176,15 +176,44 @@ class ModulesPageState extends State<ModulesPage> {
   }
 
   IconData _icon(DashboardMenuModel x) {
-    final v = '${x.icon} ${x.title}'.toLowerCase();
-    if (v.contains('supplier')) return Icons.people_alt_rounded;
-    if (v.contains('buyer')) return Icons.badge_rounded;
-    if (v.contains('pembelian')) return Icons.shopping_bag_rounded;
-    if (v.contains('penerimaan')) return Icons.scale_rounded;
+    final v = '${x.code} ${x.title} ${x.url ?? ''}'.toLowerCase();
+    if (v.contains('supplier group')) return Icons.groups_rounded;
+    if (v.contains('supplier')) return Icons.local_shipping_rounded;
+    if (v.contains('buyer group')) return Icons.group_rounded;
+    if (v.contains('buyer')) return Icons.person_rounded;
+    if (v.contains('pembelian') || v.contains('purchase')) {
+      return Icons.receipt_long_rounded;
+    }
+    if (v.contains('penerimaan') || v.contains('timbangan')) {
+      return Icons.scale_rounded;
+    }
+    if (v.contains('bongkaran')) return Icons.local_shipping_rounded;
     if (v.contains('qc') || v.contains('lab')) return Icons.science_rounded;
-    if (v.contains('finance')) return Icons.payments_rounded;
-    if (v.contains('laporan')) return Icons.analytics_rounded;
-    if (v.contains('user')) return Icons.manage_accounts_rounded;
+    if (v.contains('finance') || v.contains('laba')) {
+      return Icons.account_balance_wallet_rounded;
+    }
+    if (v.contains('laporan') || v.contains('report')) {
+      return Icons.insert_chart_rounded;
+    }
+    if (v.contains('item') || v.contains('kategori')) {
+      return Icons.inventory_2_rounded;
+    }
+    if (v.contains('gudang') || v.contains('warehouse')) {
+      return Icons.warehouse_rounded;
+    }
+    if (v.contains('wilayah') ||
+        v.contains('provinsi') ||
+        v.contains('kota') ||
+        v.contains('kecamatan') ||
+        v.contains('desa')) {
+      return Icons.map_rounded;
+    }
+    if (v.contains('user') || v.contains('akun')) {
+      return Icons.manage_accounts_rounded;
+    }
+    if (v.contains('change log') || v.contains('changelog')) {
+      return Icons.history_rounded;
+    }
     return Icons.dashboard_customize_rounded;
   }
 
@@ -459,20 +488,7 @@ class ModulesPageState extends State<ModulesPage> {
   }
 
   Widget _menuIcon(DashboardMenuModel x, Color color) {
-    final iconUrl = _networkIconUrl(x);
-    if (iconUrl == null) return Icon(_icon(x), color: color, size: 19);
-
-    return Padding(
-      padding: EdgeInsets.all(_isMasterWilayah(x) ? 3 : 2),
-      child: CachedNetworkImage(
-        imageUrl: iconUrl,
-        fit: BoxFit.contain,
-        memCacheWidth: 94,
-        memCacheHeight: 94,
-        fadeInDuration: const Duration(milliseconds: 180),
-        errorWidget: (_, _, _) => Icon(_icon(x), color: color, size: 21),
-      ),
-    );
+    return Icon(_icon(x), color: color, size: 22);
   }
 
   Color _color(DashboardMenuModel x) {
@@ -503,7 +519,26 @@ class ModulesPageState extends State<ModulesPage> {
     final u = x.url ?? '';
     final identity = '${x.code} ${x.title} $u'.toLowerCase();
     Widget? p;
-    if (u.contains('supplier-group')) {
+    if (u.contains('/dashboard/pembelian') ||
+        identity.contains('dashboard pembelian')) {
+      p = const DashboardAnalyticsPage(
+        kind: 'pembelian',
+        title: 'Dashboard Pembelian',
+      );
+    } else if (u.contains('/dashboard/laba-rugi') ||
+        identity.contains('dashboard laba')) {
+      p = const DashboardAnalyticsPage(
+        kind: 'laba-rugi',
+        title: 'Dashboard Laba Rugi',
+      );
+    } else if (u.contains('/dashboard/hasil_lab') ||
+        u.contains('/dashboard/hasil-lab') ||
+        identity.contains('dashboard hasil lab')) {
+      p = const DashboardAnalyticsPage(
+        kind: 'hasil-lab',
+        title: 'Dashboard Hasil Lab',
+      );
+    } else if (u.contains('supplier-group')) {
       p = const SupplierGroupPage();
     } else if (u.contains('supplier')) {
       p = const SupplierListPage();
@@ -859,7 +894,6 @@ class ModulesPageState extends State<ModulesPage> {
   }
 
   Widget _plainModuleTile(DashboardMenuModel x, Color color) {
-    final hasNetworkIcon = _networkIconUrl(x) != null;
     return InkWell(
       onTap: () => _open(x),
       borderRadius: BorderRadius.circular(18),
@@ -868,25 +902,15 @@ class ModulesPageState extends State<ModulesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (hasNetworkIcon)
-              SizedBox(width: 43, height: 43, child: _menuIcon(x, color))
-            else
-              Container(
-                width: 41,
-                height: 41,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      color.withValues(alpha: 0.14),
-                      color.withValues(alpha: 0.28),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: _menuIcon(x, color),
+            Container(
+              width: 41,
+              height: 41,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
               ),
+              child: _menuIcon(x, color),
+            ),
             const SizedBox(height: 3),
             Text(
               x.title,

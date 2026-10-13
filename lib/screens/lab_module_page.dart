@@ -42,14 +42,17 @@ class _LabModulePageState extends State<LabModulePage> {
       _error = null;
     });
     try {
+      final inputPage = widget.title == 'Lab Incoming' || widget.title == 'Lab Aktual';
+      final approvalPage = widget.title.startsWith('Approve ');
       final rows = widget.parameters
           ? await LabModuleService.parameters(search: _search.text)
           : await LabModuleService.list(
               widget.resource!,
               search: _search.text,
               history: _history,
+              input: inputPage,
             );
-      if (!widget.parameters) {
+      if (!widget.parameters && approvalPage) {
         rows.removeWhere((row) {
           final approval = row['status_approval']?.toString();
           final labStatus = row['status_lab']?.toString();
@@ -74,7 +77,12 @@ class _LabModulePageState extends State<LabModulePage> {
 
   void _detail(Map<String, dynamic> row) {
     const labels = {
+      'kode_transaksi': 'Nomor PO',
       'legal_number': 'Legal Number',
+      'nama_supplier': 'Supplier',
+      'nama_item': 'Item',
+      'nopol_truk': 'Nomor Polisi',
+      'tonase_supplier': 'Tonase Supplier',
       'buyer_code': 'Kode PO',
       'penerimaan_code': 'No. DTM',
       'status_lab': 'Status Lab',
@@ -83,11 +91,19 @@ class _LabModulePageState extends State<LabModulePage> {
       'approval_by_name': 'Disetujui Oleh',
       'ka_ks': 'Kadar Air KS',
       'ka_kg': 'Kadar Air KG',
+      'berat_sampel_awal_ks': 'Berat Sampel Awal KS',
+      'berat_sampel_awal_kg': 'Berat Sampel Awal KG',
+      'berat_sampel_akhir_kg': 'Berat Sampel Akhir KG',
+      'berat_sampel_pk': 'Berat Sampel Pecah Kulit',
+      'berat_sampel_beras': 'Berat Sampel Beras',
       'wh': 'Whiteness',
       'tp': 'Total Patah',
       'md': 'Benda Asing',
+      'broken_setelah_bongkar': 'Patah Setelah Bongkar',
       'hampa': 'Hampa',
       'susut': 'Susut',
+      'std_hpp_incoming': 'HPP Standar Incoming',
+      'plan_harga_gabah': 'Plan Harga Gabah',
       'plan_harga_beli_gabah': 'Rencana Harga Beli Gabah',
     };
     final entries = row.entries.where(
@@ -140,6 +156,56 @@ class _LabModulePageState extends State<LabModulePage> {
                     ),
                   ),
                 ),
+                if (!widget.parameters &&
+                    (widget.title == 'Lab Incoming' || widget.title == 'Lab Aktual') &&
+                    !_history)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          if (widget.title == 'Lab Incoming') {
+                            _createIncoming(row);
+                          } else {
+                            _createActual(row);
+                          }
+                        },
+                        icon: const Icon(Icons.science_outlined),
+                        label: const Text('Input Data Lab'),
+                      ),
+                    ),
+                  ),
+                if (widget.title.startsWith('Approve ') && !_history)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _action(row, false);
+                            },
+                            icon: const Icon(Icons.close),
+                            label: const Text('Tolak'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _action(row, true);
+                            },
+                            icon: const Icon(Icons.check),
+                            label: const Text('Approve'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 if (widget.parameters && row['details'] is List) ...[
                   const Divider(),
                   const Text(
@@ -322,8 +388,13 @@ class _LabModulePageState extends State<LabModulePage> {
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Harga Plan',
+                        prefixText: 'Rp ',
+                        filled: true,
+                        fillColor: Color(0xFFF8FBF8),
+                        border: OutlineInputBorder(),
                       ),
                     ),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
@@ -346,6 +417,9 @@ class _LabModulePageState extends State<LabModulePage> {
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Batas Atas (<)',
+                              filled: true,
+                              fillColor: Color(0xFFF8FBF8),
+                              border: OutlineInputBorder(),
                             ),
                           ),
                         ),
@@ -425,11 +499,17 @@ class _LabModulePageState extends State<LabModulePage> {
     }
   }
 
-  Future<void> _createIncoming() async {
+  Future<void> _createIncoming([Map<String, dynamic>? initial]) async {
     try {
       final refs = await LabModuleService.incomingReferences();
       if (!mounted) return;
-      Map<String, dynamic>? selected = refs.isEmpty ? null : refs.first;
+      final initialCode = initial?['kode_transaksi']?.toString();
+      Map<String, dynamic>? selected = refs.isEmpty
+          ? null
+          : refs.firstWhere(
+              (r) => r['kode_transaksi']?.toString() == initialCode,
+              orElse: () => refs.first,
+            );
       final fields = {
         for (final key in [
           'ka_ks',
@@ -450,10 +530,13 @@ class _LabModulePageState extends State<LabModulePage> {
         context: context,
         builder: (_) => StatefulBuilder(
           builder: (context, setDialog) => AlertDialog(
-            title: const Text('Input Lab Incoming'),
+            title: const Text('Input Data Lab Incoming'),
             content: SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Text('Identitas PO', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1F5B42))),
+                  const SizedBox(height: 8),
                   DropdownButtonFormField<Map<String, dynamic>>(
                     value: selected,
                     isExpanded: true,
@@ -470,13 +553,20 @@ class _LabModulePageState extends State<LabModulePage> {
                         .toList(),
                     onChanged: (v) => setDialog(() => selected = v),
                   ),
+                  const SizedBox(height: 16),
+                  const Text('Hasil Pemeriksaan Sampel', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1F5B42))),
+                  const SizedBox(height: 8),
                   ...fields.entries.map(
-                    (e) => TextField(
-                      controller: e.value,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: TextField(
+                        controller: e.value,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          labelText: _labFieldLabel(e.key),
+                          hintText: 'Masukkan ${_labFieldLabel(e.key).toLowerCase()}',
+                        ),
                       ),
-                      decoration: InputDecoration(labelText: e.key),
                     ),
                   ),
                 ],
@@ -489,19 +579,66 @@ class _LabModulePageState extends State<LabModulePage> {
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Simpan'),
+                child: const Text('Preview'),
               ),
             ],
           ),
         ),
       );
       if (ok != true || selected == null) return;
-      final reception = selected!['Penerimaan'];
+      var parameter = selected!['parameter_lab'] is List
+          ? (selected!['parameter_lab'] as List).whereType<Map>().toList()
+          : <Map>[];
+      if (parameter.isEmpty) {
+        final allParameters = await LabModuleService.parameters();
+        final poDate = selected!['tanggal_transaksi']?.toString().substring(0, 10);
+        for (final group in allParameters) {
+          if (group['tanggal_po']?.toString().substring(0, 10) == poDate && group['details'] is List) {
+            parameter = (group['details'] as List).whereType<Map>().map((detail) => {
+              ...detail,
+              'harga_atas': group['harga_atas'],
+              'harga_bawah': group['harga_bawah'],
+            }).toList();
+            break;
+          }
+        }
+      }
+      if (parameter.isEmpty) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Parameter Lab belum tersedia untuk tanggal PO ini.')));
+        return;
+      }
+      if (fields.values.any((controller) => controller.text.trim().isEmpty)) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lengkapi seluruh field pemeriksaan sebelum preview.')));
+        return;
+      }
+      final tonase = double.tryParse(selected!['tonase_supplier']?.toString() ?? '');
+      final matched = parameter.firstWhere((p) {
+        final min = double.tryParse(p['min_tr']?.toString() ?? '') ?? 0;
+        final max = double.tryParse(p['max_tr']?.toString() ?? '');
+        return (tonase == null || tonase >= min) && (max == null || tonase == null || tonase <= max);
+      }, orElse: () => parameter.first);
+      final stdHpp = double.tryParse(matched['harga_hpp']?.toString() ?? '') ?? 0;
+      final values = {for (final e in fields.entries) e.key: double.tryParse(e.value.text) ?? 0};
+      final akhirKg = values['berat_sampel_akhir_kg'] ?? 0;
+      final awalKg = values['berat_sampel_awal_kg'] ?? 0;
+      final hampa = awalKg > 0 ? (awalKg - akhirKg) / (awalKg / 100) : 0;
+      final susut = 100 - (akhirKg / 1.5);
+      final adjustSusut = susut * 1.2;
+      final persentaseKsKg = 100 - adjustSusut;
+      final persentaseKgPk = akhirKg > 0 ? (values['berat_sampel_pk']! / (akhirKg / 100)) : 0;
+      final adjustPk = persentaseKgPk * 0.952;
+      final persentasePutih = akhirKg > 0 ? (values['berat_sampel_beras']! / (akhirKg / 100)) : 0;
+      final adjustPutih = persentasePutih * 0.952;
+      final planRend = (100 - adjustSusut) * (adjustPutih / 100);
+      final planHargaBeli = (planRend / 100 * stdHpp) - 75;
+      if (await _showIncomingPreview(selected!, fields, planHargaBeli) != true) return;
+      final reception = selected!['Penerimaan'] ?? selected!['penerimaan'];
       final payload = <String, dynamic>{
         'buyer_code': selected!['kode_transaksi'],
         'penerimaan_code': reception is Map
             ? reception['legal_number']
-            : selected!['penerimaan_code'],
+            : (selected!['penerimaan_code'] ?? selected!['penerimaanCode']),
+        'plan_harga_gabah': planHargaBeli,
       };
       for (final e in fields.entries) {
         payload[e.key] = double.tryParse(e.value.text);
@@ -516,11 +653,72 @@ class _LabModulePageState extends State<LabModulePage> {
     }
   }
 
-  Future<void> _createActual() async {
+  Future<bool?> _showIncomingPreview(
+    Map<String, dynamic> selected,
+    Map<String, TextEditingController> fields,
+    double planPrice,
+  ) {
+    return showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Preview Lab Incoming'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('PO: ${selected['kode_transaksi'] ?? '-'}', style: const TextStyle(fontWeight: FontWeight.w700)),
+              Text('Supplier: ${selected['nama_supplier'] ?? '-'}'),
+              const Divider(),
+              ...fields.entries.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text('${_labFieldLabel(e.key)}: ${e.value.text}'),
+                  )),
+              const Divider(),
+              Text('Plan Harga Beli Gabah: Rp ${_formatRupiah(planPrice)}', style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1F5B42))),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Kembali')),
+          FilledButton.icon(onPressed: () => Navigator.pop(context, true), icon: const Icon(Icons.save_outlined), label: const Text('Simpan')),
+        ],
+      ),
+    );
+  }
+
+  String _formatRupiah(double value) {
+    final raw = value.round().toString();
+    return raw.replaceAllMapped(RegExp(r'(?=(\d{3})+(?!\d))'), (_) => '.');
+  }
+
+  String _labFieldLabel(String key) {
+    const labels = {
+      'ka_ks': 'Kadar Air KS (%)',
+      'ka_kg': 'Kadar Air KG (%)',
+      'berat_sampel_awal_ks': 'Berat Sampel Awal KS (gram)',
+      'berat_sampel_awal_kg': 'Berat Sampel Awal KG (gram)',
+      'berat_sampel_akhir_kg': 'Berat Sampel Akhir KG (gram)',
+      'berat_sampel_pk': 'Berat Sampel Pecah Kulit (gram)',
+      'berat_sampel_beras': 'Berat Sampel Beras (gram)',
+      'wh': 'Whiteness (%)',
+      'tp': 'Total Patah (%)',
+      'md': 'Benda Asing (%)',
+      'broken_setelah_bongkar': 'Patah Setelah Bongkar (%)',
+    };
+    return labels[key] ?? key;
+  }
+
+  Future<void> _createActual([Map<String, dynamic>? initial]) async {
     try {
       final refs = await LabModuleService.actualReferences();
       if (!mounted) return;
-      Map<String, dynamic>? selected = refs.isEmpty ? null : refs.first;
+      final initialCode = initial?['kode_transaksi']?.toString();
+      Map<String, dynamic>? selected = refs.isEmpty
+          ? null
+          : refs.firstWhere(
+              (r) => r['kode_transaksi']?.toString() == initialCode,
+              orElse: () => refs.first,
+            );
       final keys = [
         'ka_ks',
         'ka_kg',
@@ -595,8 +793,8 @@ class _LabModulePageState extends State<LabModulePage> {
         ),
       );
       if (ok != true || selected == null) return;
-      final penerimaan = selected!['Penerimaan'];
-      final bongkaran = selected!['Bongkaran'];
+      final penerimaan = selected!['Penerimaan'] ?? selected!['penerimaan'];
+      final bongkaran = selected!['Bongkaran'] ?? selected!['bongkaran'];
       final payload = <String, dynamic>{
         'buyer_code': selected!['kode_transaksi'],
         'penerimaan_code': penerimaan is Map
@@ -708,10 +906,10 @@ class _LabModulePageState extends State<LabModulePage> {
   Widget _card(Map<String, dynamic> row) {
     final primary = widget.parameters
         ? row['legal_number']
-        : row['legal_number'];
+        : (row['legal_number'] ?? row['kode_transaksi']);
     final secondary = widget.parameters
         ? 'Tanggal PO: ${row['tanggal_po'] ?? '-'}'
-        : 'Buyer: ${row['buyer'] is Map ? row['buyer']['kode_transaksi'] ?? row['buyer_code'] : row['buyer_code'] ?? '-'}';
+        : 'Supplier: ${row['nama_supplier'] ?? (row['supplier'] is Map ? row['supplier']['nama_supplier'] : row['buyer'] is Map ? row['buyer']['nama_supplier'] : '-')}';
     final approvalPage = widget.title.startsWith('Approve ');
     final inputPage =
         widget.title == 'Lab Incoming' || widget.title == 'Lab Aktual';
@@ -771,23 +969,6 @@ class _LabModulePageState extends State<LabModulePage> {
                                         : 'Menunggu')),
                       ),
               ),
-              if (approvalPage && !_history)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () => _action(row, false),
-                      icon: const Icon(Icons.close),
-                      label: const Text('Tolak'),
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton.icon(
-                      onPressed: () => _action(row, true),
-                      icon: const Icon(Icons.check),
-                      label: const Text('Approve'),
-                    ),
-                  ],
-                ),
             ],
           ),
         ),

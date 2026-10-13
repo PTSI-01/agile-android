@@ -68,6 +68,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/logo_agile.jpg
+    - assets/images/sawah.jpg
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -99,3 +100,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+
+

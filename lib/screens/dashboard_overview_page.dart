@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../data/menu_data.dart';
@@ -108,12 +107,12 @@ class DashboardOverviewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final supportedShortcuts = dashboard == null
-        ? <SubMenuItem>[]
-        : MenuData.quickShortcuts
-              .where((shortcut) => _hasMenuAccess(dashboard!.menus, shortcut))
+    final quickModules = dashboard == null
+        ? <DashboardMenuModel>[]
+        : dashboard!.menus
+              .where((module) => module.children.isNotEmpty)
+              .take(4)
               .toList();
-    final quickShortcuts = supportedShortcuts.take(7).toList();
     const muted = Color(0xFF7D8983);
 
     final displayName = user?.name.split(' ').first ?? 'Pengguna';
@@ -151,22 +150,25 @@ class DashboardOverviewPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'AGILE JAYA ABADI',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.3,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      'E-Procurement System',
-                      style: TextStyle(
-                        fontSize: 11,
-                        letterSpacing: 0.8,
-                        color: isDark ? Colors.white60 : muted,
-                        fontWeight: FontWeight.w500,
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.2,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'E-PROCUREMENT ',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          const TextSpan(
+                            text: 'AJA',
+                            style: TextStyle(color: Color(0xFFB27A19)),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -212,14 +214,16 @@ class DashboardOverviewPage extends StatelessWidget {
 
             // 2. HERO GREETING CARD
             Container(
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.zero,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF14382E), Color(0xFF235A49)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: const Color(0xFFE8F1DF),
                 borderRadius: BorderRadius.circular(22),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/sawah.jpg'),
+                  fit: BoxFit.cover,
+                  alignment: Alignment.centerRight,
+                  opacity: 0.62,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Color(0xFF14382E).withValues(alpha: 0.25),
@@ -228,74 +232,204 @@ class DashboardOverviewPage extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Stack(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Color(0xFFD8EFAC).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.verified_rounded,
-                              size: 13,
-                              color: Color(0xFFD8EFAC),
-                            ),
-                            SizedBox(width: 5),
-                            Text(
-                              roleName.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFD8EFAC),
-                                letterSpacing: 0.8,
-                              ),
-                            ),
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(22),
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            const Color(0xFFB8D0AF).withValues(alpha: 0.98),
+                            const Color(0xFFDDEAD5).withValues(alpha: 0.86),
+                            const Color(0xFFE8F1DF).withValues(alpha: 0.08),
                           ],
                         ),
                       ),
-                      Spacer(),
-                      Text(
-                        'Musim Panen 2026',
-                        style: TextStyle(
-                          color: Color(0xFFB5CBC0),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 14),
-                  Text(
-                    'Selamat datang, $displayName',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
                     ),
                   ),
-                  SizedBox(height: 6),
-                  Text(
-                    'Bersama E-Procurement AJA wujudkan rantai pemasok yang lebih efisien.',
-                    style: TextStyle(
-                      color: Color(0xFFD5E3DC),
-                      fontSize: 12,
-                      height: 1.5,
+                  Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.52,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Selamat datang, $displayName',
+                            style: TextStyle(
+                              color: const Color(0xFF183C32),
+                              fontSize: 19,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Bersama E-Procurement AJA wujudkan rantai pemasok yang lebih efisien.',
+                            style: TextStyle(
+                              color: const Color(0xFF5B7165),
+                              fontSize: 11,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 12,
+                    top: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.86),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x220F3B2E),
+                            blurRadius: 7,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'CV Agile',
+                                style: TextStyle(
+                                  color: Color(0xFF285A3B),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.0,
+                                ),
+                              ),
+                              Text(
+                                'Jaya Abadi',
+                                style: TextStyle(
+                                  color: Color(0xFF285A3B),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.0,
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              SizedBox(
+                                width: 28,
+                                height: 2,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFE5B52D),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(3),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: 14),
+
+            Text(
+              'Ringkasan Hari Ini',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            SizedBox(height: 10),
+            GridView.count(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 2.35,
+              children: [
+                _metricCard(
+                  context,
+                  'Pembelian',
+                  '${dashboard?.metrics['po_count'] ?? 0}',
+                  Icons.shopping_cart_rounded,
+                  const Color(0xFFE3F3E4),
+                  previousValue: dashboard?.metrics['po_count_yesterday'],
+                ),
+                _metricCard(
+                  context,
+                  'Timbangan',
+                  '${dashboard?.metrics['final_tonnage'] ?? 0} Kg',
+                  Icons.scale_rounded,
+                  const Color(0xFFFFF0D0),
+                ),
+                _metricCard(
+                  context,
+                  'Lab',
+                  'Rp ${dashboard?.metrics['lab_average_price'] ?? 0}',
+                  Icons.science_rounded,
+                  const Color(0xFFE0EEFF),
+                ),
+                _metricCard(
+                  context,
+                  'Finance',
+                  dashboard?.metrics['profit_label']?.toString() ??
+                      'Belum ada data',
+                  Icons.account_balance_wallet_rounded,
+                  const Color(0xFFF0E5FF),
+                ),
+              ],
+            ),
+            SizedBox(height: 14),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Akses Cepat',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: onOpenModules,
+                  child: const Text('Lihat Semua'),
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                mainAxisSpacing: 4,
+                crossAxisSpacing: 4,
+                mainAxisExtent: 78,
+              ),
+              itemCount: quickModules.length,
+              itemBuilder: (context, index) =>
+                  _moduleShortcutButton(context, quickModules[index]),
+            ),
+            SizedBox(height: 14),
 
             Row(
               children: [
@@ -326,91 +460,13 @@ class DashboardOverviewPage extends StatelessWidget {
                     ),
                     title: Text(item['kode_transaksi']?.toString() ?? '-'),
                     subtitle: Text(
-                      '${item['nama_supplier'] ?? '-'} · Qty ${item['tonase_final_aol'] ?? '-'}',
+                      '${item['nama_supplier'] ?? '-'} - Qty ${item['tonase_final_aol'] ?? '-'}',
                     ),
                     trailing: Text('Rp ${item['harga_final'] ?? '-'}'),
                   );
                 })
                 .toList()),
             const SizedBox(height: 16),
-            Text(
-              'Ringkasan Hari Ini',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            SizedBox(height: 10),
-            GridView.count(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 1.75,
-              children: [
-                _metricCard(
-                  context,
-                  'Pembelian',
-                  '${dashboard?.metrics['po_count'] ?? 0}',
-                  Icons.shopping_cart_rounded,
-                  const Color(0xFFE3F3E4),
-                ),
-                _metricCard(
-                  context,
-                  'Timbangan',
-                  '${dashboard?.metrics['final_tonnage'] ?? 0} Kg',
-                  Icons.scale_rounded,
-                  const Color(0xFFFFF0D0),
-                ),
-                _metricCard(
-                  context,
-                  'Lab',
-                  'Rp ${dashboard?.metrics['lab_average_price'] ?? 0}',
-                  Icons.science_rounded,
-                  const Color(0xFFE0EEFF),
-                ),
-                _metricCard(
-                  context,
-                  'Finance',
-                  dashboard?.metrics['profit_label']?.toString() ??
-                      'Belum ada data',
-                  Icons.account_balance_wallet_rounded,
-                  const Color(0xFFF0E5FF),
-                ),
-              ],
-            ),
-            SizedBox(height: 24),
-
-            // 3. QUICK ACCESS
-            Text(
-              'Akses Cepat',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            SizedBox(height: 10),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                mainAxisSpacing: 4,
-                crossAxisSpacing: 4,
-                mainAxisExtent: 96,
-              ),
-              itemCount: quickShortcuts.length + 1,
-              itemBuilder: (context, index) {
-                if (index == quickShortcuts.length) {
-                  return _allModulesButton(context);
-                }
-                return _shortcutButton(context, quickShortcuts[index]);
-              },
-            ),
-            SizedBox(height: 24),
           ],
         ),
       ),
@@ -422,9 +478,10 @@ class DashboardOverviewPage extends StatelessWidget {
     String title,
     String value,
     IconData icon,
-    Color bg,
-  ) => Container(
-    padding: const EdgeInsets.all(12),
+    Color bg, {
+    dynamic previousValue,
+  }) => Container(
+    padding: const EdgeInsets.all(8),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(16),
@@ -433,15 +490,15 @@ class DashboardOverviewPage extends StatelessWidget {
     child: Row(
       children: [
         Container(
-          width: 38,
-          height: 38,
+          width: 32,
+          height: 32,
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: const Color(0xFF1F5B42), size: 21),
+          child: Icon(icon, color: const Color(0xFF1F5B42), size: 18),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 7),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,7 +508,7 @@ class DashboardOverviewPage extends StatelessWidget {
                 title,
                 style: const TextStyle(fontSize: 11, color: Color(0xFF7D8983)),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 value,
                 maxLines: 1,
@@ -465,9 +522,52 @@ class DashboardOverviewPage extends StatelessWidget {
             ],
           ),
         ),
+        if (previousValue != null)
+          _trendIndicator(context, _number(value), _number(previousValue)),
       ],
     ),
   );
+
+  double _number(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString().replaceAll(',', '.') ?? '') ?? 0;
+  }
+
+  Widget _trendIndicator(
+    BuildContext context,
+    double current,
+    double previous,
+  ) {
+    final isUp = current > previous;
+    final isDown = current < previous;
+    final percent = previous == 0
+        ? (current == 0 ? 0 : 100)
+        : ((current - previous).abs() / previous.abs() * 100).round();
+    final color = isUp
+        ? const Color(0xFF42A85A)
+        : isDown
+        ? const Color(0xFFD45C4C)
+        : const Color(0xFF89958E);
+    final icon = isUp
+        ? Icons.trending_up_rounded
+        : isDown
+        ? Icons.trending_down_rounded
+        : Icons.drag_handle_rounded;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: color, size: 20),
+        Text(
+          '$percent%',
+          style: TextStyle(
+            color: color,
+            fontSize: 9,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
 
   Future<void> _showNotifications(BuildContext context) async {
     showModalBottomSheet<void>(
@@ -534,7 +634,7 @@ class DashboardOverviewPage extends StatelessWidget {
                                 if (item['status_label'] != null)
                                   item['status_label'].toString(),
                                 item['message']?.toString() ?? '-',
-                              ].join(' · '),
+                              ].join(' Ãƒâ€šÃ‚Â· '),
                             ),
                             onTap: () {
                               Navigator.pop(sheetContext);
@@ -563,52 +663,6 @@ class DashboardOverviewPage extends StatelessWidget {
   }
 
   Widget _shortcutIcon(SubMenuItem sc, Color accent) {
-    final isPurchase =
-        sc.id == 'sc_pembelian' ||
-        sc.id == 'pb_transaksi' ||
-        sc.route == '/pembelian/transaksi';
-    final isWeighing =
-        sc.id == 'sc_timbangan' ||
-        sc.id == 'pn_timbangan_masuk' ||
-        sc.route == '/penerimaan/timbangan-masuk';
-    final isSupplier =
-        sc.id == 'sc_supplier' || sc.route == '/master-data/supplier';
-    final isBuyer = sc.id == 'sc_buyer' || sc.route == '/master-data/buyer';
-    final isItem = sc.id == 'sc_item' || sc.route == '/master-data/item';
-    final isSurveyor =
-        sc.id == 'sc_surveyor' || sc.route == '/master-data/surveyor';
-    final isWarehouse =
-        sc.id == 'sc_gudang' || sc.route == '/master-data/warehouse';
-    final networkIcon = isPurchase
-        ? 'https://img.icons8.com/3d-fluency/94/bill.png'
-        : isWeighing
-        ? 'https://img.icons8.com/3d-fluency/94/truck.png'
-        : isSupplier
-        ? 'https://img.icons8.com/3d-fluency/94/supplier.png'
-        : isBuyer
-        ? 'https://img.icons8.com/3d-fluency/94/salary-male.png'
-        : isItem
-        ? 'https://img.icons8.com/3d-fluency/94/open-box.png'
-        : isSurveyor
-        ? 'https://img.icons8.com/3d-fluency/94/writer-male.png'
-        : isWarehouse
-        ? 'https://img.icons8.com/3d-fluency/94/hangar.png'
-        : null;
-    if (networkIcon != null) {
-      return SizedBox(
-        width: 46,
-        height: 46,
-        child: CachedNetworkImage(
-          imageUrl: networkIcon,
-          fit: BoxFit.contain,
-          memCacheWidth: 94,
-          memCacheHeight: 94,
-          fadeInDuration: Duration(milliseconds: 180),
-          errorWidget: (_, _, _) => Icon(sc.icon, color: accent, size: 30),
-        ),
-      );
-    }
-
     return SizedBox(
       width: 44,
       height: 44,
@@ -651,6 +705,72 @@ class DashboardOverviewPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _moduleShortcutButton(
+    BuildContext context,
+    DashboardMenuModel module,
+  ) {
+    final accent = _moduleAccent(module);
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          if (onOpenModule != null) {
+            onOpenModule!(module);
+          } else {
+            onOpenModules?.call();
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 43,
+                height: 43,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  _moduleIconFor('${module.code} ${module.title}'),
+                  color: accent,
+                  size: 23,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                module.title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.onSurface,
+                  height: 1.15,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _moduleAccent(DashboardMenuModel module) {
+    final value = '${module.code} ${module.title}'.toLowerCase();
+    if (value.contains('pembelian')) return const Color(0xFF2E7D32);
+    if (value.contains('timbang') || value.contains('penerimaan')) {
+      return const Color(0xFFB47A16);
+    }
+    if (value.contains('lab')) return const Color(0xFF2774B8);
+    if (value.contains('finance')) return const Color(0xFF7543A8);
+    return const Color(0xFF1F5B42);
   }
 
   Widget _shortcutButton(BuildContext context, SubMenuItem sc) {
@@ -916,86 +1036,56 @@ class DashboardOverviewPage extends StatelessWidget {
     pageController.dispose();
   }
 
+  IconData _moduleIconFor(String value) {
+    if (value.contains('supplier group')) return Icons.groups_rounded;
+    if (value.contains('supplier')) return Icons.local_shipping_rounded;
+    if (value.contains('buyer group')) return Icons.group_rounded;
+    if (value.contains('buyer')) return Icons.person_rounded;
+    if (value.contains('pembelian') || value.contains('purchase')) {
+      return Icons.shopping_bag_rounded;
+    }
+    if (value.contains('timbangan') || value.contains('penerimaan')) {
+      return Icons.scale_rounded;
+    }
+    if (value.contains('bongkaran')) return Icons.local_shipping_rounded;
+    if (value.contains('lab') || value.contains('qc')) {
+      return Icons.science_rounded;
+    }
+    if (value.contains('finance') || value.contains('laba'))
+      return Icons.payments_rounded;
+    if (value.contains('supplier')) return Icons.local_shipping_rounded;
+    if (value.contains('buyer')) return Icons.person_rounded;
+    if (value.contains('item') || value.contains('kategori')) {
+      return Icons.inventory_2_rounded;
+    }
+    if (value.contains('gudang') || value.contains('warehouse')) {
+      return Icons.warehouse_rounded;
+    }
+    if (value.contains('wilayah') ||
+        value.contains('provinsi') ||
+        value.contains('kota') ||
+        value.contains('kecamatan') ||
+        value.contains('desa')) {
+      return Icons.map_rounded;
+    }
+    if (value.contains('report') || value.contains('laporan')) {
+      return Icons.analytics_rounded;
+    }
+    if (value.contains('change log') || value.contains('changelog')) {
+      return Icons.history_rounded;
+    }
+    if (value.contains('user') || value.contains('akun')) {
+      return Icons.manage_accounts_rounded;
+    }
+    return Icons.grid_view_rounded;
+  }
+
   Widget _moduleSheetItem(
     BuildContext sheetContext,
     DashboardMenuModel module,
   ) {
     final value = '${module.code} ${module.title}'.toLowerCase();
-    final iconUrl = value.contains('master data')
-        ? 'https://img.icons8.com/3d-fluency/94/data-configuration.png'
-        : value.contains('change log') ||
-              value.contains('changelog') ||
-              value.contains('change_log')
-        ? 'https://img.icons8.com/3d-fluency/94/edit-property.png'
-        : (value.contains('report') || value.contains('laporan')) &&
-              (value.contains('master data') ||
-                  value.contains('master_data') ||
-                  value.contains('master-data'))
-        ? 'https://img.icons8.com/3d-fluency/94/data-configuration.png'
-        : (value.contains('report') || value.contains('laporan')) &&
-              (value.contains('pembelian') || value.contains('purchase'))
-        ? 'https://img.icons8.com/3d-fluency/94/bill.png'
-        : (value.contains('report') || value.contains('laporan')) &&
-              (value.contains('penerimaan') || value.contains('reception'))
-        ? 'https://img.icons8.com/3d-fluency/94/delivery.png'
-        : value.contains('laporan pembelian') ||
-              value.contains('report purchase')
-        ? 'https://img.icons8.com/3d-fluency/94/bill.png'
-        : value.contains('laporan penerimaan') ||
-              value.contains('report reception')
-        ? 'https://img.icons8.com/3d-fluency/94/delivery.png'
-        : value.contains('laporan kualitas') ||
-              value.contains('laporan qc') ||
-              value.contains('report qc')
-        ? 'https://img.icons8.com/3d-fluency/94/microscope.png'
-        : value.contains('laba rugi') || value.contains('profit loss')
-        ? 'https://img.icons8.com/3d-fluency/94/money-yours.png'
-        : value.contains('kinerja buyer') || value.contains('report buyer')
-        ? 'https://img.icons8.com/3d-fluency/94/salary-male.png'
-        : value.contains('histori semua transaksi') ||
-              value.contains('history all transaction')
-        ? 'https://img.icons8.com/3d-fluency/94/edit-property.png'
-        : value.trim() == 'report' ||
-              value.trim() == 'laporan' ||
-              value.contains('folder_laporan') ||
-              value.contains('menu_report')
-        ? 'https://img.icons8.com/3d-fluency/94/chart.png'
-        : value.contains('bongkaran')
-        ? 'https://img.icons8.com/3d-fluency/94/forklift.png'
-        : value.contains('lab incoming') || value.contains('lab_incoming')
-        ? 'https://img.icons8.com/3d-fluency/94/water.png'
-        : value.contains('lab aktual') || value.contains('lab_aktual')
-        ? 'https://img.icons8.com/3d-fluency/94/gas.png'
-        : value.contains('parameter lab') || value.contains('parameter_lab')
-        ? 'https://img.icons8.com/3d-fluency/94/gear--v2.png'
-        : value.contains('beras') &&
-              (value.contains('lab') || value.contains('qc'))
-        ? 'https://img.icons8.com/3d-fluency/94/flour-of-rye.png'
-        : value.contains('gabah')
-        ? 'https://img.icons8.com/3d-fluency/94/wheat.png'
-        : value.contains('menu lab') || value.trim() == 'lab'
-        ? 'https://img.icons8.com/3d-fluency/94/microscope.png'
-        : value.contains('verifikasi final data') ||
-              value.contains('verifikasi_final_data')
-        ? 'https://img.icons8.com/3d-fluency/94/approval.png'
-        : value.contains('verifikasi data') || value.contains('verifikasi_data')
-        ? 'https://img.icons8.com/3d-fluency/94/verified-account.png'
-        : value.contains('timbangan masuk') ||
-              value.contains('timbangan keluar') ||
-              value.contains('timbangan_masuk') ||
-              value.contains('timbangan_keluar')
-        ? 'https://img.icons8.com/3d-fluency/94/truck.png'
-        : value.trim() == 'penerimaan' || value.contains('folder_penerimaan')
-        ? 'https://img.icons8.com/3d-fluency/94/delivery.png'
-        : value.trim() == 'finance' ||
-              value.contains('folder_finance') ||
-              value.contains('menu finance')
-        ? 'https://img.icons8.com/3d-fluency/94/money-yours.png'
-        : value.contains('pembelian')
-        ? 'https://img.icons8.com/3d-fluency/94/bill.png'
-        : value.contains('penerimaan') || value.contains('timbangan')
-        ? 'https://img.icons8.com/3d-fluency/94/truck.png'
-        : null;
+    final moduleIcon = _moduleIconFor(value);
 
     return Material(
       color: Colors.transparent,
@@ -1014,33 +1104,19 @@ class DashboardOverviewPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (iconUrl != null)
-                SizedBox(
-                  width: 43,
-                  height: 43,
-                  child: CachedNetworkImage(
-                    imageUrl: iconUrl,
-                    fit: BoxFit.contain,
-                    memCacheWidth: 94,
-                    memCacheHeight: 94,
-                    errorWidget: (_, _, _) =>
-                        Icon(Icons.grid_view_rounded, color: Color(0xFF1F7A2E)),
-                  ),
-                )
-              else
-                Container(
-                  width: 41,
-                  height: 41,
-                  decoration: BoxDecoration(
-                    color: Color(0xFFE6EFE0),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    Icons.grid_view_rounded,
-                    color: Color(0xFF1F7A2E),
-                    size: 22,
-                  ),
+              Container(
+                width: 43,
+                height: 43,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6EFE0),
+                  borderRadius: BorderRadius.circular(14),
                 ),
+                child: Icon(
+                  moduleIcon,
+                  color: const Color(0xFF1F5B42),
+                  size: 23,
+                ),
+              ),
               SizedBox(height: 4),
               Text(
                 module.title,
