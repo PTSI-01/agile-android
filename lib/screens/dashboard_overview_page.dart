@@ -1042,7 +1042,7 @@ class DashboardOverviewPage extends StatelessWidget {
     if (value.contains('buyer group')) return Icons.group_rounded;
     if (value.contains('buyer')) return Icons.person_rounded;
     if (value.contains('pembelian') || value.contains('purchase')) {
-      return Icons.shopping_bag_rounded;
+      return Icons.receipt_long_rounded;
     }
     if (value.contains('timbangan') || value.contains('penerimaan')) {
       return Icons.scale_rounded;
@@ -1051,10 +1051,9 @@ class DashboardOverviewPage extends StatelessWidget {
     if (value.contains('lab') || value.contains('qc')) {
       return Icons.science_rounded;
     }
-    if (value.contains('finance') || value.contains('laba'))
-      return Icons.payments_rounded;
-    if (value.contains('supplier')) return Icons.local_shipping_rounded;
-    if (value.contains('buyer')) return Icons.person_rounded;
+    if (value.contains('finance') || value.contains('laba')) {
+      return Icons.account_balance_wallet_rounded;
+    }
     if (value.contains('item') || value.contains('kategori')) {
       return Icons.inventory_2_rounded;
     }
@@ -1069,7 +1068,7 @@ class DashboardOverviewPage extends StatelessWidget {
       return Icons.map_rounded;
     }
     if (value.contains('report') || value.contains('laporan')) {
-      return Icons.analytics_rounded;
+      return Icons.insert_chart_rounded;
     }
     if (value.contains('change log') || value.contains('changelog')) {
       return Icons.history_rounded;
@@ -1077,7 +1076,7 @@ class DashboardOverviewPage extends StatelessWidget {
     if (value.contains('user') || value.contains('akun')) {
       return Icons.manage_accounts_rounded;
     }
-    return Icons.grid_view_rounded;
+    return Icons.dashboard_customize_rounded;
   }
 
   Widget _moduleSheetItem(

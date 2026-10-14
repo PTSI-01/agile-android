@@ -26,6 +26,7 @@ import 'village_page.dart';
 import 'bongkaran_page.dart';
 import 'finance_page.dart';
 import 'dashboard_analytics_page.dart';
+import 'reports_page.dart';
 
 class ModulesPage extends StatefulWidget {
   final DashboardData? dashboard;
@@ -519,7 +520,12 @@ class ModulesPageState extends State<ModulesPage> {
     final u = x.url ?? '';
     final identity = '${x.code} ${x.title} $u'.toLowerCase();
     Widget? p;
-    if (u.contains('/dashboard/pembelian') ||
+    if (u.startsWith('/laporan/') ||
+        u.startsWith('/report/') ||
+        identity.contains('laporan ') ||
+        identity.contains(' report')) {
+      p = ReportsPage(title: x.title);
+    } else if (u.contains('/dashboard/pembelian') ||
         identity.contains('dashboard pembelian')) {
       p = const DashboardAnalyticsPage(
         kind: 'pembelian',

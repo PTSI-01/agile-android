@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import '../services/theme_service.dart';
 
 class ReportsPage extends StatelessWidget {
-  const ReportsPage({super.key});
+  final String title;
+
+  const ReportsPage({
+    super.key,
+    this.title = 'Laporan & Analisis',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +18,7 @@ class ReportsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Laporan & Analisis',
+          title,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,

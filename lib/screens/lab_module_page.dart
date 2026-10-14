@@ -269,8 +269,15 @@ class _LabModulePageState extends State<LabModulePage> {
   }
 
   Future<void> _action(Map<String, dynamic> row, bool approve) async {
-    final id = row['legal_number']?.toString();
-    if (id == null || id.isEmpty || widget.parameters) return;
+    final id = _approvalIdentifier(row);
+    if (id == null || widget.parameters) {
+      if (mounted && id == null && !widget.parameters) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Legal Number Lab tidak ditemukan.')),
+        );
+      }
+      return;
+    }
     try {
       await LabModuleService.action(
         widget.resource == 'lab-aktual' ? 'aktual' : 'incoming',
@@ -292,6 +299,18 @@ class _LabModulePageState extends State<LabModulePage> {
           SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
         );
     }
+  }
+
+  String? _approvalIdentifier(Map<String, dynamic> row) {
+    final legalNumber = row['legal_number'] ?? row['legalNumber'];
+    if (legalNumber != null && legalNumber.toString().trim().isNotEmpty) {
+      return legalNumber.toString().trim();
+    }
+    final id = row['id'];
+    if (id != null && id.toString().trim().isNotEmpty) {
+      return id.toString().trim();
+    }
+    return null;
   }
 
   Future<void> _createParameter([Map<String, dynamic>? existing]) async {

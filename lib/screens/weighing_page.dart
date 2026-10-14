@@ -74,11 +74,16 @@ class _WeighingPageState extends State<WeighingPage> {
       final uri = Uri.parse(
         '${ApiConfig.baseUrl}/v1/weighing/${widget.stage}/references',
       ).replace(queryParameters: {if (history) 'history': '1'});
-      final r = await http.get(
-        uri,
-        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $t'},
-      );
-      final b = jsonDecode(r.body);
+      final r = await http
+          .get(
+            uri,
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $t',
+            },
+          )
+          .timeout(const Duration(seconds: 20));
+      final b = _decodeResponse(r, 'Gagal memuat data timbangan');
       if (r.statusCode >= 400)
         throw Exception(b['message'] ?? 'Gagal memuat data');
       rows = ((b['data'] ?? []) as List)
@@ -119,15 +124,51 @@ class _WeighingPageState extends State<WeighingPage> {
   Future<void> input(Map<String, dynamic> row) async {
     final c = TextEditingController();
     final isIn = widget.stage == 'masuk';
+    final supplier = _rowValue(row, 'nama_supplier', 'supplier');
+    final item = _rowValue(row, 'nama_item', 'item');
+    final site = _rowValue(row, 'site_name', 'site');
+    final nopol = _rowValue(row, 'nopol_truk', 'nopol');
+    final tonaseSupplier = row['tonase_supplier'] ?? row['tonase'];
+    final reception = row['Penerimaan'] ?? row['penerimaan'];
+    final penerimaanCode = reception is Map
+        ? reception['legal_number']
+        : row['penerimaan_code'];
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(isIn ? 'Input Timbangan Masuk' : 'Input Timbangan Keluar'),
-        content: TextField(
-          controller: c,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(
-            labelText: isIn ? 'Tonase Awal' : 'Tonase Final AOL',
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Periksa data transaksi',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 10),
+              _detailRow('Nomor PO', row['kode_transaksi']),
+              _detailRow('Supplier', supplier),
+              _detailRow('Item', item),
+              _detailRow('Nomor Polisi', nopol),
+              _detailRow('Tonase Supplier', tonaseSupplier),
+              _detailRow('Site', site),
+              _detailRow('Nomor Penerimaan', penerimaanCode),
+              const Divider(height: 24),
+              TextField(
+                controller: c,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: isIn ? 'Tonase Awal' : 'Tonase Final AOL',
+                  hintText: 'Masukkan dalam ton',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         actions: [
@@ -142,15 +183,32 @@ class _WeighingPageState extends State<WeighingPage> {
         ],
       ),
     );
-    if (ok != true) return;
+    if (ok != true) {
+      c.dispose();
+      return;
+    }
     try {
+      final tonase = double.tryParse(c.text.replaceAll(',', '.'));
+      if (tonase == null || tonase <= 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tonase harus diisi lebih dari 0.')),
+          );
+        }
+        c.dispose();
+        return;
+      }
+      if (mounted) setState(() => loading = true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Menyimpan data timbangan...')),
+        );
+      }
       final t = await AuthService.getToken();
       final p = <String, dynamic>{
         'buyer_code': row['kode_transaksi'],
-        'penerimaan_code': row['Penerimaan'] is Map
-            ? row['Penerimaan']['legal_number']
-            : null,
-        'tonase_final_aol': double.tryParse(c.text),
+        'penerimaan_code': penerimaanCode,
+        'tonase_final_aol': tonase,
       };
       if (isIn)
         p['tonase_awal'] = p['tonase_final_aol'];
@@ -158,24 +216,103 @@ class _WeighingPageState extends State<WeighingPage> {
         p['tonase_akhir'] = p['tonase_final_aol'];
         p['tonase_aol'] = p['tonase_final_aol'];
       }
-      final r = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/v1/weighing/${widget.stage}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $t',
-        },
-        body: jsonEncode(p),
-      );
-      final b = jsonDecode(r.body);
+      final r = await http
+          .post(
+            Uri.parse('${ApiConfig.baseUrl}/v1/weighing/${widget.stage}'),
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $t',
+            },
+            body: jsonEncode(p),
+          )
+          .timeout(const Duration(seconds: 20));
+      final b = _decodeResponse(r, 'Gagal menyimpan data timbangan');
       if (r.statusCode >= 400)
         throw Exception(b['message'] ?? 'Gagal menyimpan');
-      load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              b['message']?.toString() ?? 'Data timbangan berhasil disimpan.',
+            ),
+          ),
+        );
+      }
+      await load();
     } catch (e) {
+      if (mounted) setState(() => loading = false);
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
         );
+    } finally {
+      c.dispose();
     }
+  }
+
+  String _rowValue(
+    Map<String, dynamic> row,
+    String directKey,
+    String relationKey,
+  ) {
+    final direct = row[directKey];
+    if (direct != null && direct.toString().trim().isNotEmpty) {
+      return direct.toString();
+    }
+    final relation = row[relationKey];
+    if (relation is Map) {
+      for (final key in [directKey, 'name', 'nama', 'full_name']) {
+        final value = relation[key];
+        if (value != null && value.toString().trim().isNotEmpty) {
+          return value.toString();
+        }
+      }
+    }
+    return '-';
+  }
+
+  Widget _detailRow(String label, dynamic value) {
+    final text = value == null || value.toString().trim().isEmpty
+        ? '-'
+        : value.toString();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 118,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ),
+          const Text(': ', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic> _decodeResponse(
+    http.Response response,
+    String fallback,
+  ) {
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map) return decoded.cast<String, dynamic>();
+    } catch (_) {
+      throw Exception(
+        '$fallback (HTTP ${response.statusCode}). Server tidak mengembalikan JSON.',
+      );
+    }
+    throw Exception('$fallback (HTTP ${response.statusCode}).');
   }
 
   @override

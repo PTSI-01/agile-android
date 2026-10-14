@@ -255,77 +255,194 @@ class _FinancePageState extends State<FinancePage> {
     final status = row['status_finance']?.toString() ?? '0';
     final statusColor = status == '1' ? Color(0xFF1F7A2E) : Color(0xFFA66F00);
 
+    final transactionStatus =
+        int.tryParse(
+          (row['status_transaksi'] ?? buyer['status_transaksi'] ?? '0')
+              .toString(),
+        ) ??
+        0;
+    final action = transactionStatus == 8
+        ? 'validate'
+        : (transactionStatus == 9 ? 'verify' : null);
     return Material(
       color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Color(0xFFE9EDE5)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Color(0xFFE3EBD9),
-                  child: Icon(
-                    Icons.account_balance_wallet_rounded,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    _value(row, 'legal_number'),
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
+      child: InkWell(
+        onTap: () => _detail(row),
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Color(0xFFE9EDE5)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Color(0xFFE3EBD9),
+                    child: Icon(
+                      Icons.account_balance_wallet_rounded,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _value(row, 'legal_number'),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      status == '1' ? 'Approved' : 'Proses',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: statusColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              _info('Buyer', _value(row, 'buyer_code')),
+              _info('Supplier', supply),
+              _info('Potongan PPH', _value(row, 'potong_pph')),
+              _info('Total Harga', _value(row, 'total_harga')),
+              _info('Net L/R', _value(row, 'net_laba_rugi')),
+              if (_can('update') && action != null)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: FilledButton.icon(
+                      onPressed: () => _action(row, action),
+                      icon: Icon(Icons.check_circle_rounded),
+                      label: Text('Approval'),
+                    ),
                   ),
                 ),
-                SizedBox(width: 8),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    status == '1' ? 'Approved' : 'Proses',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: statusColor,
-                    ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _action(Map<String, dynamic> row, String action) async {
+    try {
+      await FinanceService.action(row['id'].toString(), action);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            action == 'validate'
+                ? 'Validasi Finance berhasil.'
+                : 'Verifikasi Finance berhasil.',
+          ),
+        ),
+      );
+      _load();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    }
+  }
+
+  void _detail(Map<String, dynamic> row) {
+    final buyer = row['buyer'] is Map
+        ? Map<String, dynamic>.from(row['buyer'])
+        : <String, dynamic>{};
+    final lab = row['lab_aktual'] is Map
+        ? Map<String, dynamic>.from(row['lab_aktual'])
+        : <String, dynamic>{};
+    final incoming = buyer['lab_incoming'] is Map
+        ? Map<String, dynamic>.from(buyer['lab_incoming'])
+        : <String, dynamic>{};
+    final penerimaan = buyer['penerimaan'] is Map
+        ? Map<String, dynamic>.from(buyer['penerimaan'])
+        : (row['penerimaan'] is Map
+              ? Map<String, dynamic>.from(row['penerimaan'])
+              : <String, dynamic>{});
+    final bongkaran = buyer['bongkaran'] is Map
+        ? Map<String, dynamic>.from(buyer['bongkaran'])
+        : <String, dynamic>{};
+    final values = <String, dynamic>{
+      'Legal Number Finance': row['legal_number'],
+      'Nomor PO': row['buyer_code'] ?? buyer['kode_transaksi'],
+      'Supplier': buyer['nama_supplier'],
+      'Site': buyer['site_name'],
+      'Status PO': buyer['status_transaksi'],
+      'Approval PO': buyer['approval_at'],
+      'Nomor Penerimaan': row['penerimaan_code'] ?? penerimaan['legal_number'],
+      'Status Penerimaan': penerimaan['status_penerimaan'],
+      'Nomor Lab Incoming': incoming['legal_number'],
+      'Status Lab Incoming': incoming['status_lab'],
+      'Nomor Bongkaran': bongkaran['legal_number'],
+      'Status Bongkaran': bongkaran['status_bongkar'],
+      'Nomor Lab Aktual': row['lab_code'] ?? lab['legal_number'],
+      'Status Lab Aktual': lab['status_lab'],
+      'Aksi Harga': row['aksi_harga'],
+      'Harga Beli Gabah': lab['plan_harga_beli_gabah'],
+      'Potongan PPH': row['potong_pph'],
+      'Total Harga': row['total_harga'],
+      'Net Laba/Rugi': row['net_laba_rugi'],
+      'Status Finance': row['status_finance'],
+      'Status Approval': row['status_approval'],
+      'Disetujui Pada': row['approved_at'],
+    };
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Detail Finance',
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 16),
+                ...values.entries
+                    .where(
+                      (e) =>
+                          e.value != null &&
+                          e.value.toString().isNotEmpty &&
+                          e.value.toString() != 'null',
+                    )
+                    .map((e) => _info(e.key, e.value.toString())),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Tutup'),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
-            _info('Buyer', _value(row, 'buyer_code')),
-            _info('Supplier', supply),
-            _info('Potongan PPH', _value(row, 'potong_pph')),
-            _info('Total Harga', _value(row, 'total_harga')),
-            _info('Net L/R', _value(row, 'net_laba_rugi')),
-            if (_can('update'))
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: EdgeInsets.only(top: 8),
-                  child: FilledButton.icon(
-                    onPressed: () {},
-                    icon: Icon(Icons.check_circle_rounded),
-                    label: Text('Approval'),
-                  ),
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );

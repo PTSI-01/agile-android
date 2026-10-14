@@ -40,6 +40,18 @@ class FinanceService {
         .toList();
   }
 
+  static Future<void> action(String id, String action) async {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/v1/transactions/finance/$id/action'),
+      headers: {...await _headers(), 'Content-Type': 'application/json'},
+      body: jsonEncode({'action': action}),
+    );
+    final body = _responseMap(response, 'Aksi Finance gagal disimpan');
+    if (response.statusCode >= 400 || body['success'] != true) {
+      throw Exception(_message(body, 'Aksi Finance gagal disimpan'));
+    }
+  }
+
   static Map<String, dynamic> _responseMap(
     http.Response response,
     String fallback,

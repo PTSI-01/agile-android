@@ -86,9 +86,9 @@ class LabModuleService {
   static Future<void> action(String stage, String id, {required bool approve}) async {
     final token = await AuthService.getToken();
     final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/v1/lab-approvals/$stage/$id'),
+      Uri.parse('${ApiConfig.baseUrl}/v1/lab-approvals/$stage'),
       headers: {'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
-      body: jsonEncode({'aksi_lab': approve ? 1 : 5}),
+      body: jsonEncode({'id': id, 'aksi_lab': approve ? 1 : 5}),
     );
     final body = jsonDecode(response.body);
     if (response.statusCode >= 400) throw Exception(body['message'] ?? 'Aksi lab gagal disimpan');

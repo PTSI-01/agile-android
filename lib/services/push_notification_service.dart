@@ -8,7 +8,11 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../firebase_options.dart';
 import '../screens/purchase_page.dart';
+import '../screens/purchase_approval_page.dart';
 import '../screens/bongkaran_page.dart';
+import '../screens/finance_page.dart';
+import '../screens/lab_module_page.dart';
+import '../screens/weighing_page.dart';
 import 'auth_service.dart';
 
 @pragma('vm:entry-point')
@@ -88,8 +92,20 @@ class PushNotificationService {
       navigator.push(MaterialPageRoute(
         builder: (_) => PurchasePage(initialPurchaseId: id),
       ));
+    } else if (type == 'timbangan_masuk') {
+      navigator.push(MaterialPageRoute(builder: (_) => const WeighingPage(stage: 'masuk')));
+    } else if (type == 'timbangan_keluar') {
+      navigator.push(MaterialPageRoute(builder: (_) => const WeighingPage(stage: 'keluar')));
     } else if (type == 'bongkaran') {
       navigator.push(MaterialPageRoute(builder: (_) => const BongkaranPage()));
+    } else if (type == 'lab_incoming' || type == 'lab_incoming_input') {
+      navigator.push(MaterialPageRoute(builder: (_) => const LabModulePage(title: 'Lab Incoming', resource: 'lab-incoming')));
+    } else if (type == 'lab_aktual') {
+      navigator.push(MaterialPageRoute(builder: (_) => const LabModulePage(title: 'Lab Aktual', resource: 'lab-aktual')));
+    } else if (type == 'approval_pembelian') {
+      navigator.push(MaterialPageRoute(builder: (_) => const PurchaseApprovalPage()));
+    } else if (type == 'finance_validate' || type == 'finance_verify' || type == 'finance_done') {
+      navigator.push(MaterialPageRoute(builder: (_) => const FinancePage()));
     }
   }
 
